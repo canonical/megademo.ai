@@ -268,7 +268,7 @@ exports.create = async (req, res) => {
 exports.detail = async (req, res) => {
   const project = await Project.findOne({ slug: req.params.slug })
     .populate('owner', 'profile.name profile.picture email')
-    .populate('team', 'profile.name profile.picture email canonicalTeam');
+    .populate('team', 'profile.name profile.picture email');
 
   if (!project) {
     return res.status(404).render('error', { title: 'Not Found', message: 'Project not found.', user: req.user || null });
@@ -551,11 +551,6 @@ exports.joinProject = async (req, res) => {
     if (!project.team.some((id) => id.toString() === userId)) {
       project.team.push(req.user._id);
       await project.save();
-    }
-
-    // Auto-update user's canonicalTeam if unset and project has one
-    if (!req.user.canonicalTeam && project.canonicalTeam) {
-      await User.findByIdAndUpdate(req.user._id, { canonicalTeam: project.canonicalTeam });
     }
 
     res.json({ success: true, memberCount: project.team.length });

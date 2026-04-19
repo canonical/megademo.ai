@@ -14,11 +14,6 @@ const userSchema = new mongoose.Schema(
       default: 'participant',
     },
 
-    canonicalTeam: {
-      type: String,
-      default: null,
-    },
-
     profile: {
       name: String,
       picture: String,

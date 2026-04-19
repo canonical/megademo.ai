@@ -36,13 +36,6 @@ block content
                     input(type='radio', name='role', value='admin')
                     span Admin
 
-              .mb-4
-                label.md-label Canonical Team (optional)
-                select.md-select(name='team')
-                  option(value='') -- None --
-                  each team in ['Ubuntu', 'Juju', 'Launchpad', 'MAAS', 'LXD', 'Snap/Snapcraft', 'Charmhub', 'Security', 'IS', 'Kernel', 'Desktop', 'Server', 'Cloud', 'AI/ML', 'Other']
-                    option(value=team)= team
-
               button.btn.btn-neon-cyan.w-100(type='submit') Sign In (Dev)
 
             .text-center.mt-3

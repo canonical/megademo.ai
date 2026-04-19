@@ -40,7 +40,7 @@ exports.project = async (req, res, next) => {
   try {
     const project = await Project.findOne({ slug: req.params.slug, status: 'finalist' })
       .populate('owner', 'profile.name profile.picture')
-      .populate('team', 'profile.name profile.picture canonicalTeam');
+      .populate('team', 'profile.name profile.picture');
 
     if (!project) return res.status(404).render('error', { title: 'Not Found', message: 'Project not found.' });
 

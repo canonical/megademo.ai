@@ -11,7 +11,6 @@ block content
         th Avatar
         th Name
         th Email
-        th Team
         th Role
         th Actions
     tbody
@@ -22,14 +21,15 @@ block content
               img.avatar-sm(src=u.profile.picture, alt=u.profile.name || 'avatar')
           td= u.profile && u.profile.name ? u.profile.name : '—'
           td= u.email
-          td= u.canonicalTeam || '—'
           td
             span(class='role-badge role-' + u.role)= u.role
           td
             .role-controls(data-user-id=u._id, data-csrf=_csrf)
               if u._id.toString() !== user._id.toString()
-                button.btn.btn-xs.btn-neon-outline(type='button', onclick='setRole(this)', data-role='participant') Participant
-                button.btn.btn-xs.btn-outline-danger.ms-1(type='button', onclick='setRole(this)', data-role='admin') Admin
+                if u.role !== 'admin'
+                  button.btn.btn-xs.btn-neon-outline(type='button', onclick='setRole(this)', data-role='admin') Admin
+                if u.role !== 'participant'
+                  button.btn.btn-xs.btn-neon-outline(type='button', onclick='setRole(this)', data-role='participant') Participant
               else
                 span.small.text-muted (you)
 
@@ -37,11 +37,15 @@ block scripts
   script.
     async function setRole(btn) {
       const row = btn.closest('.role-controls');
-      const res = await fetch('/admin/users/' + row.dataset.userId + '/role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-csrf-token': row.dataset.csrf },
-        body: JSON.stringify({ role: btn.dataset.role })
-      });
-      if (res.ok) location.reload();
-      else alert('Failed to update role. Please try again.');
+      try {
+        const res = await fetch('/admin/users/' + row.dataset.userId + '/role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-csrf-token': row.dataset.csrf },
+          body: JSON.stringify({ role: btn.dataset.role })
+        });
+        if (res.ok) location.reload();
+        else alert('Failed to update role. Please try again.');
+      } catch {
+        alert('Network error. Please try again.');
+      }
     }

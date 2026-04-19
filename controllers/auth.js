@@ -131,7 +131,7 @@ exports.devLogin = async (req, res, next) => {
   }
   const ALLOWED_ROLES = ['participant', 'admin', 'organizer'];
   try {
-    const { handle = 'dev-user', role = 'participant', team = null } = req.body;
+    const { handle = 'dev-user', role = 'participant' } = req.body;
     if (!handle || typeof handle !== 'string' || handle.length > 50 || !/^[\w-]+$/.test(handle)) {
       return res.status(400).render('error', { title: 'Invalid Input', message: 'Invalid handle.' });
     }
@@ -146,13 +146,11 @@ exports.devLogin = async (req, res, next) => {
         github: `dev-${handle}`,
         githubLogin: handle,
         role,
-        canonicalTeam: team || null,
         profile: { name: handle, picture: '' },
       });
       await user.save();
     } else {
       user.role = role;
-      if (team) user.canonicalTeam = team;
       await user.save();
     }
     req.logIn(user, (err) => {
