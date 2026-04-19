@@ -1,0 +1,38 @@
+// Project card partial — include with 'project' in scope
+// Optional: set mineActions=true before including to show Edit/Submit/Leave at bottom
+.project-card(class=(project.status === 'finalist' ? 'finalist' : ''), style='--liveliness: ' + (project.liveliness || 0))
+  if project.status === 'finalist'
+    .finalist-badge FINALIST
+  .card-inner
+    .card-header-row
+      if project.logo
+        img.project-logo(src=project.logo, alt=project.title + ' logo')
+      .card-titles
+        a.project-title(href='/projects/' + project.slug)= project.title
+        .project-meta
+          span.category-tag= project.category
+          span.team-tag= project.canonicalTeam
+    .card-rating
+      span.avg-rating= Number.isFinite(project.avgRating) ? project.avgRating.toFixed(1) : '—'
+      span.star-icon ★
+      - var vc = project.voteCount || 0
+      span.vote-count (#{vc} #{vc === 1 ? 'vote' : 'votes'})
+    if project.aiTools && project.aiTools.length
+      .ai-tools-row
+        each tool in project.aiTools.slice(0, 3)
+          span.ai-tool-tag= tool
+  if mineActions
+    .card-mine-actions
+      span(class='status-badge status-' + (project.status || 'draft'))= (project.status || 'draft').toUpperCase()
+      .card-mine-btns
+        a.btn.btn-xs.btn-neon-outline(href='/projects/' + project._id + '/edit') Edit
+        if project.status === 'draft'
+          form.d-inline(method='POST', action='/projects/' + project._id)
+            input(type='hidden', name='_csrf', value=_csrf)
+            input(type='hidden', name='status', value='submitted')
+            button.btn.btn-xs.btn-neon-cyan(type='submit') Submit
+        - var isOwnerCard = project.owner && project.owner._id && user && user._id && project.owner._id.toString() === user._id.toString()
+        if !isOwnerCard
+          form.join-leave-form.d-inline(method='POST', action='/projects/' + project._id + '/leave')
+            input(type='hidden', name='_csrf', value=_csrf)
+            button.btn.btn-xs.btn-neon-outline(type='submit') Leave

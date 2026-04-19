@@ -1,0 +1,222 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text REGISTER PROJECT
+    p.lead Tell us about your AI experiment
+
+  form#project-form(method='POST', action='/projects', data-dirty-guard)
+    input(type='hidden', name='_csrf', value=_csrf)
+
+    if errors && errors.length
+      .alert.alert-danger
+        each e in errors
+          div= e.msg
+
+    // Step 1: Category
+    .form-section
+      h2.form-step-title
+        span.step-num 01
+        |  CHOOSE YOUR CATEGORY
+      .category-grid
+        each cat in CATEGORIES
+          label.category-card(class=(project.category === cat ? 'selected' : ''))
+            input(type='radio', name='category', value=cat, required, checked=(project.category === cat))
+            .cat-icon= cat.charAt(0)
+            .cat-name= cat
+
+    // Step 2: Details
+    .form-section
+      h2.form-step-title
+        span.step-num 02
+        |  PROJECT DETAILS
+
+      .mb-3
+        label.md-label Title
+        input.md-input(type='text', name='title', value=(project.title || ''), required, maxlength=100, placeholder='Your awesome project name')
+
+      .mb-3
+        label.md-label Canonical Team / Product Area
+        select.md-select#canonicalTeamSelect(name='canonicalTeam', required, onchange='toggleCustomTeam(this.value)')
+          option(value='') -- Select team --
+          each team in CANONICAL_TEAMS
+            option(value=team, selected=(project.canonicalTeam === team)) #{team}
+          option(value='Other', selected=(project.canonicalTeam && !CANONICAL_TEAMS.includes(project.canonicalTeam))) Other (custom)
+        input#customTeamInput.md-input.mt-2(type='text', name='customTeam',
+          value=(project.canonicalTeam && !CANONICAL_TEAMS.includes(project.canonicalTeam) ? project.canonicalTeam : ''),
+          placeholder='Enter custom team name',
+          style='display:none')
+
+      .mb-3
+        label.md-label Description
+        p.form-hint Describe what your project does, the problem it solves, and how AI is used. Markdown supported.
+        textarea.md-textarea#description-editor(name='description', rows=8, required, placeholder='Template text will appear when you select a category above...')= project.description || ''
+
+      .mb-3
+        label.md-label AI Tools Used
+        .checkbox-grid
+          each tool in AI_TOOLS.filter(t => t !== 'Other')
+            label.checkbox-item
+              input(type='checkbox', name='aiTools', value=tool,
+                checked=(project.aiTools && project.aiTools.includes(tool)))
+              span= tool
+          label.checkbox-item
+            input(type='checkbox', name='aiTools', value='Other',
+              checked=(project.aiTools && project.aiTools.includes('Other')))
+            span Other
+        .mt-2#aiToolOtherWrap(style=(project.aiTools && project.aiTools.some(t => !AI_TOOLS.includes(t)) ? '' : 'display:none'))
+          input#aiToolOtherInput.md-input(type='text', name='aiToolOther',
+            value=(project.aiTools ? project.aiTools.find(t => !AI_TOOLS.includes(t)) || '' : ''),
+            placeholder='Name of custom AI tool')
+
+      .mb-3
+        label.md-label Tech Stack Tags
+        .tech-stack-panel.mb-2
+          p.form-hint.mb-2 Select common technologies:
+          .tech-tags-columns
+            each tech in TECH_STACK_DEFAULTS
+              label.tech-tag-check
+                input.tech-stack-checkbox(type='checkbox', data-tech=tech,
+                  checked=(project.techStack && project.techStack.some(t => t.toLowerCase() === tech.toLowerCase())))
+                | #{tech}
+        datalist#techstack-list
+          each tech in TECH_STACK_DEFAULTS
+            option(value=tech)
+        input.md-input#techStackInput(type='text', name='techStack', list='techstack-list',
+          value=(project.techStack ? project.techStack.join(', ') : ''), placeholder='python, fastapi, langchain (comma-separated)')
+        p.form-hint.mt-1 Checkboxes above add to the field. You can also type custom tags.
+
+      .mb-3
+        label.md-label Completion Stage
+        .radio-row
+          each stage in COMPLETION_STAGES
+            label.radio-item
+              input(type='radio', name='completionStage', value=stage, checked=(project.completionStage === stage || (!project.completionStage && stage === 'prototype')))
+              span= stage.charAt(0).toUpperCase() + stage.slice(1)
+
+    // Step 3: Links
+    .form-section
+      h2.form-step-title
+        span.step-num 03
+        |  LINKS &amp; REPO (optional now)
+
+      .mb-3
+        label.md-label Repository URL(s)
+        input.md-input(type='url', name='repoLinks', value=(project.repoLinks ? project.repoLinks[0] : ''), placeholder='https://github.com/canonical/...')
+
+      .mb-3
+        label.md-label Live Demo URL
+        input.md-input(type='url', name='demoUrl', value=(project.demoUrl || ''), placeholder='https://...')
+
+      .mb-3
+        label.md-label Slides URL
+        input.md-input(type='url', name='slidesUrl', value=(project.slidesUrl || ''), placeholder='https://docs.google.com/presentation/...')
+
+    // Step 4: Team members
+    .form-section
+      h2.form-step-title
+        span.step-num 04
+        |  TEAM MEMBERS
+        span.step-optional  (optional)
+
+      p.form-hint
+        | Add colleagues by their @canonical.com email (comma-separated). They must have logged in at least once.
+        br
+        | 💡 Alternatively, just share the project link — team members can click
+        strong  "+ Join Project"
+        |  themselves once signed in.
+
+      .mb-3
+        label.md-label Colleague emails
+        input.md-input(type='text', name='teamEmails',
+          placeholder='alice@canonical.com, bob@canonical.com',
+          value=(project.teamEmails || ''))
+        p.form-hint.mt-1 Separate multiple emails with commas. Unrecognised addresses are skipped.
+
+    // Step 5: Media
+    .form-section
+      h2.form-step-title
+        span.step-num 05
+        |  MEDIA
+        span.step-optional  (optional)
+
+      p.form-hint.mb-3
+        | Add an asciinema cast or video now, or later from the project page.
+        | Logo and file uploads are available after saving.
+
+      .mb-3
+        label.md-label Asciinema Cast ID
+        input.md-input(type='text', name='asciinemaId',
+          placeholder='e.g. abc123 from asciinema.org/a/abc123',
+          value=(project.asciinemaId || ''))
+        input.md-input.mt-2(type='text', name='asciinemaTitle',
+          placeholder='Cast title (optional)',
+          value=(project.asciinemaTitle || ''))
+
+      .mb-3
+        label.md-label Video URL (YouTube or Vimeo)
+        input.md-input(type='url', name='videoUrl',
+          placeholder='https://www.youtube.com/watch?v=...',
+          value=(project.videoUrl || ''))
+        input.md-input.mt-2(type='text', name='videoTitle',
+          placeholder='Video title (optional)',
+          value=(project.videoTitle || ''))
+
+    .form-actions
+      button.btn.btn-neon-outline(type='submit', name='action', value='draft') Save as Draft
+      button.btn.btn-neon-cyan.ms-3(type='submit', name='action', value='continue') Submit
+
+block scripts
+  script.
+    // Fill description template on category select
+    const templates = !{safeJson(CATEGORY_TEMPLATES)};
+    document.querySelectorAll('input[name="category"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const desc = document.getElementById('description-editor');
+        if (!desc.value || desc.value === desc.dataset.lastTemplate) {
+          desc.value = templates[radio.value] || '';
+          desc.dataset.lastTemplate = desc.value;
+        }
+      });
+    });
+    // Highlight selected category card
+    document.querySelectorAll('.category-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+    });
+    // Toggle custom team input
+    function toggleCustomTeam(val) {
+      document.getElementById('customTeamInput').style.display = val === 'Other' ? '' : 'none';
+    }
+    toggleCustomTeam(document.getElementById('canonicalTeamSelect').value);
+    // Toggle custom AI tool input when "Other" checkbox is checked
+    function syncAiOtherVisibility() {
+      const otherChecked = Array.from(document.querySelectorAll('input[name="aiTools"]'))
+        .some(cb => cb.value === 'Other' && cb.checked);
+      document.getElementById('aiToolOtherWrap').style.display = otherChecked ? '' : 'none';
+    }
+    document.querySelectorAll('input[name="aiTools"]').forEach(cb =>
+      cb.addEventListener('change', syncAiOtherVisibility));
+    syncAiOtherVisibility();
+    // Sync tech stack checkboxes to the text input (case-insensitive)
+    document.querySelectorAll('.tech-stack-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const input = document.getElementById('techStackInput');
+        const tech = cb.dataset.tech;
+        const lower = tech.toLowerCase();
+        const current = input.value.split(',').map(t => t.trim()).filter(Boolean);
+        if (cb.checked && !current.some(t => t.toLowerCase() === lower)) current.push(tech);
+        else if (!cb.checked) { const i = current.findIndex(t => t.toLowerCase() === lower); if (i > -1) current.splice(i, 1); }
+        input.value = current.join(', ');
+      });
+    });
+    // Require at least one AI tool before submit
+    document.getElementById('project-form').addEventListener('submit', function(e) {
+      const checked = this.querySelectorAll('input[type="checkbox"][name="aiTools"]:checked');
+      if (!checked.length) {
+        e.preventDefault();
+        alert('Please select at least one AI tool used in your project.');
+      }
+    });

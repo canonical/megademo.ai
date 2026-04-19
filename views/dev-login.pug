@@ -1,0 +1,51 @@
+extends layout
+
+block content
+  .container.py-5
+    .row.justify-content-center
+      .col-md-5
+        .card.md-card
+          .card-body.p-4
+            .text-center.mb-4
+              span.badge.bg-warning.text-dark.mb-2 DEV ONLY — not available in production
+              h2.pixel-text.mb-0 Dev Login
+
+            include partials/flash
+
+            p.text-muted.small.mb-4
+              | Creates (or updates) a test user and logs you in without GitHub OAuth.
+              | Useful for local development when the OAuth callback URL doesn't match.
+
+            form(method='POST', action='/auth/dev-login')
+              input(type='hidden', name='_csrf', value=_csrf)
+
+              .mb-3
+                label.md-label GitHub Handle
+                input.md-input(type='text', name='handle', value='dev-user', required,
+                  placeholder='e.g. dev-user', pattern='[a-zA-Z0-9_-]+',
+                  title='Alphanumeric, hyphens and underscores only')
+                p.form-hint Email will be &lt;handle&gt;@canonical.com
+
+              .mb-3
+                label.md-label Role
+                .radio-row.mt-1
+                  label.radio-item
+                    input(type='radio', name='role', value='participant', checked)
+                    span Participant
+                  label.radio-item
+                    input(type='radio', name='role', value='admin')
+                    span Admin
+
+              .mb-4
+                label.md-label Canonical Team (optional)
+                select.md-select(name='team')
+                  option(value='') -- None --
+                  each team in ['Ubuntu', 'Juju', 'Launchpad', 'MAAS', 'LXD', 'Snap/Snapcraft', 'Charmhub', 'Security', 'IS', 'Kernel', 'Desktop', 'Server', 'Cloud', 'AI/ML', 'Other']
+                    option(value=team)= team
+
+              button.btn.btn-neon-cyan.w-100(type='submit') Sign In (Dev)
+
+            .text-center.mt-3
+              small.text-muted
+                | Multiple handles = multiple test accounts.
+                | All dev accounts are real DB records — safe to use with a local MongoDB.

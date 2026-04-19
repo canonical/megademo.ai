@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: megademo-ai
+    runtime: node
+    region: frankfurt
+    plan: starter
+    branch: main
+    buildCommand: npm ci && npm run scss
+    startCommand: node app.js
+    healthCheckPath: /
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: BASE_URL
+        value: https://megademo.ai
+
+      - key: KIOSK_INTERVAL
+        value: "30"
+
+      - key: SUMMARY_CRON
+        value: "0 8,12,17 * * *"
+
+      - key: RATE_LIMIT_GLOBAL
+        value: "500"
+
+      - key: RATE_LIMIT_AUTH
+        value: "20"
+
+      # Secrets
+      - key: MONGODB_URI
+        sync: false
+
+      - key: SESSION_SECRET
+        sync: false
+
+      - key: GITHUB_CLIENT_ID
+        sync: false
+
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+
+      # Optional
+      - key: GITHUB_TOKEN
+        sync: false
+
+      - key: MATTERMOST_WEBHOOK_URL
+        sync: false
+
+      # @canonical.com email sign-in fallback
+      - key: ALLOW_CANONICAL_EMAIL_FALLBACK
+        value: "false"

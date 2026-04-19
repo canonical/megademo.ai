@@ -1,0 +1,190 @@
+extends ../layout
+
+block head
+  if project.logo
+    meta(property='og:image', content=project.logo)
+
+block content
+  .project-detail
+    // Header
+    .project-detail-header
+      .detail-badges
+        span.category-badge= project.category
+        if project.status !== 'finalist'
+          span(class='status-badge status-' + (project.status || 'draft'))= (project.status || 'draft').toUpperCase()
+        if project.status === 'finalist'
+          span.finalist-badge-lg 🏆 FINALIST
+      .detail-title-row
+        if project.logo
+          img.project-logo-lg(src=project.logo, alt=project.title + ' logo')
+        div
+          h1.detail-title.pixel-text= project.title
+          .detail-meta-rows
+            if project.completionStage
+              .detail-meta-row
+                span.meta-label Completion stage:
+                span.meta-value= project.completionStage.charAt(0).toUpperCase() + project.completionStage.slice(1)
+            if project.aiTools && project.aiTools.length
+              .detail-meta-row
+                span.meta-label AI tools:
+                .meta-tags
+                  each tool in project.aiTools
+                    span.ai-tool-tag= tool
+            if project.canonicalTeam
+              .detail-meta-row
+                span.meta-label Canonical team:
+                span.meta-value= project.canonicalTeam
+            if project.team && project.team.length
+              .detail-meta-row.detail-team
+                span.meta-label Team members:
+                each member in project.team
+                  span.team-member
+                    - var displayName = member.profile && member.profile.name ? member.profile.name : member.email
+                    if member.profile && member.profile.picture
+                      img.avatar-xs(src=member.profile.picture, alt=displayName)
+                    span= displayName
+      if isOwner
+        .detail-actions
+          a.btn.btn-neon-outline.btn-sm(href='/projects/' + project._id + '/edit') Edit Project
+          if project.status === 'draft'
+            form(method='POST', action='/projects/' + project._id, style='display:inline')
+              input(type='hidden', name='_csrf', value=_csrf)
+              input(type='hidden', name='status', value='submitted')
+              button.btn.btn-neon-cyan.btn-sm(type='submit') Submit Project
+      else if isMember
+        .detail-actions
+          a.btn.btn-neon-outline.btn-sm(href='/projects/' + project._id + '/edit') Edit Project
+          form.join-leave-form(method='POST', action='/projects/' + project._id + '/leave', style='display:inline')
+            input(type='hidden', name='_csrf', value=_csrf)
+            button.btn.btn-neon-outline.btn-sm(type='submit') Leave Project
+      else if user
+        .detail-actions
+          form.join-leave-form(method='POST', action='/projects/' + project._id + '/join', style='display:inline')
+            input(type='hidden', name='_csrf', value=_csrf)
+            button.btn.btn-neon-outline.btn-sm(type='submit') + Join Project
+      else
+        .detail-actions
+          a.btn.btn-neon-outline.btn-sm(href=loginUrl)
+            i.fab.fa-github
+            |  Sign in to join this project
+
+    .row.mt-4
+      .col-lg-8
+        // Description
+        section.detail-section
+          h3.section-label DESCRIPTION
+          .project-description!= project.descriptionHtml
+
+        // Asciinema demos
+        if project.asciinema && project.asciinema.length
+          section.detail-section
+            h3.section-label TERMINAL DEMOS
+            each cast in project.asciinema
+              .asciinema-wrapper
+                if cast.title
+                  p.media-title= cast.title
+                div(id='asciinema-' + cast.castId)
+
+        // Video demos
+        if project.videos && project.videos.length
+          section.detail-section
+            h3.section-label VIDEO DEMOS
+            each video in project.videos
+              .video-wrapper
+                if video.title
+                  p.media-title= video.title
+                if video.type === 'youtube'
+                  iframe(src='https://www.youtube-nocookie.com/embed/' + video.url.replace(/.*v=/, '').replace(/&.*/, ''),
+                    frameborder='0', allowfullscreen, loading='lazy')
+                else if video.type === 'vimeo'
+                  - const vimeoId = video.url.match(/vimeo\.com\/(\d+)/)?.[1]
+                  if vimeoId
+                    iframe(src='https://player.vimeo.com/video/' + vimeoId,
+                      frameborder='0', allowfullscreen, loading='lazy')
+
+        // Links
+        if project.repoLinks && project.repoLinks.length || project.demoUrl || project.slidesUrl
+          section.detail-section
+            h3.section-label LINKS
+            .links-grid
+              each link in (project.repoLinks || [])
+                a.md-link(href=link, target='_blank', rel='noopener')
+                  i.fab.fa-github
+                  |  #{link.replace('https://github.com/', '')}
+              if project.demoUrl
+                a.md-link(href=project.demoUrl, target='_blank', rel='noopener')
+                  i.fas.fa-external-link-alt
+                  |  Live Demo
+              if project.slidesUrl
+                a.md-link(href=project.slidesUrl, target='_blank', rel='noopener')
+                  i.fas.fa-file-powerpoint
+                  |  Slides
+
+        // GitHub stats
+        if project.githubStats && project.githubStats.length
+          section.detail-section
+            h3.section-label GITHUB ACTIVITY
+            each stat in project.githubStats
+              .github-stat-row
+                span.repo-name= stat.repoUrl.replace('https://github.com/', '')
+                span.github-badge
+                  i.fas.fa-star
+                  |  #{stat.stars}
+                if stat.lastCommit
+                  span.github-badge
+                    i.fas.fa-code-commit
+                    |  #{new Date(stat.lastCommit).toLocaleDateString()}
+                if stat.openPRs
+                  span.github-badge
+                    i.fas.fa-code-pull-request
+                    |  #{stat.openPRs} open PRs
+
+      // Sidebar: voting
+      .col-lg-4
+        if user
+          .vote-panel
+            h3.section-label VOTE
+            p.vote-question How awesome is this?
+            .star-voting(data-project-id=project._id, data-csrf=_csrf)
+              each n in [1, 2, 3, 4, 5]
+                button.star-btn(type='button', data-stars=n, class=(userVote && userVote >= n ? 'active' : ''))
+                  span ★
+            .vote-stats
+              span.vote-avg#vote-avg= project.avgRating ? project.avgRating.toFixed(1) : '—'
+              span  ★ average
+              span.vote-count-label#vote-count  (#{project.voteCount} #{project.voteCount === 1 ? 'vote' : 'votes'})
+            if userVote
+              p.your-vote Your vote: #{userVote} ★
+        else
+          .vote-panel
+            h3.section-label VOTE
+            .vote-stats
+              span.vote-avg= project.avgRating ? project.avgRating.toFixed(1) : '—'
+              span  ★ average
+              span.vote-count-label  (#{project.voteCount} #{project.voteCount === 1 ? 'vote' : 'votes'})
+            p.text-muted.small.mt-2
+              a(href=loginUrl) Sign in
+              |  to cast your vote.
+
+        if project.techStack && project.techStack.length
+          .tech-stack-panel
+            h3.section-label TECH STACK
+            .tech-tags
+              each tag in project.techStack
+                span.tech-tag= tag
+
+block scripts
+  if project.asciinema && project.asciinema.length
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/asciinema-player@3.15.1/dist/bundle/asciinema-player.css')
+    script(src='https://cdn.jsdelivr.net/npm/asciinema-player@3.15.1/dist/bundle/asciinema-player.min.js', defer)
+    script.
+      window.addEventListener('load', function() {
+        function parseCastId(s) {
+          var m = (s || '').match(/(?:asciinema\.org\/a\/)([A-Za-z0-9]+)/);
+          return m ? m[1] : s;
+        }
+        for (const cast of !{safeJson(project.asciinema)}) {
+          const id = parseCastId(cast.castId);
+          AsciinemaPlayer.create('https://asciinema.org/a/' + id + '.cast', document.getElementById('asciinema-' + cast.castId), { fit: 'width', theme: 'solarized-dark' });
+        }
+      });

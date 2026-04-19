@@ -1,0 +1,105 @@
+extends ../layout
+
+block content
+  .container.py-4
+    .page-header
+      h1.pixel-text MANAGE TAGS &amp; AI TOOLS
+      a.btn.btn-neon-outline(href='/admin') &lt;- Admin Dashboard
+
+    p.text-muted.mb-4 Manage predefined options for projects. Tags and AI tools used by at least one project cannot be deleted — rename them instead.
+
+    .row.g-4
+      // AI Tools column
+      .col-md-6
+        .card.md-card.mb-3
+          .card-body
+            h5.mb-3 Add AI Tool
+            form(method='POST', action='/admin/tags/ai-tools')
+              input(type='hidden', name='_csrf', value=_csrf)
+              .d-flex.gap-2
+                input.md-input(type='text', name='item', required, placeholder='New AI tool name…', style='max-width:280px', aria-label='New AI tool name')
+                button.btn.btn-neon-cyan(type='submit') + Add
+
+        .card.md-card
+          .card-body
+            h5.mb-3 Current AI Tools
+            if aiTools.length
+              table.table.table-dark.table-sm.align-middle
+                thead
+                  tr
+                    th Tool Name
+                    th.text-center Projects
+                    th Actions
+                tbody
+                  each tool in aiTools
+                    - var count = aiUsage[tool] || 0
+                    tr
+                      td.fw-bold= tool
+                      td.text-center= count
+                      td
+                        .d-flex.gap-2.align-items-center
+                          form.d-flex.gap-1(method='POST', action='/admin/tags/ai-tools/rename')
+                            input(type='hidden', name='_csrf', value=_csrf)
+                            input(type='hidden', name='item', value=tool)
+                            input.md-input(type='text', name='newName', value=tool,
+                              placeholder='Rename', style='width:130px;padding:0.25rem 0.5rem;font-size:0.75rem')
+                            button.btn.btn-neon-outline.btn-sm(type='submit') Rename
+                          form(method='POST', action='/admin/tags/ai-tools/delete')
+                            input(type='hidden', name='_csrf', value=_csrf)
+                            input(type='hidden', name='item', value=tool)
+                            button.btn.btn-sm(type='submit',
+                              class=(count > 0 ? 'btn-outline-secondary' : 'btn-outline-danger'),
+                              title=(count > 0 ? (count + ' project(s) use this tool — rename first') : 'Delete tool'),
+                              disabled=(count > 0),
+                              data-item=tool,
+                              onclick=(count > 0 ? undefined : 'return confirm("Delete AI tool " + this.dataset.item + "?")')) Delete
+            else
+              p.text-muted.small Using built-in defaults
+
+      // Tech Stack column
+      .col-md-6
+        .card.md-card.mb-3
+          .card-body
+            h5.mb-3 Add Tech Stack Tag
+            form(method='POST', action='/admin/tags/tech-stack')
+              input(type='hidden', name='_csrf', value=_csrf)
+              .d-flex.gap-2
+                input.md-input(type='text', name='item', required, placeholder='New tech stack tag…', style='max-width:280px', aria-label='New tech stack tag')
+                button.btn.btn-neon-cyan(type='submit') + Add
+
+        .card.md-card
+          .card-body
+            h5.mb-3 Current Tech Stack Tags
+            if techStack.length
+              table.table.table-dark.table-sm.align-middle
+                thead
+                  tr
+                    th Tag Name
+                    th.text-center Projects
+                    th Actions
+                tbody
+                  each tech in techStack
+                    - var count = techUsage[tech] || 0
+                    tr
+                      td.fw-bold= tech
+                      td.text-center= count
+                      td
+                        .d-flex.gap-2.align-items-center
+                          form.d-flex.gap-1(method='POST', action='/admin/tags/tech-stack/rename')
+                            input(type='hidden', name='_csrf', value=_csrf)
+                            input(type='hidden', name='item', value=tech)
+                            input.md-input(type='text', name='newName', value=tech,
+                              placeholder='Rename', style='width:130px;padding:0.25rem 0.5rem;font-size:0.75rem')
+                            button.btn.btn-neon-outline.btn-sm(type='submit') Rename
+                          form(method='POST', action='/admin/tags/tech-stack/delete')
+                            input(type='hidden', name='_csrf', value=_csrf)
+                            input(type='hidden', name='item', value=tech)
+                            button.btn.btn-sm(type='submit',
+                              class=(count > 0 ? 'btn-outline-secondary' : 'btn-outline-danger'),
+                              title=(count > 0 ? (count + ' project(s) use this tag — rename first') : 'Delete tag'),
+                              disabled=(count > 0),
+                              data-item=tech,
+                              onclick=(count > 0 ? undefined : 'return confirm("Delete tag " + this.dataset.item + "?")')) Delete
+            else
+              p.text-muted.small Using built-in defaults
+

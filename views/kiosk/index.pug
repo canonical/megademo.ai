@@ -1,0 +1,47 @@
+extends ../kiosk-layout
+
+block content
+  .kiosk-container#kiosk-app(data-interval=intervalSecs)
+    .kiosk-header
+      span.kiosk-logo.pixel-text MEGADEMO
+      span.kiosk-logo-ai.pixel-text .ai
+      span.kiosk-status#kiosk-status FINALIST SHOWCASE
+      .kiosk-nav
+        span#kiosk-current 1
+        span  / 
+        span#kiosk-total= projects.length
+        span.kiosk-key-hint  [← →] navigate  [ESC] exit
+
+    .kiosk-slides#kiosk-slides
+      each project, i in projects
+        .kiosk-slide(id='slide-' + i, class=(i === 0 ? 'active' : ''))
+          .kiosk-slide-inner
+            .kiosk-project-header
+              if project.logo
+                img.kiosk-logo-img(src=project.logo, alt=project.title)
+              .kiosk-project-title.pixel-text= project.title
+            .kiosk-project-meta
+              span.kiosk-category= project.category
+              span.kiosk-team= project.canonicalTeam
+            .kiosk-rating
+              span.kiosk-stars= project.avgRating ? project.avgRating.toFixed(1) + ' ★' : '—'
+              span.kiosk-votes  (#{project.voteCount} votes)
+            .kiosk-team-list
+              each member in (project.team || [])
+                span.kiosk-member
+                  if member.profile && member.profile.picture
+                    img.kiosk-avatar(src=member.profile.picture)
+                  span= member.profile && member.profile.name ? member.profile.name : ''
+            if project.asciinema && project.asciinema.length
+              .kiosk-cast(id='kiosk-cast-' + i, data-cast-id=project.asciinema[0].castId)
+            else if project.videos && project.videos.length && project.videos[0].parsedId
+              .kiosk-video
+                iframe(src='https://www.youtube-nocookie.com/embed/' + project.videos[0].parsedId + '?autoplay=0',
+                  frameborder='0', allowfullscreen)
+
+    .kiosk-progress
+      .kiosk-progress-bar#kiosk-progress-bar
+
+block scripts
+  link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/asciinema-player@3.15.1/dist/bundle/asciinema-player.css')
+  script(src='https://cdn.jsdelivr.net/npm/asciinema-player@3.15.1/dist/bundle/asciinema-player.min.js')

@@ -1,0 +1,104 @@
+/* Kiosk full-screen presentation mode */
+:root {
+  --color-bg:        #05050f;
+  --color-primary:   #00d4ff;
+  --color-secondary: #ff006e;
+  --color-text:      #c8e6ff;
+  --color-surface:   #0d0d2b;
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-mono:  'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body.kiosk-body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.kiosk-container { height: 100vh; display: flex; flex-direction: column; padding: 2rem; gap: 1.5rem; }
+
+.kiosk-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  border-bottom: 1px solid rgba(0,212,255,0.2);
+  padding-bottom: 1rem;
+}
+
+.kiosk-logo    { font-family: var(--font-pixel); font-size: 1.2rem; color: var(--color-primary); letter-spacing: 3px; text-shadow: 0 0 20px var(--color-primary); }
+.kiosk-logo-ai { font-family: var(--font-pixel); font-size: 1.2rem; color: var(--color-secondary); text-shadow: 0 0 20px var(--color-secondary); }
+.kiosk-status  { margin-left: auto; font-size: 0.7rem; color: rgba(200,230,255,0.5); letter-spacing: 3px; }
+.kiosk-nav     { font-size: 0.7rem; color: rgba(200,230,255,0.4); }
+.kiosk-key-hint { font-size: 0.6rem; color: rgba(200,230,255,0.3); margin-left: 0.5rem; }
+.kiosk-back    { color: var(--color-primary); text-decoration: none; font-size: 0.8rem; }
+
+.kiosk-slides { flex: 1; position: relative; }
+
+.kiosk-slide {
+  display: none;
+  height: 100%;
+  &.active { display: flex; flex-direction: column; justify-content: center; }
+}
+
+.kiosk-slide-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; height: 100%; }
+
+.kiosk-project-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  grid-column: 1 / -1;
+}
+
+.kiosk-logo-img { width: 80px; height: 80px; border-radius: 4px; object-fit: cover; }
+
+.kiosk-project-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(1rem, 3vw, 2rem);
+  color: var(--color-primary);
+  text-shadow: 0 0 30px rgba(0,212,255,0.5);
+  line-height: 1.8;
+}
+
+.kiosk-project-meta {
+  font-size: 1rem;
+  color: rgba(200,230,255,0.6);
+  display: flex;
+  gap: 2rem;
+}
+
+.kiosk-rating {
+  font-family: var(--font-pixel);
+  font-size: 1.8rem;
+  color: gold;
+  text-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+.kiosk-votes { font-size: 0.8rem; color: rgba(200,230,255,0.5); margin-left: 0.5rem; }
+
+.kiosk-team-list { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+.kiosk-member { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+.kiosk-avatar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0,212,255,0.3); }
+
+.kiosk-cast, .kiosk-video { width: 100%; }
+.kiosk-video iframe { width: 100%; aspect-ratio: 16/9; border: 1px solid rgba(0,212,255,0.2); }
+
+.kiosk-description { line-height: 2; opacity: 0.8; max-width: 700px; overflow-y: auto; max-height: 300px; }
+
+.kiosk-progress {
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.kiosk-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  width: 0%;
+  transition: width 1s linear;
+}

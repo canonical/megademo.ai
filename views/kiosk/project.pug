@@ -1,0 +1,37 @@
+extends ../kiosk-layout
+
+block content
+  .kiosk-container
+    .kiosk-header
+      a.kiosk-back(href='/kiosk') &larr; Back to showcase
+      span.kiosk-logo.pixel-text MEGADEMO.ai
+
+    .kiosk-slide.active
+      .kiosk-slide-inner
+        .kiosk-project-header
+          if project.logo
+            img.kiosk-logo-img(src=project.logo, alt=project.title)
+          .kiosk-project-title.pixel-text= project.title
+        .kiosk-project-meta
+          span.kiosk-category= project.category
+          span.kiosk-team= project.canonicalTeam
+        .kiosk-rating
+          span.kiosk-stars= project.avgRating ? project.avgRating.toFixed(1) + ' ★' : '—'
+        .kiosk-description!= project.descriptionHtml
+        if project.asciinema && project.asciinema.length
+          #kiosk-cast-container.mt-3
+
+block scripts
+  if project.asciinema && project.asciinema.length
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/asciinema-player@3.15.1/dist/bundle/asciinema-player.css')
+    script(src='https://cdn.jsdelivr.net/npm/asciinema-player@3.15.1/dist/bundle/asciinema-player.min.js')
+    script.
+      (function() {
+        function parseCastId(s) { var m=(s||'').match(/(?:asciinema\.org\/a\/)([A-Za-z0-9]+)/); return m?m[1]:s; }
+        var id = parseCastId(!{safeJson(project.asciinema[0].castId)});
+        var container = document.getElementById('kiosk-cast-container');
+        if (container) {
+          AsciinemaPlayer.create('https://asciinema.org/a/' + id + '.cast',
+            container, { fit: 'width', theme: 'solarized-dark' });
+        }
+      })();

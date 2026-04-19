@@ -1,0 +1,50 @@
+extends ../layout
+
+block content
+  .container.py-4
+    .page-header
+      h1.pixel-text MANAGE TEAMS
+      a.btn.btn-neon-outline(href='/admin') &lt;- Admin Dashboard
+
+    .card.md-card.mb-4
+      .card-body
+        h5.mb-3 Add New Team
+        form(method='POST', action='/admin/teams/add')
+          input(type='hidden', name='_csrf', value=_csrf)
+          .d-flex.gap-2
+            input.md-input(type='text', name='name', placeholder='New team name', required, style='max-width:320px')
+            button.btn.btn-neon-cyan(type='submit') + Add Team
+
+    .card.md-card
+      .card-body
+        h5.mb-3 Current Teams
+        if teams && teams.length
+          table.table.table-dark.table-sm.align-middle
+            thead
+              tr
+                th Team Name
+                th.text-center Projects
+                th Actions
+            tbody
+              each team in teams
+                tr
+                  td.fw-bold= team
+                  td.text-center= projectCounts[team] || 0
+                  td
+                    .d-flex.gap-2.align-items-center
+                      form.d-flex.gap-1(method='POST', action='/admin/teams/' + encodeURIComponent(team) + '/rename')
+                        input(type='hidden', name='_csrf', value=_csrf)
+                        input.md-input(type='text', name='newName', value=team,
+                          placeholder='Rename', style='width:160px;padding:0.25rem 0.5rem;font-size:0.75rem')
+                        button.btn.btn-neon-outline.btn-sm(type='submit') Rename
+                      form(method='POST', action='/admin/teams/' + encodeURIComponent(team) + '/delete')
+                        input(type='hidden', name='_csrf', value=_csrf)
+                        - var hasProjects = projectCounts[team] > 0
+                        button.btn.btn-sm(type='submit',
+                          class=(hasProjects ? 'btn-outline-secondary' : 'btn-outline-danger'),
+                          title=(hasProjects ? (projectCounts[team] + ' project(s) use this team — reassign first') : 'Delete team'),
+                          disabled=hasProjects,
+                          data-team-name=team,
+                          onclick=(hasProjects ? undefined : 'return confirm("Delete team " + JSON.stringify(this.dataset.teamName) + "?")')) Delete
+        else
+          p.text-muted No custom teams defined. Defaults are used.

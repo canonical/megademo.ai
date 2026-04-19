@@ -1,0 +1,236 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text EDIT PROJECT
+    p.lead
+      a(href='/projects/' + project.slug)= project.title
+
+  form#project-edit-form(method='POST', action='/projects/' + project._id, data-dirty-guard)
+    input(type='hidden', name='_csrf', value=_csrf)
+
+    if errors && errors.length
+      .alert.alert-danger
+        each e in errors
+          div= e.msg
+
+    .form-section
+      h2.form-step-title
+        span.step-num 01
+        |  DETAILS
+
+      .mb-3
+        label.md-label Title
+        input.md-input(type='text', name='title', value=project.title, required, maxlength=100)
+
+      .mb-3
+        label.md-label Category
+        select.md-select(name='category')
+          each cat in CATEGORIES
+            option(value=cat, selected=(project.category === cat)) #{cat}
+
+      .mb-3
+        label.md-label Canonical Team
+        select.md-select#canonicalTeamSelect(name='canonicalTeam', required, onchange='toggleCustomTeam(this.value)')
+          option(value='') -- Select team --
+          each team in CANONICAL_TEAMS
+            option(value=team, selected=(project.canonicalTeam === team)) #{team}
+          option(value='Other', selected=(project.canonicalTeam && !CANONICAL_TEAMS.includes(project.canonicalTeam))) Other (custom)
+        input#customTeamInput.md-input.mt-2(type='text', name='customTeam',
+          value=(project.canonicalTeam && !CANONICAL_TEAMS.includes(project.canonicalTeam) ? project.canonicalTeam : ''),
+          placeholder='Enter custom team name',
+          style='display:none')
+
+      .mb-3
+        label.md-label Description
+        textarea.md-textarea(name='description', rows=10, required)= project.description || ''
+
+      .mb-3
+        label.md-label AI Tools Used
+        .checkbox-grid
+          each tool in AI_TOOLS.filter(t => t !== 'Other')
+            label.checkbox-item
+              input(type='checkbox', name='aiTools', value=tool,
+                checked=(project.aiTools && project.aiTools.includes(tool)))
+              span= tool
+          label.checkbox-item
+            input(type='checkbox', name='aiTools', value='Other',
+              checked=(project.aiTools && project.aiTools.includes('Other')))
+            span Other
+        .mt-2#aiToolOtherWrap(style=(project.aiTools && project.aiTools.some(t => !AI_TOOLS.includes(t)) ? '' : 'display:none'))
+          input#aiToolOtherInput.md-input(type='text', name='aiToolOther',
+            value=(project.aiTools ? project.aiTools.find(t => !AI_TOOLS.includes(t)) || '' : ''),
+            placeholder='Name of custom AI tool')
+
+      .mb-3
+        label.md-label Tech Stack
+        .tech-stack-panel.mb-2
+          p.form-hint.mb-2 Select common technologies:
+          .tech-tags-columns
+            each tech in TECH_STACK_DEFAULTS
+              label.tech-tag-check
+                input.tech-stack-checkbox(type='checkbox', data-tech=tech,
+                  checked=(project.techStack && project.techStack.some(t => t.toLowerCase() === tech.toLowerCase())))
+                | #{tech}
+        datalist#techstack-list
+          each tech in TECH_STACK_DEFAULTS
+            option(value=tech)
+        input.md-input#techStackInput(type='text', name='techStack', list='techstack-list',
+          value=(project.techStack ? project.techStack.join(', ') : ''))
+        p.form-hint.mt-1 Checkboxes above add to the field. You can also type custom tags.
+
+      .mb-3
+        label.md-label Completion Stage
+        .radio-row
+          each stage in COMPLETION_STAGES
+            label.radio-item
+              input(type='radio', name='completionStage', value=stage, checked=(project.completionStage === stage))
+              span= stage.charAt(0).toUpperCase() + stage.slice(1)
+
+    .form-section
+      h2.form-step-title
+        span.step-num 02
+        |  LINKS
+
+      .mb-3
+        label.md-label Repository URL
+        input.md-input(type='url', name='repoLinks', value=(project.repoLinks ? project.repoLinks[0] : ''))
+      .mb-3
+        label.md-label Demo URL
+        input.md-input(type='url', name='demoUrl', value=(project.demoUrl || ''))
+      .mb-3
+        label.md-label Slides URL
+        input.md-input(type='url', name='slidesUrl', value=(project.slidesUrl || ''))
+
+  // Media section is a separate form (cannot nest forms in HTML)
+  .form-section
+    h2.form-step-title
+      span.step-num 03
+      |  MEDIA
+
+    form.media-subform(method='POST', action='/projects/' + project._id + '/media', enctype='multipart/form-data')
+      input(type='hidden', name='_csrf', value=_csrf)
+      .mb-3
+        label.md-label Logo (PNG/JPG, max 2MB)
+        input.md-input(type='file', name='logo', accept='image/*')
+      .mb-3
+        label.md-label Asciinema Cast ID
+        input.md-input(type='text', name='castId', placeholder='e.g. abc123 from asciinema.org/a/abc123')
+        input.md-input.mt-2(type='text', name='castTitle', placeholder='Title (optional)')
+      .mb-3
+        label.md-label Video URL (YouTube or Vimeo)
+        input.md-input(type='url', name='videoUrl', placeholder='https://www.youtube.com/watch?v=...')
+        input.md-input.mt-2(type='text', name='videoTitle', placeholder='Title (optional)')
+      button.btn.btn-neon-outline(type='submit') Update Media
+
+    if project.asciinema && project.asciinema.length
+      h4.mt-3 Asciinema Demos
+      each cast in project.asciinema
+        .media-item
+          span= cast.title || cast.castId
+          form(method='POST', action='/projects/' + project._id + '/media', style='display:inline')
+            input(type='hidden', name='_csrf', value=_csrf)
+            input(type='hidden', name='removeAsciinemaId', value=cast.castId)
+            button.btn.btn-sm.btn-danger(type='submit') Remove
+
+    if project.videos && project.videos.length
+      h4.mt-3 Videos
+      each video in project.videos
+        .media-item
+          span= video.title || video.url
+          form(method='POST', action='/projects/' + project._id + '/media', style='display:inline')
+            input(type='hidden', name='_csrf', value=_csrf)
+            input(type='hidden', name='removeVideoId', value=video._id)
+            button.btn.btn-sm.btn-danger(type='submit') Remove
+
+  // Team management section
+  .form-section(data-project-id=project._id)
+    h2.form-step-title
+      span.step-num 04
+      |  TEAM MEMBERS
+
+    .mb-3
+      p.form-hint Add team members by their @canonical.com email. They must have logged in at least once.
+      .d-flex.gap-2
+        input#addEmailInput.md-input(type='email', placeholder='colleague@canonical.com')
+        button#addMemberBtn.btn.btn-neon-outline(type='button') Add Member
+
+    .team-list#teamList
+      each member in (project.team || [])
+        .team-member-row(data-id=member._id)
+          if member.profile && member.profile.picture
+            img.avatar-xs(src=member.profile.picture, alt=member.profile.name)
+          span.ms-2= member.profile && member.profile.name ? member.profile.name : member.email
+          if member._id && project.owner && member._id.toString() !== project.owner.toString()
+            button.btn.btn-sm.btn-outline-danger.ms-auto.remove-member-btn(
+              type='button', data-member-id=member._id) Remove
+
+  // Submit actions at the bottom — associated with the main form via form= attribute
+  .form-actions.mt-4
+    button.btn.btn-neon-cyan(type='submit', form='project-edit-form') Save Changes
+    if project.status === 'draft'
+      button.btn.btn-neon-outline.ms-3(type='submit', form='project-edit-form', name='status', value='submitted') Submit Project
+    a.btn.btn-neon-outline.ms-3(href='/projects/' + project.slug) Cancel
+
+block scripts
+  script.
+    function toggleCustomTeam(val) {
+      document.getElementById('customTeamInput').style.display = val === 'Other' ? '' : 'none';
+    }
+    toggleCustomTeam(document.getElementById('canonicalTeamSelect').value);
+
+    // Toggle custom AI tool input when "Other" checkbox is checked
+    function syncAiOtherVisibility() {
+      const otherChecked = Array.from(document.querySelectorAll('input[name="aiTools"]'))
+        .some(cb => cb.value === 'Other' && cb.checked);
+      document.getElementById('aiToolOtherWrap').style.display = otherChecked ? '' : 'none';
+    }
+    document.querySelectorAll('input[name="aiTools"]').forEach(cb =>
+      cb.addEventListener('change', syncAiOtherVisibility));
+    syncAiOtherVisibility();
+
+    // Sync tech stack checkboxes to the text input (case-insensitive)
+    document.querySelectorAll('.tech-stack-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const input = document.getElementById('techStackInput');
+        const tech = cb.dataset.tech;
+        const lower = tech.toLowerCase();
+        const current = input.value.split(',').map(t => t.trim()).filter(Boolean);
+        if (cb.checked && !current.some(t => t.toLowerCase() === lower)) current.push(tech);
+        else if (!cb.checked) { const i = current.findIndex(t => t.toLowerCase() === lower); if (i > -1) current.splice(i, 1); }
+        input.value = current.join(', ');
+      });
+    });
+
+    const projectId = document.querySelector('[data-project-id]').dataset.projectId;
+
+    async function addMember() {
+      const email = document.getElementById('addEmailInput').value.trim();
+      if (!email) return;
+      try {
+        const data = await apiPost('/projects/' + projectId + '/team', { addEmail: email });
+        if (data.success) location.reload();
+      } catch (e) {
+        alert('Could not add member: ' + e.message);
+      }
+    }
+    async function removeMember(id) {
+      try {
+        const data = await apiPost('/projects/' + projectId + '/team', { removeUserId: id });
+        if (data.success) location.reload();
+      } catch (e) {
+        alert('Could not remove member: ' + e.message);
+      }
+    }
+    document.getElementById('addMemberBtn').addEventListener('click', addMember);
+    document.querySelectorAll('.remove-member-btn').forEach(btn => {
+      btn.addEventListener('click', () => removeMember(btn.dataset.memberId));
+    });
+    // Require at least one AI tool before submit
+    document.getElementById('project-edit-form').addEventListener('submit', function(e) {
+      const checked = this.querySelectorAll('input[type="checkbox"][name="aiTools"]:checked');
+      if (!checked.length) {
+        e.preventDefault();
+        alert('Please select at least one AI tool used in your project.');
+      }
+    });

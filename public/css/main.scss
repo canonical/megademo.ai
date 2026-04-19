@@ -1,0 +1,1158 @@
+// ============================================================
+// MegaDemo.ai — Demoscene Synthwave Theme
+// ============================================================
+@use 'sass:color';
+
+// -- Variables -----------------------------------------------
+$color-bg:        #05050f;
+$color-surface:   #0d0d2b;
+$color-surface-2: #12123a;
+$color-primary:   #00d4ff;
+$color-secondary: #ff006e;
+$color-accent:    #8b00ff;
+$color-warm:      #ff6600;
+$color-text:      #c8e6ff;
+$color-muted:     #7a8baa;
+$color-border:    rgba(0, 212, 255, 0.2);
+
+$font-pixel: 'Press Start 2P', monospace;
+$font-mono:  'JetBrains Mono', 'Courier New', monospace;
+
+// -- Bootstrap overrides (must come before import) -----------
+$body-bg:    $color-bg;
+$body-color: $color-text;
+$font-family-base: $font-mono;
+$border-radius: 4px;
+$card-bg: $color-surface;
+
+@import 'node_modules/bootstrap/scss/bootstrap';
+@import 'node_modules/@fortawesome/fontawesome-free/scss/fontawesome';
+@import 'node_modules/@fortawesome/fontawesome-free/scss/brands';
+@import 'node_modules/@fortawesome/fontawesome-free/scss/solid';
+@import 'node_modules/@fortawesome/fontawesome-free/scss/regular';
+
+// -- Base ----------------------------------------------------
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  background: $color-bg;
+  color: $color-text;
+  font-family: $font-mono;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+main { padding-bottom: 2.5rem; }
+
+// Scanline overlay
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+a { color: $color-primary; text-decoration: none; }
+a:hover { color: color.scale($color-primary, $lightness: 30%); text-decoration: underline; }
+// Anchor-buttons must never underline — covers all Bootstrap .btn variants used as <a> tags
+// Exclude .btn-link which intentionally renders as an underlined hyperlink
+a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !important; }
+
+.pixel-text { font-family: $font-pixel; }
+.neon-pink   { color: $color-secondary; }
+.neon-cyan   { color: $color-primary; }
+
+// -- Navbar --------------------------------------------------
+.md-navbar {
+  background: rgba($color-surface, 0.98);
+  border-bottom: 1px solid $color-border;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+
+  // Gradient logo: Black Ops One — heavy angular font matching reference image aesthetic
+  // Two-element structure fixes mobile WebKit: filter + background-clip:text on the SAME
+  // element causes WebKit to fall back to plain text. Split into outer (filter) + inner (clip).
+  .brand-logo-outer {
+    display: inline-block;
+    // Always-on shadows + cyan glow
+    filter:
+      drop-shadow(2px  0   0 rgba(0,0,0,0.95))
+      drop-shadow(-2px 0   0 rgba(0,0,0,0.95))
+      drop-shadow(0    2px 0 rgba(0,0,0,0.95))
+      drop-shadow(0   -2px 0 rgba(0,0,0,0.95))
+      drop-shadow(3px  5px 0 rgba(0,0,0,0.7))
+      drop-shadow(0    0  12px rgba(0,212,255,0.45));
+  }
+  .brand-logo {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 2.8rem;
+    line-height: 1.35;
+    display: inline-block;
+    overflow: visible;
+    background: linear-gradient(180deg, #00d4ff 0%, #cc44ff 52%, #ff006e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+  }
+
+  .navbar-brand {
+    text-decoration: none;
+    margin-right: 2rem;
+    &:hover .brand-logo-outer {
+      filter:
+        drop-shadow(2px  0   0 rgba(0,0,0,0.95))
+        drop-shadow(-2px 0   0 rgba(0,0,0,0.95))
+        drop-shadow(0    2px 0 rgba(0,0,0,0.95))
+        drop-shadow(0   -2px 0 rgba(0,0,0,0.95))
+        drop-shadow(3px  5px 0 rgba(0,0,0,0.7))
+        drop-shadow(0    0  22px rgba(0,212,255,0.8));
+    }
+  }
+
+  .nav-link {
+    color: $color-muted;
+    transition: color 0.2s;
+    text-decoration: none !important;
+    &:hover { color: $color-primary; text-decoration: none !important; }
+  }
+
+  // Fake-button style for standard nav links
+  .btn-nav {
+    border: 1px solid rgba($color-muted, 0.4);
+    border-radius: 2px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    &:hover {
+      border-color: $color-primary;
+      color: $color-primary !important;
+      background: rgba($color-primary, 0.07);
+      box-shadow: 0 0 8px rgba($color-primary, 0.25);
+      text-decoration: none !important;
+    }
+  }
+
+  .btn-register {
+    color: $color-primary !important;
+    border: 1px solid $color-primary;
+    border-radius: 2px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.72rem;
+    transition: all 0.2s;
+    &:hover {
+      background: rgba($color-primary, 0.1);
+      box-shadow: 0 0 10px rgba($color-primary, 0.4);
+      color: $color-primary !important;
+      text-decoration: none !important;
+    }
+  }
+
+  .btn-github-login {
+    color: $color-secondary !important;
+    border: 1px solid $color-secondary;
+    border-radius: 2px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s;
+    &:hover {
+      background: rgba($color-secondary, 0.1);
+      box-shadow: 0 0 15px rgba($color-secondary, 0.4);
+      color: $color-secondary !important;
+      text-decoration: none !important;
+    }
+  }
+
+  // Get started — solid, prominent button (uses Bootstrap .btn.btn-sm base)
+  .btn-help {
+    border: 1px solid $color-secondary !important;
+    border-radius: 2px !important;
+    color: $color-secondary !important;
+    background: rgba($color-secondary, 0.12) !important;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    &:hover, &:focus {
+      background: rgba($color-secondary, 0.22) !important;
+      box-shadow: 0 0 10px rgba($color-secondary, 0.4) !important;
+      color: $color-secondary !important;
+    }
+  }
+
+  // Admin link: no underline; border-bottom on text span only (cannot bleed to icon sibling)
+  .nav-admin {
+    text-decoration: none !important;
+    &:hover { text-decoration: none !important; }
+    &:hover .nav-admin-text { border-bottom: 1px solid currentColor; }
+    .nav-admin-text { margin-left: 4px; }
+  }
+
+  // Dropdown toggle: restrict hover underline to text span, not avatar+text
+  .dropdown-toggle {
+    text-decoration: none !important;
+    &:hover { text-decoration: none !important; }
+    &:hover .nav-username { text-decoration: underline; }
+  }
+
+  .md-dropdown {
+    background: $color-surface-2;
+    border: 1px solid $color-border;
+    .dropdown-item { color: $color-text; &:hover { background: $color-surface; color: $color-primary; } }
+  }
+}
+
+.avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid $color-border; margin-right: 6px; }
+.avatar-xs { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin-right: 4px; }
+
+// -- Footer --------------------------------------------------
+.footer {
+  background: $color-surface;
+  border-top: 1px solid $color-border;
+  padding: 1.5rem 0;
+  margin-top: 4rem;
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+// -- Hero ----------------------------------------------------
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 0 4rem;
+  background: linear-gradient(135deg, $color-bg 0%, #0a0820 50%, #050520 100%);
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 120px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 40px,
+      rgba($color-primary, 0.07) 40px,
+      rgba($color-primary, 0.07) 41px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 30px,
+      rgba($color-primary, 0.07) 30px,
+      rgba($color-primary, 0.07) 31px
+    );
+    transform: perspective(200px) rotateX(30deg);
+    transform-origin: bottom;
+    pointer-events: none;
+  }
+}
+
+.hero-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 59px,
+    rgba($color-accent, 0.06) 60px
+  ),
+  repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 59px,
+    rgba($color-accent, 0.06) 60px
+  );
+}
+
+.hero-content { position: relative; z-index: 2; }
+
+.hero-title {
+  font-family: $font-pixel;
+  font-size: clamp(1.1rem, 3vw, 1.8rem);
+  line-height: 2;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px $color-primary, 0 0 40px rgba($color-primary, 0.3);
+}
+
+.hero-subtitle {
+  color: $color-secondary;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.hero-description {
+  color: $color-text;
+  opacity: 0.8;
+  max-width: 580px;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.hero-help-link {
+  color: rgba($color-primary, 0.75);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  text-decoration: none;
+  &:hover { color: $color-primary; text-decoration: underline; }
+}
+
+.hero-wave { max-width: 100%; border-radius: 4px; opacity: 0.9; }
+
+// -- Buttons -------------------------------------------------
+// All pixel-font buttons share the same base via .btn.btn-neon-* selectors
+// (specificity 0,2,0 — beats Bootstrap's .btn-sm at 0,2,0 by source order,
+//  and beats bare .btn-* at 0,1,0 outright).
+// Consistent height: 1px border on ALL buttons (transparent on solid ones).
+// Unified hover: outline buttons fill with border color + glow.
+
+$btn-px-font:    $font-pixel;
+$btn-px-size:    0.65rem;
+$btn-px-pad:     0.55rem 1.1rem;
+$btn-px-radius:  2px;
+$btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+
+.btn.btn-neon-cyan, .btn-neon-cyan {
+  font-family: $btn-px-font;
+  font-size:   $btn-px-size;
+  padding:     $btn-px-pad;
+  border-radius: $btn-px-radius;
+  line-height: 1;
+  background:  $color-primary;
+  color:       $color-bg;
+  border:      1px solid $color-primary;
+  cursor:      pointer;
+  transition:  $btn-px-trans;
+  text-decoration: none !important;
+  &:hover, &:focus {
+    background:   color.scale($color-primary, $lightness: 18%);
+    border-color: color.scale($color-primary, $lightness: 18%);
+    box-shadow:   0 0 18px rgba($color-primary, 0.6);
+    color:        $color-bg;
+    text-decoration: none !important;
+  }
+}
+
+.btn.btn-neon-outline, .btn-neon-outline {
+  font-family: $btn-px-font;
+  font-size:   $btn-px-size;
+  padding:     $btn-px-pad;
+  border-radius: $btn-px-radius;
+  line-height: 1;
+  background:  transparent;
+  color:       $color-primary;
+  border:      1px solid $color-primary;
+  cursor:      pointer;
+  transition:  $btn-px-trans;
+  text-decoration: none !important;
+  &:hover, &:focus {
+    background:  $color-primary;
+    color:       $color-bg;
+    box-shadow:  0 0 16px rgba($color-primary, 0.55);
+    text-decoration: none !important;
+  }
+}
+
+.btn.btn-neon-pink, .btn-neon-pink {
+  font-family: $btn-px-font;
+  font-size:   $btn-px-size;
+  padding:     $btn-px-pad;
+  border-radius: $btn-px-radius;
+  line-height: 1;
+  background:  $color-secondary;
+  color:       white;
+  border:      1px solid $color-secondary;
+  cursor:      pointer;
+  transition:  $btn-px-trans;
+  text-decoration: none !important;
+  &:hover, &:focus {
+    background:   color.scale($color-secondary, $lightness: 18%);
+    border-color: color.scale($color-secondary, $lightness: 18%);
+    box-shadow:   0 0 18px rgba($color-secondary, 0.55);
+    color:        white;
+    text-decoration: none !important;
+  }
+}
+
+.btn-github-hero {
+  @extend .btn-neon-outline;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-color: $color-secondary;
+  color: $color-secondary;
+  .fa-github { transform: translateY(-1px); }
+  &:hover, &:focus {
+    background:  $color-secondary;
+    border-color: $color-secondary;
+    box-shadow:  0 0 20px rgba($color-secondary, 0.55);
+    color:       white;
+  }
+}
+
+// Compact button: same height as standard pixel buttons, narrower horizontal padding.
+.btn-xs { padding: 0.55rem 0.75rem !important; font-size: 0.6rem !important; line-height: 1 !important; }
+
+.btn-danger-outline {
+  font-family: $btn-px-font !important;
+  font-size:   $btn-px-size !important;
+  line-height: 1 !important;
+  padding:     $btn-px-pad !important;
+  border-radius: $btn-px-radius !important;
+  cursor: pointer;
+  color: #ff6b6b !important;
+  border: 1px solid rgba(#ff6b6b, 0.5) !important;
+  background: transparent !important;
+  transition: $btn-px-trans;
+  &:hover, &:focus {
+    background:   #ff6b6b !important;
+    color:        $color-bg !important;
+    border-color: #ff6b6b !important;
+    box-shadow:   0 0 12px rgba(#ff6b6b, 0.45) !important;
+  }
+}
+// Compact variant (table rows): .btn-xs !important wins on padding since it comes after in source
+.btn-xs.btn-danger-outline { padding: 0.55rem 0.75rem !important; }
+
+
+// -- Countdown -----------------------------------------------
+.countdown-section {
+  background: linear-gradient(90deg, rgba($color-accent, 0.1), rgba($color-secondary, 0.1));
+  border-top: 1px solid rgba($color-accent, 0.3);
+  border-bottom: 1px solid rgba($color-accent, 0.3);
+  padding: 1.5rem 0;
+}
+
+.countdown-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.countdown-label {
+  font-family: $font-pixel;
+  font-size: 0.6rem;
+  color: $color-muted;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  min-width: 160px;
+  text-align: right;
+}
+
+.countdown-units { display: flex; align-items: flex-start; gap: 0.5rem; }
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  span:first-child {
+    font-family: $font-pixel;
+    font-size: 2rem;
+    color: $color-primary;
+    text-shadow: 0 0 15px rgba($color-primary, 0.7);
+    min-width: 2.5ch;
+    text-align: center;
+  }
+  .unit-label { font-size: 0.5rem; color: $color-muted; letter-spacing: 1px; margin-top: 4px; }
+}
+
+.countdown-sep { font-family: $font-pixel; font-size: 2rem; color: $color-muted; line-height: 1; padding-top: 0.5rem; }
+
+// -- Section headers -----------------------------------------
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid $color-border;
+  padding-bottom: 0.5rem;
+}
+
+.section-title { font-size: 0.8rem; color: $color-primary; letter-spacing: 2px; margin: 0; }
+.section-link  { font-size: 0.75rem; color: $color-muted; &:hover { color: $color-primary; } }
+.section-label { font-family: $font-pixel; font-size: 0.55rem; color: $color-muted; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1rem; }
+
+// -- Project cards -------------------------------------------
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.projects-grid-full {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.project-card {
+  --liveliness: 0;
+  background: $color-surface;
+  border: 1px solid rgba($color-primary, calc(0.1 + var(--liveliness) * 0.4));
+  border-radius: 4px;
+  padding: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 0 calc(var(--liveliness) * 48px) rgba($color-primary, calc(var(--liveliness) * 0.65));
+  position: relative;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba($color-primary, 0.5);
+    box-shadow: 0 0 20px rgba($color-primary, 0.15);
+  }
+
+  &.finalist {
+    border-color: rgba($color-secondary, 0.5);
+    box-shadow: 0 0 25px rgba($color-secondary, 0.2);
+    &:hover {
+      border-color: rgba($color-secondary, 0.85);
+      box-shadow: 0 0 30px rgba($color-secondary, 0.4);
+    }
+  }
+
+  // Stretched-link: project-title::after covers entire card area
+  // making it fully clickable. Mine-page buttons stay interactive via z-index.
+  .project-title::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  // Keyboard focus: bring title above overlay so focus ring is visible
+  .project-title:focus-visible {
+    position: relative;
+    z-index: 2;
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .finalist-badge {
+    font-family: $font-pixel;
+    font-size: 0.45rem;
+    color: $color-secondary;
+    border: 1px solid $color-secondary;
+    padding: 0.2rem 0.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    text-shadow: 0 0 8px rgba($color-secondary, 0.5);
+  }
+}
+
+.card-header-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
+.project-logo    { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; border: 1px solid $color-border; }
+.project-title   { font-size: 0.9rem; font-weight: 700; color: $color-text; display: block; &:hover { color: $color-primary; } }
+.project-meta    { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }
+
+.category-tag, .team-tag {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+  background: $color-surface-2;
+  color: $color-muted;
+}
+
+.ai-tool-tag {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  background: rgba($color-accent, 0.15);
+  color: $color-accent;
+  border: 1px solid rgba($color-accent, 0.3);
+  border-radius: 2px;
+}
+
+.card-rating { color: $color-primary; font-size: 0.8rem; margin: 0.5rem 0; }
+.star-icon   { color: gold; margin: 0 0.15rem; }
+.vote-count  { color: $color-muted; font-size: 0.75rem; }
+
+.ai-tools-row { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+// -- Leaderboard ---------------------------------------------
+.leaderboard-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  &:hover { border-color: rgba($color-primary, 0.4); }
+}
+
+.rank-number { font-family: $font-pixel; font-size: 0.9rem; color: $color-primary; min-width: 1.5rem; }
+.leaderboard-info { flex: 1; }
+.leaderboard-title { color: $color-text; font-weight: bold; &:hover { color: $color-primary; } }
+.leaderboard-team  { font-size: 0.7rem; color: $color-muted; display: block; }
+.leaderboard-rating { font-size: 0.85rem; color: gold; white-space: nowrap; }
+
+// -- Badges --------------------------------------------------
+.status-badge {
+  font-size: 0.6rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  font-family: $font-pixel;
+  &.status-draft     { background: rgba($color-muted, 0.2); color: $color-muted; }
+  &.status-submitted { background: rgba($color-primary, 0.15); color: $color-primary; border: 1px solid rgba($color-primary, 0.4); }
+  &.status-finalist  { background: rgba($color-secondary, 0.15); color: $color-secondary; border: 1px solid rgba($color-secondary, 0.4); }
+}
+
+.category-badge { @extend .category-tag; font-size: 0.75rem; }
+.finalist-badge-lg { font-family: $font-pixel; font-size: 0.7rem; color: $color-secondary; text-shadow: 0 0 10px rgba($color-secondary, 0.6); }
+
+.role-badge {
+  font-size: 0.6rem; padding: 0.15rem 0.4rem; border-radius: 2px;
+  &.role-admin       { background: rgba($color-secondary, 0.2); color: $color-secondary; }
+  &.role-participant { background: rgba($color-primary, 0.15); color: $color-primary; }
+  &.role-viewer      { background: rgba($color-muted, 0.2); color: $color-muted; }
+}
+
+// -- Forms ---------------------------------------------------
+.page-header { padding: 2rem 0 1.5rem; border-bottom: 1px solid $color-border; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+.page-header h1 { font-size: 1.2rem; margin: 0; }
+
+.form-section { margin-bottom: 2.5rem; padding: 1.5rem; background: $color-surface; border: 1px solid $color-border; border-radius: 4px; }
+.form-step-title {
+  font-family: $font-pixel;
+  font-size: 0.65rem;
+  color: $color-primary;
+  margin-bottom: 1.5rem;
+  .step-num { color: $color-secondary; margin-right: 0.75rem; }
+  .step-optional { color: $color-muted; font-size: 0.55rem; margin-left: 0.5rem; }
+}
+.form-hint   { font-size: 0.75rem; color: $color-muted; margin-bottom: 0.5rem; }
+.form-actions { display: flex; align-items: center; gap: 1rem; padding: 1.5rem 0; }
+.md-label    { display: block; font-size: 0.75rem; color: $color-muted; margin-bottom: 0.5rem; letter-spacing: 1px; text-transform: uppercase; }
+
+.md-input, .md-textarea, .md-select {
+  background: $color-surface-2;
+  border: 1px solid $color-border;
+  color: $color-text;
+  border-radius: 2px;
+  padding: 0.5rem 0.75rem;
+  font-family: $font-mono;
+  font-size: 0.85rem;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 8px rgba($color-primary, 0.3);
+    background: rgba($color-surface-2, 0.9);
+    color: $color-text;
+  }
+
+  option { background: $color-surface-2; color: $color-text; }
+}
+
+.md-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color-scheme: dark;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300d4ff' stroke-width='1.5' fill='none' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  cursor: pointer;
+}
+
+// Custom cross-browser dropdown — replaces <select class="md-select"> via JS.
+// Gives full theming control in Firefox where native <select> ignores most CSS.
+$caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300d4ff' stroke-width='1.5' fill='none' stroke-linecap='square'/%3E%3C/svg%3E";
+.md-custom-select {
+  position: relative;
+
+  .md-custom-select-btn {
+    appearance: none;
+    background: $color-surface-2;
+    border: 1px solid $color-border;
+    border-radius: 2px;
+    color: $color-text;
+    font-family: $font-mono;
+    font-size: 0.85rem;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-image: url($caret-url);
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+
+    &:focus, &:focus-visible {
+      outline: none;
+      border-color: $color-primary;
+      box-shadow: 0 0 8px rgba($color-primary, 0.3);
+    }
+    &.show, &[aria-expanded="true"] {
+      border-color: $color-primary;
+      background: rgba($color-surface-2, 0.9);
+    }
+  }
+
+  .md-custom-select-menu {
+    background: $color-surface-2;
+    border: 1px solid $color-border;
+    border-radius: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+    width: 100%;
+    min-width: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba($color-primary, 0.4) transparent;
+
+    .dropdown-item {
+      color: $color-text;
+      font-family: $font-mono;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      &:hover, &:focus { background: $color-surface; color: $color-primary; }
+      &.active { background: rgba($color-primary, 0.12); color: $color-primary; }
+    }
+  }
+}
+
+.md-textarea { resize: vertical; min-height: 160px; }
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  background: $color-surface-2;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+
+  // Visually hide radio but keep it accessible to keyboard/screen readers
+  input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  input[type="radio"]:focus + .cat-icon,
+  input[type="radio"]:focus-visible ~ .cat-name {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+
+  input[type="radio"]:checked ~ .cat-name { color: $color-primary; }
+
+  .cat-icon { font-size: 1.8rem; }
+  .cat-name { font-size: 0.65rem; color: $color-muted; }
+
+  &:hover, &.selected {
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.08);
+    box-shadow: 0 0 12px rgba($color-primary, 0.2);
+    .cat-name { color: $color-primary; }
+  }
+}
+
+.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem; }
+.checkbox-item {
+  display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.8rem; color: $color-muted;
+  input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 14px; height: 14px; flex-shrink: 0;
+    border: 1px solid $color-border; border-radius: 2px; background: $color-surface-2;
+    cursor: pointer; position: relative; transition: all 0.15s;
+    &:checked {
+      background: $color-primary; border-color: $color-primary;
+      &::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: 2px solid #000; border-top: none; border-left: none; transform: rotate(45deg); }
+    }
+    &:focus-visible { outline: 1px solid $color-primary; outline-offset: 2px; }
+  }
+  &:hover { color: $color-text; }
+}
+
+.radio-row    { display: flex; flex-wrap: wrap; gap: 1rem; }
+.radio-item   {
+  display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.8rem;
+  input[type="radio"] {
+    appearance: none; -webkit-appearance: none;
+    width: 14px; height: 14px; flex-shrink: 0;
+    border: 1px solid $color-border; border-radius: 50%; background: $color-surface-2;
+    cursor: pointer; position: relative; transition: all 0.15s;
+    &:checked {
+      border-color: $color-primary;
+      &::after { content: ''; position: absolute; left: 3px; top: 3px; width: 6px; height: 6px; border-radius: 50%; background: $color-primary; box-shadow: 0 0 6px rgba($color-primary, 0.7); }
+    }
+    &:focus-visible { outline: 1px solid $color-primary; outline-offset: 2px; }
+  }
+}
+
+// -- Project detail ------------------------------------------
+.project-detail-header { padding: 2rem 0 1.5rem; border-bottom: 1px solid $color-border; margin-bottom: 2rem; }
+.detail-title-row { display: flex; align-items: flex-start; gap: 1rem; margin: 1rem 0; }
+.project-logo-lg  { width: 80px; height: 80px; border-radius: 4px; object-fit: cover; border: 1px solid $color-border; }
+.detail-title     { font-size: clamp(0.9rem, 2.5vw, 1.4rem); margin: 0 0 0.5rem; }
+
+// Unified meta rows on detail page
+.detail-meta-rows { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; }
+.detail-meta-row  { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; font-size: 0.8rem; }
+.meta-label       { color: $color-primary; font-size: 0.7rem; flex: 0 0 9rem; }
+.meta-value       { color: $color-text; }
+.meta-tags        { display: flex; gap: 0.35rem; flex-wrap: wrap; flex: 1; min-width: 0; }
+
+.detail-team      { font-size: 0.8rem; color: $color-muted; display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+.team-member      { color: $color-text; font-size: 0.8rem; }
+.stage-tag        { @extend .category-tag; }
+.detail-actions   { margin-top: 1rem; display: flex; gap: 0.5rem; }
+
+.detail-section { margin-bottom: 2rem; }
+.project-description { line-height: 1.8; color: $color-text; img { max-width: 100%; } h1,h2,h3 { font-size: 1rem; } }
+
+.asciinema-wrapper, .video-wrapper {
+  margin-bottom: 1.5rem;
+  iframe { width: 100%; aspect-ratio: 16/9; border: 1px solid $color-border; border-radius: 4px; }
+}
+
+.media-title  { font-size: 0.8rem; color: $color-muted; margin-bottom: 0.5rem; }
+.links-grid   { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.md-link      { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border: 1px solid $color-border; border-radius: 2px; font-size: 0.8rem; transition: all 0.2s; &:hover { border-color: $color-primary; } }
+
+.github-stat-row  { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; align-items: center; }
+.repo-name        { font-size: 0.75rem; color: $color-muted; }
+.github-badge     { font-size: 0.7rem; padding: 0.15rem 0.4rem; background: $color-surface-2; border: 1px solid $color-border; border-radius: 2px; }
+
+// -- Vote panel ----------------------------------------------
+.vote-panel {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.vote-question  { font-size: 0.75rem; color: $color-muted; margin-bottom: 0.75rem; }
+.star-voting    { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+
+.star-btn {
+  background: none;
+  border: 1px solid $color-border;
+  color: $color-muted;
+  font-size: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  line-height: 1;
+
+  &.active, &:hover, &.hover-preview {
+    color: gold;
+    border-color: gold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+  }
+}
+
+.vote-stats      { font-size: 0.8rem; color: $color-muted; }
+.vote-avg        { font-family: $font-pixel; font-size: 1.2rem; color: $color-primary; margin-right: 0.25rem; }
+.vote-count-label { margin-left: 0.25rem; }
+.your-vote       { font-size: 0.75rem; color: gold; margin-top: 0.5rem; }
+
+.tech-stack-panel { background: $color-surface; border: 1px solid $color-border; border-radius: 4px; padding: 1rem; }
+.tech-tags        { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tech-tags-columns {
+  column-count: 3;
+  column-gap: 0.5rem;
+  @media (max-width: 576px) { column-count: 2; }
+}
+.tech-tag         { font-size: 0.65rem; padding: 0.2rem 0.5rem; background: $color-surface-2; border: 1px solid rgba($color-primary, 0.2); border-radius: 2px; color: $color-primary; }
+
+.tech-tag-check {
+  display: flex; align-items: center; gap: 0.3rem;
+  break-inside: avoid; margin-bottom: 0.15rem;
+  font-size: 0.7rem; padding: 0.2rem 0.5rem;
+  background: $color-surface-2; border: 1px solid rgba($color-primary, 0.2);
+  border-radius: 2px; color: $color-muted; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 12px; height: 12px; flex-shrink: 0;
+    border: 1px solid $color-border; border-radius: 2px; background: $color-surface-2;
+    cursor: pointer; position: relative; transition: all 0.15s;
+    &:checked {
+      background: $color-primary; border-color: $color-primary;
+      &::after { content: ''; position: absolute; left: 3px; top: 1px; width: 4px; height: 7px; border: 2px solid #000; border-top: none; border-left: none; transform: rotate(45deg); }
+    }
+    &:focus-visible { outline: 1px solid $color-primary; outline-offset: 2px; }
+  }
+  &:hover { border-color: rgba($color-primary, 0.5); color: $color-text; background: rgba($color-primary, 0.05); }
+  &:has(input:checked), &.checked { border-color: $color-primary; color: $color-primary; background: rgba($color-primary, 0.1); }
+}
+
+.team-member-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.4rem 0.75rem; margin-bottom: 0.3rem;
+  background: $color-surface-2; border-radius: 4px;
+}
+
+.project-mine-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1rem; margin-bottom: 0.5rem;
+  background: $color-surface; border: 1px solid $color-border; border-radius: 4px;
+  .project-mine-title { color: $color-primary; text-decoration: none; font-weight: 600; }
+  .project-mine-info  { display: flex; align-items: center; gap: 0.75rem; }
+  .project-mine-actions { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+}
+
+// Actions footer for My Projects cards (reuses .project-card layout)
+.card-mine-actions {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
+  padding: 0.6rem 1rem 0.75rem;
+  border-top: 1px solid $color-border;
+  margin-top: 0.5rem;
+  position: relative; z-index: 2; // above project-title::after stretched overlay
+  .card-mine-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+}
+
+// -- Filters bar ---------------------------------------------
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid $color-border;
+  .md-select { width: auto; min-width: 160px; }
+}
+
+// -- Admin ---------------------------------------------------
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  padding: 1.25rem;
+  text-align: center;
+  &.finalist { border-color: rgba($color-secondary, 0.4); }
+}
+
+.stat-number { font-family: $font-pixel; font-size: 2rem; color: $color-primary; }
+.stat-label  { font-size: 0.7rem; color: $color-muted; margin-top: 0.25rem; }
+
+.md-card { background: $color-surface; border: 1px solid $color-border; border-radius: 4px; padding: 1.5rem; }
+
+// Markdown prose styles for rendered .md content inside .md-card
+.md-card {
+  h1, h2, h3, h4 { color: $color-primary; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  h1 { font-size: 1.5rem; border-bottom: 1px solid $color-border; padding-bottom: 0.4rem; }
+  h2 { font-size: 1.1rem; }
+  h3 { font-size: 0.95rem; color: $color-secondary; }
+  p { line-height: 1.7; margin-bottom: 0.75rem; }
+  hr { border-color: $color-border; margin: 1.5rem 0; }
+  ol, ul { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.25rem; }
+  a { color: $color-primary; }
+  blockquote {
+    border-left: 3px solid $color-primary;
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    background: rgba($color-primary, 0.05);
+    color: $color-muted;
+    p { margin-bottom: 0; }
+  }
+  code { background: rgba($color-primary, 0.1); padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.88em; }
+  pre code { background: none; padding: 0; }
+  pre { background: $color-surface-2; border: 1px solid $color-border; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; }
+}
+.danger-zone-card { border-color: rgba(#ff6b6b, 0.3); }
+.md-modal { background: $color-surface-2; border: 1px solid $color-border; color: $color-text;
+  .modal-header { border-bottom-color: $color-border; }
+  .modal-footer { border-top-color: $color-border; }
+  .btn-close { filter: invert(0.8) brightness(1.5); }
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  th { border-bottom: 1px solid $color-border; padding: 0.5rem 0.75rem; text-align: left; color: $color-muted; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba($color-border, 0.5); vertical-align: middle; }
+  tr:hover td { background: rgba($color-primary, 0.04); }
+}
+
+.admin-nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+.status-controls, .role-controls { display: flex; align-items: center; gap: 0.25rem; }
+
+.media-item { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid $color-border; font-size: 0.8rem; }
+.media-subform { background: $color-surface-2; border: 1px solid $color-border; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+
+// -- Empty state ---------------------------------------------
+.empty-state { padding: 3rem; text-align: center; color: $color-muted; }
+
+// -- Alerts --------------------------------------------------
+.alert {
+  border-radius: 2px;
+  font-size: 0.8rem;
+  border: 1px solid;
+  .btn-close { filter: invert(0.8) brightness(1.5); opacity: 0.6; &:hover { opacity: 1; } }
+  &.alert-danger  { background: rgba(#f44336, 0.1); border-color: rgba(#f44336, 0.4); color: #ff8a80; }
+  &.alert-info    { background: rgba($color-primary, 0.08); border-color: rgba($color-primary, 0.3); color: $color-primary; }
+  &.alert-success { background: rgba(#4caf50, 0.1); border-color: rgba(#4caf50, 0.4); color: #a5d6a7; }
+}
+
+// -- Pixel font consistency: override Bootstrap defaults -----
+// Normalise Bootstrap utility buttons to match pixel-button height.
+// Using !important to beat Bootstrap's .btn-sm specificity.
+.btn-secondary,
+.btn-danger,
+.btn-outline-danger,
+.btn-outline-secondary {
+  font-family: $font-pixel !important;
+  font-size:   $btn-px-size !important;
+  line-height: 1 !important;
+  padding:     $btn-px-pad !important;
+  border-radius: $btn-px-radius !important;
+  letter-spacing: 0.5px;
+}
+
+// Hover: fill with border colour + glow (matches .btn-neon-outline behaviour)
+.btn-outline-secondary {
+  border-color: $color-muted !important;
+  color: $color-muted !important;
+  &:hover, &:focus {
+    background:  $color-muted !important;
+    color:       $color-bg !important;
+    border-color: $color-muted !important;
+    box-shadow:  0 0 12px rgba($color-muted, 0.45) !important;
+  }
+}
+.btn-outline-danger {
+  &:hover, &:focus {
+    box-shadow:  0 0 12px rgba(#ff6b6b, 0.45) !important;
+  }
+}
+.btn-danger {
+  &:hover, &:focus {
+    box-shadow:  0 0 14px rgba(#f44336, 0.5) !important;
+  }
+}
+
+// Style the file-input "Browse" button consistently
+input[type='file'] {
+  font-size: 0.75rem;
+  &::file-selector-button {
+    font-family: $font-pixel;
+    font-size: 0.6rem;
+    background: transparent;
+    color: $color-primary;
+    border: 1px solid $color-primary;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    transition: background 0.2s;
+    &:hover { background: rgba($color-primary, 0.1); }
+  }
+}
+
+// -- Responsive tweaks ---------------------------------------
+// Mobile hamburger: ensure expanded menu is visible with explicit background
+@media (max-width: 991.98px) {
+  .md-navbar .navbar-collapse {
+    background: $color-surface;
+    border-top: 1px solid $color-border;
+    margin: 0.5rem -1rem 0;
+    padding: 0.75rem 1rem 1rem;
+  }
+  .md-navbar .navbar-nav { gap: 0.25rem; }
+  .md-navbar .btn-nav,
+  .md-navbar .btn-register,
+  .md-navbar .btn-github-login {
+    display: inline-block;
+    margin-top: 0.25rem;
+  }
+  // Ensure toggler button is always tappable — never obscured by overlay or z-index
+  .md-navbar .navbar-toggler {
+    position: relative;
+    z-index: 1100;
+    pointer-events: auto;
+    border-color: rgba($color-primary, 0.5);
+    &:focus { box-shadow: 0 0 0 3px rgba($color-primary, 0.25); outline: none; }
+  }
+}
+
+// Mobile hero image strip
+.hero-wave-mobile {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  height: 180px;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 4px;
+  opacity: 0.85;
+  border: 1px solid $color-border;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .hero-section { padding-top: 1.5rem; }
+  .hero-wave-mobile { margin-bottom: 1.5rem; }
+  .hero-title { font-size: 0.9rem; }
+  .countdown-label { display: none; }
+  .countdown-unit span:first-child { font-size: 1.5rem; }
+  .category-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
+
+// -- Test login URL display (admin dashboard) --------
+.test-login-url {
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  background: $color-surface-2;
+  border: 1px solid $color-border;
+  border-radius: 2px;
+  padding: 0.2rem 0.5rem;
+  color: $color-accent;
+  word-break: break-all;
+}

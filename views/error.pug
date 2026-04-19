@@ -1,0 +1,7 @@
+extends layout
+
+block content
+  .error-page.text-center.py-5
+    h1.pixel-text.neon-pink= title || 'Error'
+    p.lead= message || 'Something went wrong.'
+    a.btn.btn-neon-outline(href='/') Go Home

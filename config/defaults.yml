@@ -1,0 +1,97 @@
+# MegaDemo.ai — default seed values for configurable lists.
+#
+# These values are loaded into the database on first deployment (when the DB
+# lists are empty). Once an admin edits a list via the UI, the DB is
+# authoritative and this file has no further effect unless a full reset is
+# performed from the admin dashboard.
+
+teams:
+  - Analytics
+  - Anbox
+  - Automotive/Industrial
+  - Business Data
+  - CPC
+  - Charm Tech
+  - Commercial Systems
+  - Data Platform
+  - Debcrafters
+  - Desktop
+  - Documentation
+  - Foundations
+  - GRC/SecOps
+  - Golioth
+  - HPC
+  - Hardware Certification Core
+  - IS
+  - Industrial
+  - Juju
+  - KernOS
+  - Kernel
+  - Kernel Factory
+  - Kubernetes
+  - LXD
+  - Landscape
+  - Launchpad
+  - MAAS
+  - Mir
+  - Multipass
+  - Networking
+  - OCTO
+  - Observability
+  - OpenStack/Ceph/OVN
+  - Platform Engineering
+  - RTOS
+  - Robotics
+  - Rocks
+  - Security
+  - Server
+  - Snapd/Ubuntu
+  - Solutions Engineering
+  - Solutions QA
+  - Starcraft
+  - Store
+  - Telemetry
+  - Ubuntu Pro
+  - Workshop
+  - Other
+
+ai_tools:
+  - GitHub Copilot
+  - Claude Code
+  - GPT
+  - Gemini
+  - Mistral
+  - Local LLM (Ollama/etc.)
+  - LangChain
+  - CrewAI
+  - AutoGen
+  - Custom fine-tuned model
+  - Other
+
+tech_stack:
+  - Angular
+  - C/C++
+  - Containers
+  - Django
+  - FastAPI
+  - Flask
+  - Go
+  - Java
+  - JavaScript
+  - Kubernetes
+  - MongoDB
+  - MySQL
+  - .NET
+  - Next.js
+  - Node.js
+  - PostgreSQL
+  - PyTorch
+  - Python
+  - React
+  - Redis
+  - Ruby
+  - Rust
+  - Shell/Bash
+  - Terraform
+  - TypeScript
+  - Vue

@@ -1,0 +1,146 @@
+extends layout
+
+block head
+  meta(property='og:title', content='MegaDemo.ai')
+  meta(property='og:description', content='Canonical AI Engineering Hackathon — Register your project, vote, and compete.')
+
+block content
+  // Hero Section
+  section.hero-section
+    .hero-grid-overlay
+
+    // Mobile-only hero image appears at top of section (before hero text)
+    .d-lg-none.text-center.px-3
+      img.hero-wave-mobile(src='/images/megademo-wave.jpg', alt='MegaDemo.ai wave')
+
+    .container.hero-content
+      .row.align-items-center
+        .col-lg-7
+          h1.hero-title
+            span.pixel-text SURF THE WAVE.
+            br
+            span.pixel-text.neon-pink BUILD THE FUTURE.
+          p.hero-subtitle Canonical Madrid Engineering Sprint — AI Hackathon
+          p.hero-description
+            | Every engineer suddenly got access to superpowers — and it's time to
+            | properly exercise our new magical abilities. Register your AI project,
+            | show your work, and compete for a spot at the MegaDemo on Friday.
+            |  
+            a.hero-help-link(href='/get-started') Get started -&gt;
+          .hero-ctas
+            if user
+              a.btn.btn-neon-cyan.me-3(href='/projects/new') + Register Your Project
+              a.btn.btn-neon-outline(href='/projects') Browse Projects
+            else
+              a.btn.btn-github-hero(href=loginUrl)
+                i.fab.fa-github
+                span Sign in with GitHub
+        .col-lg-5.text-center.d-none.d-lg-block
+          img.hero-wave(src='/images/megademo-wave.jpg', alt='MegaDemo.ai wave')
+
+  // Countdown Timer
+  if submissionDeadline || megademoDate
+    section.countdown-section
+      .container
+        #countdown-widget(data-deadline=submissionDeadline, data-megademo=megademoDate)
+          .countdown-display
+            .countdown-label#countdown-label Loading...
+            .countdown-units
+              .countdown-unit
+                span#cd-days 00
+                span.unit-label DAYS
+              .countdown-sep :
+              .countdown-unit
+                span#cd-hours 00
+                span.unit-label HRS
+              .countdown-sep :
+              .countdown-unit
+                span#cd-mins 00
+                span.unit-label MIN
+              .countdown-sep :
+              .countdown-unit
+                span#cd-secs 00
+                span.unit-label SEC
+
+  // Main content grid
+  .container.mt-5
+    .row
+      // Latest projects
+      .col-lg-7
+        .section-header
+          h2.section-title.pixel-text LATEST ENTRIES
+          a.section-link(href='/projects') View all &rarr;
+
+        if newest && newest.length
+          .projects-grid
+            each project in newest
+              include partials/project-card
+        else
+          .empty-state
+            p.text-muted No projects yet. Be the first to register!
+            if user
+              a.btn.btn-neon-cyan(href='/projects/new') Register Now
+
+      // Leaderboard
+      .col-lg-5
+        .section-header
+          h2.section-title.pixel-text LEADERBOARD
+          a.section-link(href='/projects?sort=rating') Full board &rarr;
+
+        if leaderboard && leaderboard.length
+          .leaderboard-list
+            each project, i in leaderboard
+              .leaderboard-item
+                span.rank-number= i + 1
+                .leaderboard-info
+                  a.leaderboard-title.stretched-link(href='/projects/' + project.slug)= project.title
+                  span.leaderboard-team= project.canonicalTeam
+                .leaderboard-rating
+                  span.stars-display #{project.avgRating != null ? project.avgRating.toFixed(1) : '—'}
+                  span.star-icon ★
+                  - var vc = project.voteCount || 0
+                  span.vote-count (#{vc} #{vc === 1 ? 'vote' : 'votes'})
+        else
+          .empty-state
+            p.text-muted No votes yet. Browse projects and cast your stars!
+
+  // Category distribution chart (only when there are submitted projects)
+  if categoryStats && categoryStats.length
+    .container.mt-5.pb-4
+      .section-header
+        h2.section-title.pixel-text PROJECT CATEGORIES
+      .row.justify-content-center
+        .col-md-6
+          canvas#categoryChart(height='260')
+
+block scripts
+  if categoryStats && categoryStats.length
+    script(src='https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js', defer)
+    script.
+      window.addEventListener('load', function() {
+        const catData = !{safeJson(categoryStats)};
+        new Chart(document.getElementById('categoryChart'), {
+          type: 'doughnut',
+          data: {
+            labels: catData.map(d => d.category),
+            datasets: [{
+              data: catData.map(d => d.count),
+              backgroundColor: [
+                '#00d4ff','#ff006e','#8b00ff','#ff6600','#00ff88',
+                '#ffcc00','#ff3366','#0088ff','#cc00ff','#00ccaa',
+              ],
+              borderColor: '#0d0d2b',
+              borderWidth: 2,
+            }]
+          },
+          options: {
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: { color: '#c8e6ff', font: { size: 11 }, padding: 12 }
+              }
+            }
+          }
+        });
+      });
+

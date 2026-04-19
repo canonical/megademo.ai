@@ -1,0 +1,154 @@
+extends ../layout
+
+block head
+  script(src='https://cdn.jsdelivr.net/npm/chart.js')
+
+block content
+  .page-header
+    h1.pixel-text ADMIN DASHBOARD
+
+  .stats-grid
+    .stat-card
+      .stat-number= stats.totalProjects
+      .stat-label Projects
+    .stat-card
+      .stat-number= stats.totalVotes
+      .stat-label Votes
+    .stat-card
+      .stat-number= stats.totalUsers
+      .stat-label Users
+    .stat-card.finalist
+      .stat-number= stats.finalists
+      .stat-label Finalists
+
+  .row.mt-4
+    .col-md-6
+      .md-card
+        h3.section-label Categories
+        canvas#categoryChart
+    .col-md-6
+      .md-card
+        h3.section-label Settings
+        form(method='POST', action='/admin/settings')
+          input(type='hidden', name='_csrf', value=_csrf)
+          .mb-3
+            label.md-label Submission Deadline
+            .d-flex.gap-2
+              input.md-input(type='date', name='subDate', style='flex:2',
+                value=(settings.submissionDeadline ? String(settings.submissionDeadline).slice(0,10) : ''))
+              input.md-input(type='text', name='subTime', style='flex:1',
+                placeholder='HH:MM', pattern='([01][0-9]|2[0-3]):[0-5][0-9]', maxlength='5',
+                value=(settings.submissionDeadline ? String(settings.submissionDeadline).slice(11,16) : ''))
+          .mb-3
+            label.md-label MegaDemo Date &amp; Time
+            .d-flex.gap-2
+              input.md-input(type='date', name='megaDate', style='flex:2',
+                value=(settings.megademoDate ? String(settings.megademoDate).slice(0,10) : ''))
+              input.md-input(type='text', name='megaTime', style='flex:1',
+                placeholder='HH:MM', pattern='([01][0-9]|2[0-3]):[0-5][0-9]', maxlength='5',
+                value=(settings.megademoDate ? String(settings.megademoDate).slice(11,16) : ''))
+          .mb-3
+            label.md-label Mattermost Webhook URL
+            input.md-input(type='url', name='mattermostWebhook', value=(settings.mattermostWebhook || ''), placeholder='https://mattermost.../hooks/...')
+          button.btn.btn-neon-cyan(type='submit') Save Settings
+
+  .admin-nav.mt-4
+    a.btn.btn-neon-outline.me-2(href='/admin/projects') Manage Projects
+    a.btn.btn-neon-outline.me-2(href='/admin/users') Manage Users
+    a.btn.btn-neon-outline.me-2(href='/admin/teams') Manage Teams
+    a.btn.btn-neon-outline.me-2(href='/admin/tags') Manage Tags &amp; AI Tools
+    a.btn.btn-neon-outline(href='/admin/export') Export CSV
+
+  .md-card.mt-4
+    h3.section-label Recent Projects
+    table.md-table
+      thead
+        tr
+          th Title
+          th Category
+          th Status
+          th Created
+      tbody
+        each p in recentProjects
+          tr
+            td
+              a(href='/projects/' + p.slug)= p.title
+            td= p.category
+            td
+              - const safeStatus = ['draft','submitted','finalist'].includes(p.status) ? p.status : 'draft'
+              span(class='status-badge status-' + safeStatus)= p.status
+            td= new Date(p.createdAt).toLocaleDateString()
+
+  // Test Login
+  if testLoginToken
+    .md-card.mt-4
+      h3.section-label 🧪 Test Login URLs
+      p.text-muted.mb-3
+        | Use these URLs to log in as a synthetic test user without GitHub OAuth.
+        | Revoke access by removing the <code>TEST_LOGIN_TOKEN</code> environment variable.
+      .d-flex.flex-column.gap-2
+        .d-flex.align-items-center.gap-2
+          code.test-login-url= baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=participant'
+          button.btn.btn-xs.btn-neon-outline.copy-btn(type='button', data-url=baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=participant') Copy
+          span.text-muted.small participant
+        .d-flex.align-items-center.gap-2
+          code.test-login-url= baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=admin'
+          button.btn.btn-xs.btn-neon-outline.copy-btn(type='button', data-url=baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=admin') Copy
+          span.text-muted.small admin
+
+  // Danger Zone
+  .md-card.mt-4.danger-zone-card
+    h3.section-label ⚠ Danger Zone
+    p.text-muted.mb-3
+      | Permanently delete <strong>all projects and votes</strong> and reset configurable lists
+      | (teams, AI tools, tech stack) to their default values.
+      | User accounts and deadline settings are preserved.
+    button.btn.btn-danger-outline(type='button', data-bs-toggle='modal', data-bs-target='#resetModal') Reset Everything to Zero
+
+  // Reset confirmation modal
+  #resetModal.modal.fade(tabindex='-1', aria-labelledby='resetModalLabel', aria-hidden='true')
+    .modal-dialog.modal-dialog-centered
+      .modal-content.md-modal
+        .modal-header
+          h5.modal-title#resetModalLabel ⚠ Confirm Full Reset
+          button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+        .modal-body
+          p This will permanently delete <strong>all projects and all votes</strong> and reset the configurable lists to defaults.
+          p.text-muted This action cannot be undone.
+          p Type <strong>RESET</strong> below to confirm:
+          input#resetConfirmInput.md-input.mt-2(type='text', placeholder='RESET', autocomplete='off')
+        .modal-footer
+          button.btn.btn-neon-outline(type='button', data-bs-dismiss='modal') Cancel
+          form(method='POST', action='/admin/reset')
+            input(type='hidden', name='_csrf', value=_csrf)
+            input#resetConfirmHidden(type='hidden', name='confirm', value='')
+            button#resetSubmitBtn.btn.btn-danger-outline(type='submit', disabled) Confirm Reset
+
+block scripts
+  script.
+    const catData = !{safeJson(categoryStats)};
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: catData.map(c => c._id),
+        datasets: [{ data: catData.map(c => c.count),
+          backgroundColor: ['#00d4ff','#ff006e','#8b00ff','#ff6600','#00ff88','#ffcc00','#ff4444','#44aaff','#cc44ff','#888888'] }]
+      },
+      options: { plugins: { legend: { labels: { color: '#c8e6ff', font: { size: 11 } } } } }
+    });
+    document.getElementById('resetConfirmInput').addEventListener('input', function () {
+      const btn = document.getElementById('resetSubmitBtn');
+      const hidden = document.getElementById('resetConfirmHidden');
+      const val = this.value.trim();
+      hidden.value = val;
+      btn.disabled = val !== 'RESET';
+    });
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.url).then(() => {
+          const orig = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = orig; }, 1500);
+        });
+      });
+    });
