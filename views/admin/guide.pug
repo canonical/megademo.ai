@@ -9,4 +9,6 @@ block content
     .col-lg-8
       .card.md-card.mb-5
         .card-body.px-4.py-4
+          //- Safe: content is server-side HTML from marked.parse() of a static
+          //- committed markdown file (content/admin-guide.md). Not user input.
           div!= content
