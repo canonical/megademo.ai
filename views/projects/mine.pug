@@ -1,0 +1,17 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text MY PROJECTS
+    a.btn.btn-neon-cyan(href='/projects/new') + Register New Project
+
+  if Array.isArray(projects) && projects.length
+    .projects-grid
+      each project in projects
+        - mineActions = true
+        include ../partials/project-card
+        - mineActions = false
+  else
+    .empty-state.text-center.py-5
+      p.text-muted You haven't joined any projects yet.
+      a.btn.btn-neon-outline(href='/projects/new') Register Your First Project

@@ -1,0 +1,142 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text MANAGE PROJECTS
+    a.btn.btn-neon-outline(href='/admin') &lt;- Admin Dashboard
+
+  form.filters-bar(method='GET', action='/admin/projects')
+    select.md-select.js-autosubmit(name='status')
+      option(value='', selected=(!filters.status)) All Statuses
+      option(value='draft', selected=(filters.status==='draft')) Draft
+      option(value='submitted', selected=(filters.status==='submitted')) Submitted
+      option(value='finalist', selected=(filters.status==='finalist')) Finalist
+    select.md-select.js-autosubmit(name='category')
+      option(value='', selected=(!filters.category)) All Categories
+      each cat in CATEGORIES
+        option(value=cat, selected=(filters.category===cat)) #{cat}
+
+  .table-responsive.mt-4
+    table.md-table
+      thead
+        tr
+          th Title
+          th Category
+          th Owner
+          th Rating
+          th Status
+          th ⚡ Liveliness
+          th Actions
+      tbody
+        each p in projects
+          tr
+            td
+              a(href='/projects/' + p.slug)= p.title
+            td= p.category
+            td= p.owner && p.owner.profile ? p.owner.profile.name : '—'
+            td #{p.avgRating ? p.avgRating.toFixed(1) : '—'} (#{p.voteCount || 0})
+            td
+              span(class='status-badge status-' + p.status)= p.status
+            td
+              .liveliness-cell(data-project-id=p._id, data-csrf=_csrf,
+                style='display:flex;align-items:center;gap:0.4rem;flex-wrap:nowrap;white-space:nowrap')
+                - var lv = p.liveliness || 0
+                span.liveliness-dot(style='flex-shrink:0;display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (lv > 0.6 ? '#00d4ff' : lv > 0.2 ? '#ffcc00' : '#444'))
+                span.lv-pct(style='font-size:0.65rem;color:#c8e6ff;flex-shrink:0')= (lv * 100).toFixed(0) + '%'
+                select.mock-days(style='font-size:0.55rem;background:#0a0a1a;color:#c8e6ff;border:1px solid #1a3a4a;padding:0.15rem 0.2rem;border-radius:2px;max-width:80px')
+                  option(value='0') Today
+                  option(value='2') 2d
+                  option(value='4') 4d
+                  option(value='8') 8d+
+                  option(value='-1') —
+                button.btn.btn-xs.btn-neon-outline.js-mock-github(type='button', style='white-space:nowrap;flex-shrink:0') ⚡
+            td
+              .status-controls(data-project-id=p._id, data-csrf=_csrf)
+                if p.status !== 'draft'
+                  button.btn.btn-xs.btn-neon-outline.js-set-status(type='button', data-status='draft') Draft
+                if p.status !== 'submitted'
+                  button.btn.btn-xs.btn-neon-outline.ms-1.js-set-status(type='button', data-status='submitted') Submit
+                if p.status !== 'finalist'
+                  button.btn.btn-xs.btn-neon-outline.ms-1.js-set-status(type='button', data-status='finalist') 🏆
+                button.btn.btn-xs.btn-danger-outline.ms-2.js-delete-project(type='button',
+                  data-project-id=p._id, data-csrf=_csrf, data-title=p.title) x
+
+block scripts
+  script(nonce=cspNonce).
+    document.querySelectorAll('.js-autosubmit').forEach(function(sel) {
+      sel.addEventListener('change', function() { sel.form.submit(); });
+    });
+
+    document.querySelectorAll('.js-set-status').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const row = btn.closest('.status-controls');
+        const id = row.dataset.projectId;
+        const csrf = row.dataset.csrf;
+        const status = btn.dataset.status;
+        try {
+          const res = await fetch('/admin/projects/' + id + '/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+            body: JSON.stringify({ status })
+          });
+          if (res.ok) location.reload();
+          else alert('Failed to update status. Please try again.');
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+
+    document.querySelectorAll('.js-delete-project').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const id = btn.dataset.projectId;
+        const csrf = btn.dataset.csrf;
+        const title = btn.dataset.title;
+        if (!confirm(`Permanently delete "${title}" and all its votes? This cannot be undone.`)) return;
+        try {
+          const res = await fetch('/admin/projects/' + id + '/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+          });
+          if (res.ok) btn.closest('tr').remove();
+          else alert('Failed to delete project. Please try again.');
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+
+    document.querySelectorAll('.js-mock-github').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const cell = btn.closest('.liveliness-cell');
+        const id = cell.dataset.projectId;
+        const csrf = cell.dataset.csrf;
+        const daysAgo = cell.querySelector('.mock-days').value;
+        try {
+          const res = await fetch('/admin/projects/' + id + '/mock-github', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+            body: JSON.stringify({ daysAgo })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (typeof data.liveliness !== 'number' || !Number.isFinite(data.liveliness)) {
+              alert('Invalid response from server.');
+              return;
+            }
+            const pct = (data.liveliness * 100).toFixed(0) + '%';
+            const dot = cell.querySelector('.liveliness-dot');
+            const val = cell.querySelector('.lv-pct');
+            val.textContent = pct;
+            const lv = data.liveliness;
+            dot.style.background = lv > 0.6 ? '#00d4ff' : lv > 0.2 ? '#ffcc00' : '#444';
+            btn.textContent = '✓';
+            setTimeout(() => { btn.textContent = '⚡'; }, 1500);
+          } else {
+            alert('Failed to mock GitHub stats.');
+          }
+        } catch {
+          alert('Network error.');
+        }
+      });
+    });

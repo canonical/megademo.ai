@@ -1,0 +1,36 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text PROJECTS
+    p.lead Browse all #{projects.length} submitted AI experiments
+
+  // Filters
+  form.filters-bar(method='GET', action='/projects')
+    select.md-select.js-autosubmit(name='category')
+      option(value='') All Categories
+      each cat in CATEGORIES
+        option(value=cat, selected=(filters.category === cat)) #{cat}
+    select.md-select.js-autosubmit(name='team')
+      option(value='') All Teams
+      each team in CANONICAL_TEAMS
+        option(value=team, selected=(filters.team === team)) #{team}
+    select.md-select.js-autosubmit(name='sort')
+      option(value='newest', selected=(filters.sort === 'newest')) Newest First
+      option(value='rating', selected=(filters.sort === 'rating')) Top Rated
+      option(value='votes', selected=(filters.sort === 'votes')) Most Voted
+
+  if projects.length
+    .projects-grid-full
+      each project in projects
+        include ../partials/project-card
+  else
+    .empty-state.text-center.py-5
+      p.text-muted No projects match your filters.
+      a.btn.btn-neon-outline(href='/projects') Clear Filters
+
+block scripts
+  script(nonce=cspNonce).
+    document.querySelectorAll('.js-autosubmit').forEach(function(sel) {
+      sel.addEventListener('change', function() { sel.form.submit(); });
+    });

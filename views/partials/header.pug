@@ -1,0 +1,44 @@
+nav.navbar.navbar-expand-lg.navbar-dark.md-navbar
+  .container
+    a.navbar-brand(href='/')
+      span.brand-logo-outer
+        span.brand-logo MegaDemo.ai
+
+    button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarMain',
+      aria-controls='navbarMain', aria-expanded='false', aria-label='Toggle navigation')
+      span.navbar-toggler-icon
+
+    #navbarMain.collapse.navbar-collapse
+      ul.navbar-nav.me-auto
+        li.nav-item
+          a.nav-link.btn-nav(href='/projects') Browse Projects
+        if user
+          li.nav-item
+            a.nav-link.btn-nav(href='/projects/mine') My Projects
+          li.nav-item
+            a.nav-link.btn-register(href='/projects/new') + Register Project
+      ul.navbar-nav
+        li.nav-item.d-flex.align-items-center.me-2
+          a.btn.btn-sm.btn-help(href='/get-started') Get started
+        if user
+          if user.role === 'admin'
+            li.nav-item
+              a.nav-link.nav-admin(href='/admin')
+                i.fas.fa-cog
+                span.nav-admin-text Admin
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(href='#', role='button', data-bs-toggle='dropdown',
+              aria-expanded='false')
+              if user.profile && user.profile.picture
+                img.avatar-sm(src=user.profile.picture, alt=user.profile.name || 'avatar')
+              span.nav-username #{user.profile && user.profile.name ? user.profile.name.split(' ')[0] : 'Me'}
+            ul.dropdown-menu.dropdown-menu-end.md-dropdown
+              li
+                form.d-inline(method='POST', action='/logout')
+                  input(type='hidden', name='_csrf', value=_csrf)
+                  button.dropdown-item(type='submit') Sign Out
+        else
+          li.nav-item
+            a.nav-link.btn-github-login(href=loginUrl)
+              i.fab.fa-github
+              | Sign in with GitHub

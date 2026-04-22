@@ -1,0 +1,12 @@
+# Run the same checks as GitHub Actions CI before every commit.
+# If any step fails, the commit is aborted.
+
+set -e
+
+echo "▶ lint-check..."
+npm run lint-check
+
+echo "▶ tests..."
+npm test -- --silent
+
+echo "✓ All CI checks passed."

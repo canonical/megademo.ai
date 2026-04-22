@@ -1,0 +1,54 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text MANAGE USERS
+    a.btn.btn-neon-outline(href='/admin') &lt;- Admin Dashboard
+
+  .table-responsive
+    table.md-table
+      thead
+        tr
+          th Avatar
+          th Name
+          th Email
+          th Role
+          th Actions
+      tbody
+        each u in users
+          tr
+            td
+              if u.profile && u.profile.picture
+                img.avatar-sm(src=u.profile.picture, alt=u.profile.name || 'avatar')
+            td= u.profile && u.profile.name ? u.profile.name : '—'
+            td= u.email
+            td
+              span(class='role-badge role-' + u.role)= u.role
+            td
+              .role-controls(data-user-id=u._id, data-csrf=_csrf)
+                if u._id.toString() !== user._id.toString()
+                  if u.role !== 'admin'
+                    button.btn.btn-xs.btn-neon-outline.js-set-role(type='button', data-role='admin') Admin
+                  if u.role !== 'participant'
+                    button.btn.btn-xs.btn-neon-outline.js-set-role(type='button', data-role='participant') Participant
+                else
+                  span.small.text-muted (you)
+
+block scripts
+  script(nonce=cspNonce).
+    document.querySelectorAll('.js-set-role').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const row = btn.closest('.role-controls');
+        try {
+          const res = await fetch('/admin/users/' + row.dataset.userId + '/role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': row.dataset.csrf },
+            body: JSON.stringify({ role: btn.dataset.role })
+          });
+          if (res.ok) location.reload();
+          else alert('Failed to update role. Please try again.');
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });

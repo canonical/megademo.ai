@@ -1,0 +1,98 @@
+---
+description: "Custom instructions for Web Application development with JavaScript and Node.js"
+applyTo: "**"
+---
+
+# Web Application Development Guidelines
+
+## CI/CD — Pre-commit Requirements
+
+**Every commit MUST pass the full CI gate before being pushed.**
+
+The CI workflow (`.github/workflows/ci.yml`) runs two steps in order:
+1. `npm run lint-check` — ESLint, zero errors allowed (warnings are tolerated but errors block CI)
+2. `npm test` — Jest, all 84+ tests must pass
+
+A **husky pre-commit hook** (`.husky/pre-commit`) enforces this locally. It runs both steps and aborts the commit if either fails. This is the canonical way to ensure CI stays green.
+
+**Rules for all code changes:**
+- Run `npm run lint-check` before staging files; fix all ESLint errors (not just warnings)
+- Run `npm test` to confirm no regressions
+- Never commit code that would fail either step — the pre-commit hook will reject it anyway
+- If a lint rule fires, fix the code (not the lint config) unless the rule is genuinely inapplicable
+- Common ESLint rules to watch: `no-undef`, `no-useless-escape`, `preserve-caught-error`, `no-unused-vars`
+
+## Git Push Policy
+
+**Never push to GitHub unless the user explicitly asks.**
+
+- Commit freely as work progresses, but keep commits local until the user says to push.
+- Do not push as part of routine task completion, even after all CI checks pass.
+- When the user says "push" (or equivalent), push all pending commits at that point.
+
+## Documentation Maintenance
+
+**Keep `DESIGN.md` and `README.md` current with every material change.**
+
+Update `DESIGN.md` when:
+- Stack, dependencies, or infrastructure changes (new package, new service, tier upgrade)
+- A new file or directory is added to the project
+- A key design decision is made or reversed
+- Auth, security, or deployment configuration changes
+- Performance characteristics or capacity limits change
+
+Update `README.md` when:
+- Setup steps, env vars, or deployment instructions change
+- A new npm script or developer workflow is added
+- Authentication mode options change
+- Admin or operational procedures change
+
+Both docs are committed in the same commit as the code change that prompted them. Do not defer doc updates to a separate commit.
+
+## Programming Language: JavaScript
+
+**JavaScript Best Practices:**
+- Use modern ES2020+ syntax and features
+- Prefer `const` and `let` over `var` for variable declarations
+- Use arrow functions for callbacks and concise functions
+- Implement proper async/await patterns instead of callback chains
+- Use destructuring assignment for cleaner code
+- Follow consistent naming conventions (camelCase for variables/functions)
+
+## Framework: Node.js
+
+
+## Code Style: Clean Code
+
+**Clean Code Principles:**
+- Write self-documenting code with meaningful names
+- Keep functions small and focused on a single responsibility
+- Avoid deep nesting and complex conditional statements
+- Use consistent formatting and indentation
+- Write code that tells a story and is easy to understand
+- Refactor ruthlessly to eliminate code smells
+
+## Testing: Jest
+
+**Testing Guidelines:**
+- Write comprehensive unit tests for all business logic
+- Follow the AAA pattern: Arrange, Act, Assert
+- Maintain good test coverage (aim for 80%+ for critical paths)
+- Write descriptive test names that explain the expected behavior
+- Use test doubles (mocks, stubs, spies) appropriately
+- Implement integration tests for API endpoints and user flows
+- Keep tests fast, isolated, and deterministic
+
+## AI Code Generation Preferences
+
+When generating code, please:
+
+- Generate complete, working code examples with proper imports
+- Include inline comments for complex logic and business rules
+- Follow the established patterns and conventions in this project
+- Suggest improvements and alternative approaches when relevant
+- Consider performance, security, and maintainability
+- Include error handling and edge case considerations
+- Generate appropriate unit tests when creating new functions
+- Follow accessibility best practices for UI components
+- Use semantic HTML and proper ARIA attributes when applicable

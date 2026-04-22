@@ -1,0 +1,17 @@
+if messages && messages.errors && messages.errors.length
+  .alert.alert-danger.alert-dismissible.fade.show(role='alert')
+    each error in messages.errors
+      div= error.msg
+    button.btn-close(type='button', data-bs-dismiss='alert', aria-label='Close')
+
+if messages && messages.info && messages.info.length
+  .alert.alert-info.alert-dismissible.fade.show(role='alert')
+    each info in messages.info
+      div= info.msg
+    button.btn-close(type='button', data-bs-dismiss='alert', aria-label='Close')
+
+if messages && messages.success && messages.success.length
+  .alert.alert-success.alert-dismissible.fade.show(role='alert')
+    each success in messages.success
+      div= success.msg
+    button.btn-close(type='button', data-bs-dismiss='alert', aria-label='Close')

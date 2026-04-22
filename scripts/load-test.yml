@@ -1,0 +1,90 @@
+# MegaDemo.ai — Artillery smoke / load test
+#
+# Usage:
+#   npm run load-test                           # hit localhost:8080
+#   BASE_URL=https://megademo.ai npm run load-test
+#   artillery run scripts/load-test.yml --output results.json
+#   artillery report results.json               # generates results.html
+#
+# Decision thresholds (see plan):
+#   p95 < 500ms, error rate < 0.1%  → stack is sufficient
+#   p95 > 500ms                     → consider Render Standard ($25/mo)
+#   p99 > 2s or any 5xx             → consider Atlas M2 ($9/mo)
+
+config:
+  target: "{{ $processEnvironment.BASE_URL }}"
+  phases:
+    # Warm-up: bring in 20 users over 1 minute
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 20
+      name: "Warm-up"
+    # Ramp: 20 → 200 users over 2 minutes
+    - duration: 120
+      arrivalRate: 20
+      rampTo: 200
+      name: "Ramp"
+    # Sustain: 200 users for 5 minutes (main measurement window)
+    - duration: 300
+      arrivalRate: 200
+      name: "Sustain"
+    # Cool-down
+    - duration: 60
+      arrivalRate: 200
+      rampTo: 0
+      name: "Cool-down"
+
+  # Fail the run if p95 exceeds 1s or error rate exceeds 1%
+  ensure:
+    thresholds:
+      - http.response_time.p95: 1000
+      - http.codes.5xx: 0
+
+  defaults:
+    headers:
+      Accept: "text/html,application/xhtml+xml"
+
+scenarios:
+  # --- 1. Anonymous browse (heaviest traffic pattern) ---
+  - name: "Anonymous browse"
+    weight: 5
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+      - think: 3
+      - get:
+          url: "/projects"
+          expect:
+            - statusCode: 200
+      - think: 4
+      - get:
+          url: "/projects?sort=rating"
+          expect:
+            - statusCode: 200
+      - think: 5
+
+  # --- 2. Leaderboard hammering (big screen on refresh loop) ---
+  - name: "Leaderboard refresh"
+    weight: 3
+    flow:
+      - loop:
+          - get:
+              url: "/"
+              expect:
+                - statusCode: 200
+          - think: 10
+        count: 3
+
+  # --- 3. Kiosk cycling ---
+  - name: "Kiosk"
+    weight: 2
+    flow:
+      - loop:
+          - get:
+              url: "/kiosk"
+              expect:
+                - statusCode: 200
+          - think: 30
+        count: 2

@@ -1,0 +1,8 @@
+.env
+node_modules/
+public/js/lib/
+public/uploads/
+tmp/
+*.log
+.DS_Store
+hacking.txt
