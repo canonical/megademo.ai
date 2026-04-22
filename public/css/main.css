@@ -23462,6 +23462,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .page-header h1, .page-header .h1 {

@@ -33,6 +33,26 @@ body.kiosk-body {
 .kiosk-logo    { font-family: var(--font-pixel); font-size: 1.2rem; color: var(--color-primary); letter-spacing: 3px; text-shadow: 0 0 20px var(--color-primary); }
 .kiosk-logo-ai { font-family: var(--font-pixel); font-size: 1.2rem; color: var(--color-secondary); text-shadow: 0 0 20px var(--color-secondary); }
 .kiosk-status  { margin-left: auto; font-size: 0.7rem; color: rgba(200,230,255,0.5); letter-spacing: 3px; }
+
+.kiosk-header .brand-logo-outer {
+  display: inline-block;
+  filter: drop-shadow(2px 0 0 rgba(0,0,0,0.95)) drop-shadow(-2px 0 0 rgba(0,0,0,0.95)) drop-shadow(0 2px 0 rgba(0,0,0,0.95)) drop-shadow(0 -2px 0 rgba(0,0,0,0.95)) drop-shadow(3px 5px 0 rgba(0,0,0,0.7)) drop-shadow(0 0 12px rgba(0,212,255,0.45));
+}
+.kiosk-header .brand-logo {
+  font-family: "Black Ops One", sans-serif;
+  font-size: 2rem;
+  line-height: 1.35;
+  display: inline-block;
+  background: linear-gradient(180deg, #00d4ff 0%, #cc44ff 52%, #ff006e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+a.kiosk-brand-link { text-decoration: none; }
+a.kiosk-brand-link:hover .brand-logo-outer {
+  filter: drop-shadow(2px 0 0 rgba(0,0,0,0.95)) drop-shadow(-2px 0 0 rgba(0,0,0,0.95)) drop-shadow(0 2px 0 rgba(0,0,0,0.95)) drop-shadow(0 -2px 0 rgba(0,0,0,0.95)) drop-shadow(3px 5px 0 rgba(0,0,0,0.7)) drop-shadow(0 0 22px rgba(0,212,255,0.8));
+}
 .kiosk-nav     { font-size: 0.7rem; color: rgba(200,230,255,0.4); }
 .kiosk-key-hint { font-size: 0.6rem; color: rgba(200,230,255,0.3); margin-left: 0.5rem; }
 .kiosk-back    { color: var(--color-primary); text-decoration: none; font-size: 0.8rem; }

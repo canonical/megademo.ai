@@ -3,8 +3,9 @@ extends ../kiosk-layout
 block content
   .kiosk-container#kiosk-app(data-interval=intervalSecs)
     .kiosk-header
-      span.kiosk-logo.pixel-text MEGADEMO
-      span.kiosk-logo-ai.pixel-text .ai
+      a.kiosk-brand-link(href='/')
+        span.brand-logo-outer
+          span.brand-logo MegaDemo.ai
       span.kiosk-status#kiosk-status FINALIST SHOWCASE
       .kiosk-nav
         span#kiosk-current 1
