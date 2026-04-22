@@ -5,7 +5,8 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { Project, CATEGORIES, CANONICAL_TEAMS, AI_TOOLS, TECH_STACK_DEFAULTS, computeLiveliness } = require('../models/Project');
 
-const PUBLIC_DIR = path.resolve(__dirname, '../public');
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../public/uploads');
+const UPLOADS_URL_PREFIX = '/uploads/';
 const ALLOWED_STATUSES = ['draft', 'submitted', 'finalist'];
 exports.ALLOWED_STATUSES = ALLOWED_STATUSES;
 
@@ -15,10 +16,11 @@ function safeDecodeURIComponent(str) {
 }
 
 function safeUnlinkLogo(logoRelPath) {
-  if (!logoRelPath) return;
-  const resolved = path.resolve(PUBLIC_DIR, logoRelPath.replace(/^\/+/, ''));
-  if (!resolved.startsWith(PUBLIC_DIR + path.sep)) return;
-  fs.unlink(resolved, () => {});
+  if (!logoRelPath || !logoRelPath.startsWith(UPLOADS_URL_PREFIX)) return;
+  const filename = logoRelPath.slice(UPLOADS_URL_PREFIX.length);
+  // Guard against path traversal: filename must be a plain basename with no separators
+  if (!filename || path.basename(filename) !== filename) return;
+  fs.unlink(path.join(UPLOADS_DIR, filename), () => {});
 }
 const Vote = require('../models/Vote');
 const User = require('../models/User');

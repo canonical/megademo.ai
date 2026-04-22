@@ -16,9 +16,9 @@ Source: [canonical/megademo.ai](https://github.com/canonical/megademo.ai) · Lic
 | Auth | Passport.js — **OIDC** (Canonical Identity Platform / Ory Hydra, drop-in ready) **or** GitHub OAuth 2.0 (org-restricted to `canonical`) |
 | Sessions | express-session stored in MongoDB (connect-mongo; `touchAfter: 3600`) |
 | Security | Helmet (CSP with per-request nonces + SRI), lusca (CSRF), express-rate-limit, sanitize-html, URL-scheme allowlist |
-| File uploads | multer (project logos / asciinema casts) |
+| File uploads | multer (project logos / asciinema casts) — stored on a Render persistent disk (`/data/uploads`, 1 GB), served at `/uploads` |
 | Notifications | Mattermost webhook + daily summary cron (node-cron) |
-| Deployment | Render.com Starter (render.yaml) |
+| Deployment | Render.com Starter (render.yaml); persistent disk for uploads (`/data/uploads`, 1 GB) |
 | Tests | Jest + Supertest + mongodb-memory-server |
 | CI/CD | GitHub Actions (lint-check + Jest); husky pre-commit hook mirrors CI locally |
 | Load testing | Artillery (`scripts/load-test.yml`) |

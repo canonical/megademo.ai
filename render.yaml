@@ -63,3 +63,12 @@ services:
       # @canonical.com email sign-in fallback
       - key: ALLOW_CANONICAL_EMAIL_FALLBACK
         value: "false"
+
+      # Persistent uploads directory (Render disk mount path)
+      - key: UPLOADS_DIR
+        value: /data/uploads
+
+    disk:
+      name: uploads
+      mountPath: /data/uploads
+      sizeGB: 1

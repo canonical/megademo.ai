@@ -18,7 +18,8 @@ const morgan = require('morgan');
 const { flash } = require('./config/flash');
 
 // Ensure uploads directory exists (must be done before static/multer setup)
-fs.mkdirSync(path.join(__dirname, 'public', 'uploads'), { recursive: true });
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'public', 'uploads');
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // Pre-parse get-started guide once at startup (reloaded on each deploy)
 const { marked } = require('marked');
@@ -242,6 +243,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1d' }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
 /**
