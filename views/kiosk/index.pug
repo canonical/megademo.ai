@@ -30,7 +30,7 @@ block content
               each member in (project.team || [])
                 span.kiosk-member
                   if member.profile && member.profile.picture
-                img.kiosk-avatar(src=member.profile.picture, alt=(member.profile.name ? member.profile.name + ' avatar' : 'Team member'))
+                    img.kiosk-avatar(src=member.profile.picture, alt=(member.profile.name ? member.profile.name + ' avatar' : 'Team member'))
                   span= member.profile && member.profile.name ? member.profile.name : ''
             if project.asciinema && project.asciinema.length
               .kiosk-cast(id='kiosk-cast-' + i, data-cast-id=project.asciinema[0].castId)

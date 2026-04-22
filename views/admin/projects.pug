@@ -92,7 +92,7 @@ block scripts
         const id = btn.dataset.projectId;
         const csrf = btn.dataset.csrf;
         const title = btn.dataset.title;
-        if (!confirm(`Permanently delete "${title}" and all its votes? This cannot be undone.`)) return;
+        if (!confirm('Permanently delete "' + title.replace(/[\\"`]/g, '') + '" and all its votes? This cannot be undone.')) return;
         try {
           const res = await fetch('/admin/projects/' + id + '/delete', {
             method: 'POST',

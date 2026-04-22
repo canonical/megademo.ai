@@ -243,7 +243,7 @@ exports.create = async (req, res) => {
     category,
     canonicalTeam: resolvedTeam,
     aiTools: parsedAiTools,
-    techStack: techStack ? techStack.split(',').map((t) => t.trim()).filter(Boolean) : [],
+    techStack: techStack ? (Array.isArray(techStack) ? techStack : techStack.split(',')).map((t) => t.trim()).filter(Boolean) : [],
     completionStage: completionStage || 'prototype',
     repoLinks: Array.isArray(repoLinks) ? repoLinks.filter(Boolean) : repoLinks ? [repoLinks] : [],
     demoUrl: demoUrl || '',
@@ -417,7 +417,7 @@ exports.update = async (req, res) => {
   project.category = CATEGORIES.includes(category) ? category : project.category;
   project.canonicalTeam = resolvedTeam || project.canonicalTeam;
   project.aiTools = parsedAiTools;
-  project.techStack = techStack ? techStack.split(',').map((t) => t.trim()).filter(Boolean) : project.techStack;
+  project.techStack = techStack ? (Array.isArray(techStack) ? techStack : techStack.split(',')).map((t) => t.trim()).filter(Boolean) : project.techStack;
   project.completionStage = completionStage || project.completionStage;
   project.repoLinks = newRepoLinks !== null ? newRepoLinks : project.repoLinks;
   project.demoUrl = demoUrl !== undefined ? demoUrl : project.demoUrl;

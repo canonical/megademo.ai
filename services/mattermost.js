@@ -55,7 +55,7 @@ async function notifyProjectSubmitted(project, baseUrl) {
 async function notifyFinalistPromoted(project, baseUrl) {
   const icon = CATEGORY_ICON[project.category] || ':star:';
   const url  = `${baseUrl}/projects/${project.slug}`;
-  const rating = project.avgRating ? `⭐ ${Number(project.avgRating).toFixed(1)}/5` : 'No votes yet';
+  const rating = project.avgRating != null ? `⭐ ${Number(project.avgRating).toFixed(1)}/5` : 'No votes yet';
 
   await post([
     `## 🏆 Finalist announced: **[${project.title}](${url})**`,
@@ -70,7 +70,7 @@ async function notifyFinalistPromoted(project, baseUrl) {
  */
 async function notifyVotingMilestone(project, milestone, baseUrl) {
   const url    = `${baseUrl}/projects/${project.slug}`;
-  const rating = project.avgRating ? Number(project.avgRating).toFixed(1) : '—';
+  const rating = project.avgRating != null ? Number(project.avgRating).toFixed(1) : '—';
 
   await post([
     `## ⭐ Voting milestone: **[${project.title}](${url})** just hit **${milestone} votes!**`,

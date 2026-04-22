@@ -156,6 +156,8 @@ exports.devLogin = async (req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
     return res.status(404).render('error', { title: 'Not Found', message: 'Page not found.' });
   }
+  // 'organizer' is intentionally dev-only; testLogin (used in production) is
+  // restricted to participant and admin to avoid exposing that role on prod.
   const ALLOWED_ROLES = ['participant', 'admin', 'organizer'];
   try {
     const { handle = 'dev-user', role = 'participant' } = req.body;
@@ -227,8 +229,13 @@ exports.oidcCallback = async (req, res, next) => {
   const client = getClient();
   if (!client) return next(new Error('OIDC not configured.'));
 
-  const { state, nonce, codeVerifier } = req.session.oidcParams || {};
+  const oidcParams = req.session.oidcParams;
   delete req.session.oidcParams;
+  if (!oidcParams?.state || !oidcParams?.codeVerifier) {
+    req.flash('errors', { msg: 'Login session expired or invalid. Please try again.' });
+    return res.redirect(resolveLoginUrl());
+  }
+  const { state, nonce, codeVerifier } = oidcParams;
 
   try {
     const params   = client.callbackParams(req);
