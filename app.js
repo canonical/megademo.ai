@@ -177,7 +177,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc:      ["'self'"],
-      scriptSrc:       ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      scriptSrc:       ["'self'", "'wasm-unsafe-eval'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
       styleSrc:        ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net'],
       imgSrc:          ["'self'", 'data:', 'https:'],
       fontSrc:         ["'self'", 'https://fonts.gstatic.com'],
@@ -253,7 +253,7 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
 /**
  * Global authentication gate — active only when OIDC_ISSUER_URL is set.
- * Gates the entire site: every request (except /auth/* and /kiosk*) requires
+ * Gates the entire site: every request (except /auth/*) requires
  * an authenticated session. Unauthenticated users are redirected to the OIDC
  * login flow with their intended URL saved for post-login redirect.
  *
@@ -262,7 +262,7 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
  */
 if (process.env.OIDC_ISSUER_URL) {
   app.use((req, res, next) => {
-    if (req.path.startsWith('/auth/') || req.path.startsWith('/kiosk') || req.path === '/health') return next();
+    if (req.path.startsWith('/auth/') || req.path === '/health') return next();
     if (!req.isAuthenticated()) {
       req.session.returnTo = req.originalUrl;
       return res.redirect('/auth/oidc');
@@ -346,8 +346,8 @@ app.post('/admin/reset', authController.isAdmin, adminController.resetAll);
 
 // Kiosk
 const kioskController = require('./controllers/kiosk');
-app.get('/kiosk', kioskController.index);
-app.get('/kiosk/:slug', kioskController.project);
+app.get('/kiosk', authController.isAuthenticated, kioskController.index);
+app.get('/kiosk/:slug', authController.isAuthenticated, kioskController.project);
 
 /**
  * Error handler
