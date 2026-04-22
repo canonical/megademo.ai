@@ -219,13 +219,12 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-// Exclude OAuth paths and multipart media uploads from CSRF.
-// Media uploads use multipart/form-data which req.urlencoded() can't parse, so
-// req.body._csrf is unavailable when lusca runs. These routes are auth-protected.
+// Exclude OAuth paths from CSRF. The media upload route uses multipart/form-data
+// which bypasses req.body parsing, so it sends the token in the X-CSRF-Token header
+// via a JavaScript fetch (see edit.pug .media-subform submit handler).
 const csrfMiddleware = lusca.csrf();
 app.use((req, res, next) => {
   if (req.path.startsWith('/auth/')) return next();
-  if (req.method === 'POST' && /^\/projects\/[^/]+\/media$/.test(req.path)) return next();
   csrfMiddleware(req, res, next);
 });
 app.use(globalLimiter);

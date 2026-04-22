@@ -86,6 +86,9 @@ function detectVideoType(url) {
 }
 
 // Multer config for logo uploads
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+const ALLOWED_MIMETYPES  = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
   filename: (req, file, cb) => {
@@ -97,10 +100,12 @@ const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) cb(null, true);
-    else cb(new Error('Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.'));
+    if (ALLOWED_EXTENSIONS.includes(ext) && ALLOWED_MIMETYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.'));
+    }
   },
 }).single('logo');
 

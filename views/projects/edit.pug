@@ -110,7 +110,6 @@ block content
       |  MEDIA
 
     form.media-subform(method='POST', action='/projects/' + project._id + '/media', enctype='multipart/form-data')
-      input(type='hidden', name='_csrf', value=_csrf)
       .mb-3
         label.md-label Logo (PNG/JPG, max 2MB)
         input.md-input(type='file', name='logo', accept='image/*')
@@ -241,3 +240,25 @@ block scripts
         errorEl.style.display = 'none';
       }
     });
+
+    // Media form uses multipart — submit via fetch so the X-CSRF-Token header is sent
+    // (lusca can't read _csrf from a multipart body; the header is the correct channel)
+    const mediaForm = document.querySelector('.media-subform');
+    if (mediaForm) {
+      mediaForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = mediaForm.querySelector('[type="submit"]');
+        btn.disabled = true;
+        try {
+          const res = await fetch(mediaForm.action, {
+            method: 'POST',
+            headers: { 'x-csrf-token': getCsrfToken() },
+            body: new FormData(mediaForm),
+          });
+          location.href = res.url;
+        } catch (err) {
+          btn.disabled = false;
+          alert('Media update failed. Please try again.');
+        }
+      });
+    }
