@@ -1,0 +1,12 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text ADMIN GUIDE
+    a.btn.btn-neon-outline(href='/admin') <- Admin Dashboard
+
+  .row.justify-content-center.mt-2
+    .col-lg-8
+      .card.md-card.mb-5
+        .card-body.px-4.py-4
+          div!= content

@@ -29,6 +29,12 @@ let getStartedHtml = (() => {
   } catch { return '<p>Guide not available.</p>'; }
 })();
 
+const adminGuideHtml = (() => {
+  try {
+    return marked.parse(fs.readFileSync(path.join(__dirname, 'content', 'admin-guide.md'), 'utf8'));
+  } catch { return '<p>Guide not available.</p>'; }
+})();
+
 try {
   process.loadEnvFile('.env');
 } catch (err) {
@@ -313,6 +319,9 @@ app.post('/projects/:id/leave', authController.isAuthenticated, projectControlle
 // Admin
 const adminController = require('./controllers/admin');
 app.get('/admin', authController.isAdmin, adminController.dashboard);
+app.get('/admin/guide', authController.isAdmin, (req, res) => {
+  res.render('admin/guide', { title: 'Admin Guide', content: adminGuideHtml });
+});
 app.get('/admin/projects', authController.isAdmin, adminController.projects);
 app.post('/admin/projects/:id/status', authController.isAdmin, adminController.setStatus);
 app.post('/admin/projects/:id/delete', authController.isAdmin, adminController.deleteProject);
