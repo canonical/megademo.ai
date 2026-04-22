@@ -34,9 +34,9 @@ block content
                   span= member.profile && member.profile.name ? member.profile.name : ''
             if project.asciinema && project.asciinema.length
               .kiosk-cast(id='kiosk-cast-' + i, data-cast-id=project.asciinema[0].castId)
-            else if project.videos && project.videos.length && project.videos[0].parsedId
+            else if project.videos && project.videos.length && project.videos[0].parsedId && project.videos[0].parsedId.type === 'youtube'
               .kiosk-video
-                iframe(src='https://www.youtube-nocookie.com/embed/' + project.videos[0].parsedId + '?autoplay=0',
+                iframe(src='https://www.youtube-nocookie.com/embed/' + project.videos[0].parsedId.id + '?autoplay=0',
                   title='Project video', style='border:none', allowfullscreen)
 
     .kiosk-progress
