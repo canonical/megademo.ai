@@ -23461,7 +23461,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
 }
 
