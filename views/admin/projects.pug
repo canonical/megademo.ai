@@ -3,8 +3,8 @@ extends ../layout
 block content
   .page-header
     h1.pixel-text MANAGE PROJECTS
-    a.btn.btn-neon-outline.me-2(href='/admin') <- Admin Dashboard
-    a.btn.btn-neon-outline(href='/admin/guide') Admin Guide
+    a.btn.btn-neon-outline.me-2(href='/admin/guide') Admin Guide
+    a.btn.btn-neon-outline(href='/admin') <- Admin Dashboard
 
   form.filters-bar(method='GET', action='/admin/projects')
     select.md-select.js-autosubmit(name='status')
