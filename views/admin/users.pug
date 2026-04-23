@@ -6,6 +6,17 @@ block content
     a.btn.btn-neon-outline.me-2(href='/admin/guide') Admin Guide
     a.btn.btn-neon-outline(href='/admin') <- Admin Dashboard
 
+  .filters-bar.d-flex.flex-wrap.gap-2.mb-3
+    input#user-search.md-input(type='search', placeholder='Filter by name or email…', autocomplete='off', style='flex:1;min-width:200px')
+    select#role-filter.md-select
+      option(value='') All roles
+      option(value='admin') Admin only
+      option(value='participant') Non-admin only
+    select#sort-select.md-select
+      option(value='createdAt-desc') Sign-in order
+      option(value='name-asc') Name A -> Z
+      option(value='name-desc') Name Z -> A
+
   .table-responsive
     table.md-table
       thead
@@ -15,7 +26,7 @@ block content
           th Email
           th Role
           th Actions
-      tbody
+      tbody#user-tbody
         each u in users
           tr
             td
@@ -26,30 +37,157 @@ block content
             td
               span(class='role-badge role-' + u.role)= u.role
             td
-              .role-controls(data-user-id=u._id, data-csrf=_csrf)
-                if u._id.toString() !== user._id.toString()
+              .role-controls(data-user-id=String(u._id), data-csrf=_csrf)
+                if String(u._id) !== String(user._id)
                   if u.role !== 'admin'
                     button.btn.btn-xs.btn-neon-outline.js-set-role(type='button', data-role='admin') Admin
                   if u.role !== 'participant'
-                    button.btn.btn-xs.btn-neon-outline.js-set-role(type='button', data-role='participant') Participant
+                    button.btn.btn-xs.btn-neon-outline.ms-1.js-set-role(type='button', data-role='participant') Participant
                 else
                   span.small.text-muted (you)
 
+  .d-flex.justify-content-between.align-items-center.mt-3#pagination-bar
+    button#prev-btn.btn.btn-neon-outline.btn-sm(type='button', disabled) <- Prev
+    span#page-info.small.text-muted
+    button#next-btn.btn.btn-neon-outline.btn-sm(type='button', disabled) Next ->
+
 block scripts
   script(nonce=cspNonce).
-    document.querySelectorAll('.js-set-role').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        const row = btn.closest('.role-controls');
-        try {
-          const res = await fetch('/admin/users/' + row.dataset.userId + '/role', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-csrf-token': row.dataset.csrf },
-            body: JSON.stringify({ role: btn.dataset.role })
+    (function () {
+      const PAGE_SIZE    = 25;
+      const currentUserId = '!{user ? user._id.toString() : ""}';
+      const csrf          = document.querySelector('meta[name="csrf-token"]').content;
+
+      const allUsers = !{safeJson(users)};
+      let filtered   = allUsers.slice();
+      let page       = 0;
+
+      const tbody    = document.getElementById('user-tbody');
+      const search   = document.getElementById('user-search');
+      const rolesel  = document.getElementById('role-filter');
+      const sortsel  = document.getElementById('sort-select');
+      const prevBtn  = document.getElementById('prev-btn');
+      const nextBtn  = document.getElementById('next-btn');
+      const pageInfo = document.getElementById('page-info');
+
+      function esc(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function applyFilters() {
+        const q    = search.value.trim().toLowerCase();
+        const role = rolesel.value;
+        const sort = sortsel.value;
+
+        filtered = allUsers.filter(function (u) {
+          const name  = ((u.profile && u.profile.name)  || '').toLowerCase();
+          const email = (u.email || '').toLowerCase();
+          if (q && !name.includes(q) && !email.includes(q)) return false;
+          if (role === 'admin'       && u.role !== 'admin')  return false;
+          if (role === 'participant' && u.role === 'admin')  return false;
+          return true;
+        });
+
+        if (sort === 'name-asc') {
+          filtered.sort(function (a, b) {
+            return ((a.profile && a.profile.name) || '').localeCompare((b.profile && b.profile.name) || '');
           });
-          if (res.ok) location.reload();
-          else alert('Failed to update role. Please try again.');
-        } catch {
-          alert('Network error. Please try again.');
+        } else if (sort === 'name-desc') {
+          filtered.sort(function (a, b) {
+            return ((b.profile && b.profile.name) || '').localeCompare((a.profile && a.profile.name) || '');
+          });
         }
+        // createdAt-desc: server already sorted, preserve array order
+
+        page = 0;
+        render();
+      }
+
+      function render() {
+        const total = filtered.length;
+        const start = page * PAGE_SIZE;
+        const slice = filtered.slice(start, start + PAGE_SIZE);
+
+        tbody.innerHTML = slice.map(function (u) {
+          const id    = esc(u._id);
+          const name  = esc((u.profile && u.profile.name) || '—');
+          const email = esc(u.email);
+          const role  = esc(u.role);
+          const pic   = (u.profile && u.profile.picture) ? esc(u.profile.picture) : '';
+          const isMe  = u._id === currentUserId;
+
+          const avatarCell = pic ? '<img class="avatar-sm" src="' + pic + '" alt="' + name + '">' : '';
+
+          let actions = '';
+          if (isMe) {
+            actions = '<span class="small text-muted">(you)</span>';
+          } else {
+            if (role !== 'admin') {
+              actions += '<button class="btn btn-xs btn-neon-outline js-set-role" type="button"'
+                + ' data-role="admin" data-user-id="' + id + '" data-csrf="' + esc(csrf) + '">Admin</button>';
+            }
+            if (role !== 'participant') {
+              actions += '<button class="btn btn-xs btn-neon-outline ms-1 js-set-role" type="button"'
+                + ' data-role="participant" data-user-id="' + id + '" data-csrf="' + esc(csrf) + '">Participant</button>';
+            }
+          }
+
+          return '<tr>'
+            + '<td>' + avatarCell + '</td>'
+            + '<td>' + name + '</td>'
+            + '<td>' + email + '</td>'
+            + '<td><span class="role-badge role-' + role + '">' + role + '</span></td>'
+            + '<td>' + actions + '</td>'
+            + '</tr>';
+        }).join('');
+
+        pageInfo.textContent = total === 0
+          ? 'No users found'
+          : 'Page ' + (page + 1) + ' of ' + Math.ceil(total / PAGE_SIZE) + ' (' + total + ' users)';
+
+        prevBtn.disabled = page === 0;
+        nextBtn.disabled = start + PAGE_SIZE >= total;
+
+        attachRoleHandlers();
+      }
+
+      function attachRoleHandlers() {
+        tbody.querySelectorAll('.js-set-role').forEach(function (btn) {
+          btn.addEventListener('click', async function () {
+            const userId   = btn.dataset.userId;
+            const btnCsrf  = btn.dataset.csrf;
+            const newRole  = btn.dataset.role;
+            try {
+              const res = await fetch('/admin/users/' + userId + '/role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-csrf-token': btnCsrf },
+                body: JSON.stringify({ role: newRole })
+              });
+              if (res.ok) {
+                const u = allUsers.find(function (u) { return u._id === userId; });
+                if (u) u.role = newRole;
+                applyFilters();
+              } else {
+                alert('Failed to update role. Please try again.');
+              }
+            } catch {
+              alert('Network error. Please try again.');
+            }
+          });
+        });
+      }
+
+      prevBtn.addEventListener('click', function () { if (page > 0) { page--; render(); } });
+      nextBtn.addEventListener('click', function () { if ((page + 1) * PAGE_SIZE < filtered.length) { page++; render(); } });
+
+      var debounceTimer;
+      search.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(applyFilters, 200);
       });
-    });
+      rolesel.addEventListener('change', applyFilters);
+      sortsel.addEventListener('change', applyFilters);
+
+      // Replace server-rendered rows with JS-managed ones
+      applyFilters();
+    })();

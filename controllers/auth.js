@@ -259,10 +259,11 @@ exports.oidcCallback = async (req, res, next) => {
       user = new User({ email, role: 'participant' });
     }
 
-    // Sync display name from OIDC claims on every login
+    // Sync display name and picture from OIDC claims on every login
     const displayName = claims.name || claims.preferred_username || email.split('@')[0];
-    user.profile      = user.profile || {};
-    user.profile.name = displayName;
+    user.profile            = user.profile || {};
+    user.profile.name       = displayName;
+    user.profile.picture    = user.profile.picture || claims.picture || '';
 
     await user.save();
 
