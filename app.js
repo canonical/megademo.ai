@@ -236,11 +236,28 @@ app.use((req, res, next) => {
 app.use(globalLimiter);
 
 /**
+ * Asset version string for cache-busting CSS/JS URLs.
+ * Uses the current git commit SHA (first 8 chars) so the query string
+ * changes on every deploy, forcing browsers to re-fetch static assets
+ * despite the 1-day maxAge set on express.static.
+ */
+const ASSET_VERSION = (() => {
+  try {
+    return require('node:child_process')
+      .execSync('git rev-parse --short=8 HEAD', { stdio: ['pipe', 'pipe', 'ignore'] })
+      .toString().trim();
+  } catch {
+    return Date.now().toString(36);
+  }
+})();
+
+/**
  * Locals available in all templates
  */
 app.use((req, res, next) => {
   res.locals.user = req.user;
   res.locals.safeJson = safeJson;
+  res.locals.assetVersion = ASSET_VERSION;
   // Three-way login URL: dev → dev-login | prod+OIDC → /auth/oidc | prod → /auth/github
   const isOidc = !!process.env.OIDC_ISSUER_URL;
   const isDev  = process.env.NODE_ENV !== 'production';

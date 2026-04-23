@@ -637,7 +637,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 }
 
 // -- Forms ---------------------------------------------------
-.page-header { padding: 2rem 0 1.5rem; border-bottom: 1px solid $color-border; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+.page-header { padding: 2rem 0 1.5rem; border-bottom: 1px solid $color-border; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
 .page-header h1 { font-size: 1.2rem; margin: 0; }
 
 .form-section { margin-bottom: 2.5rem; padding: 1.5rem; background: $color-surface; border: 1px solid $color-border; border-radius: 4px; }
