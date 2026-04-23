@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Build button
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'md-custom-select-btn dropdown-toggle';
+    btn.className = 'md-custom-select-btn';
     btn.setAttribute('data-bs-toggle', 'dropdown');
     btn.setAttribute('aria-expanded', 'false');
 
@@ -236,6 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
     wrapper.appendChild(btn);
     wrapper.appendChild(menu);
     wrapper.appendChild(select);
+    // Size the button to match the native select's rendered width (browser sizes native
+    // selects to their longest option), so the closed dropdown is never narrower than its widest item.
+    btn.style.minWidth = select.offsetWidth + 'px';
     select.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;';
 
     // Re-sync button if select value changes externally (e.g. form reset)

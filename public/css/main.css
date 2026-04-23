@@ -23586,8 +23586,8 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   border-radius: 2px;
   max-height: 260px;
   overflow-y: auto;
-  width: 100%;
-  min-width: 0;
+  min-width: 100%;
+  width: max-content;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 212, 255, 0.4) transparent;
 }
@@ -23597,8 +23597,6 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   font-size: 0.85rem;
   padding: 0.4rem 0.75rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .md-custom-select .md-custom-select-menu .dropdown-item:hover, .md-custom-select .md-custom-select-menu .dropdown-item:focus {
   background: #0d0d2b;
