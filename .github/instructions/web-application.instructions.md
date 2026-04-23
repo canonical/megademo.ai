@@ -49,7 +49,19 @@ Update `README.md` when:
 
 Both docs are committed in the same commit as the code change that prompted them. Do not defer doc updates to a separate commit.
 
-## Programming Language: JavaScript
+## CSS / Styling
+
+**`main.css` is a build artefact — never edit it directly.**
+
+`public/css/main.css` is compiled from `public/css/main.scss` by the `npm run scss` script (Sass). Render runs this script on every deploy (`buildCommand: npm ci && npm run scss`), which overwrites `main.css` completely. Any direct edits to `main.css` will be silently lost on the next deployment.
+
+**Rules for all CSS changes:**
+- Edit `public/css/main.scss` (the source of truth)
+- After editing, run `npm run scss` to recompile `main.css`
+- Commit both `main.scss` and the recompiled `main.css` together
+- `public/css/kiosk.css` is plain CSS (no SCSS source) — edit it directly as normal
+
+
 
 **JavaScript Best Practices:**
 - Use modern ES2020+ syntax and features
