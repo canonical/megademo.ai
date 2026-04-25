@@ -211,6 +211,7 @@ app.use(
     secret: process.env.SESSION_SECRET || 'megademo-dev-secret-do-not-use-in-prod',
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/megademo',
+      collectionName: 'sessions', // must match SESSION_COLLECTION in controllers/admin.js
       touchAfter: 3600, // only re-save session once per hour if unchanged
     }),
     cookie: {
@@ -284,6 +285,27 @@ app.use(async (req, res, next) => {
     res.locals.registrationOpen = _regOpenCache.value;
   } catch {
     res.locals.registrationOpen = true; // fail open
+  }
+  next();
+});
+
+/**
+ * announcementBanner — fetches and renders the banner markdown on every request.
+ * Cached for 10s so admins see updates quickly without hammering the DB.
+ */
+const _bannerCache = { html: null, expiresAt: 0 };
+app.use(async (req, res, next) => {
+  try {
+    const now = Date.now();
+    if (now >= _bannerCache.expiresAt) {
+      const Settings = require('./models/Settings');
+      const text = await Settings.get('announcementBanner');
+      _bannerCache.html      = text ? marked.parse(String(text)) : null;
+      _bannerCache.expiresAt = now + 10_000;
+    }
+    res.locals.announcementBannerHtml = _bannerCache.html;
+  } catch {
+    res.locals.announcementBannerHtml = null;
   }
   next();
 });
@@ -413,6 +435,7 @@ if (require.main === module) {
     }
     app.listen(app.get('port'), app.get('host'), () => {
       console.log(`MegaDemo.ai running on http://${app.get('host')}:${app.get('port')}`);
+      console.log(`Uploads directory: ${UPLOADS_DIR}${process.env.UPLOADS_DIR ? '' : ' (fallback — UPLOADS_DIR not set)'}`);
     });
   })().catch((err) => {
     console.error('FATAL: Server startup failed:', err.message);
@@ -421,3 +444,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+module.exports.bustBannerCache = () => { _bannerCache.expiresAt = 0; };

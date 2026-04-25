@@ -228,6 +228,7 @@ block scripts
         btn.addEventListener('click', function () {
           btn.disabled = true;
           btn.textContent = 'Working…';
+          var redirecting = false;
           fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
@@ -240,17 +241,19 @@ block scripts
               });
             })
             .then(function (res) {
+              redirecting = res.ok && !!res.data.ok && url.includes('clear-sessions');
               var data = res.data;
               result.style.display = '';
-              result.textContent = data.message || (data.ok ? 'Done.' : 'Error.');
+              result.textContent = redirecting
+                ? (data.message || 'Done.') + ' Redirecting to login…'
+                : data.message || (data.ok ? 'Done.' : 'Error.');
               result.style.color = (res.ok && data.ok) ? '#00ff88' : '#ff6b6b';
               var modal = document.getElementById(modalId);
               if (modal && window.bootstrap) {
                 var instance = window.bootstrap.Modal.getInstance(modal);
                 if (instance) instance.hide();
               }
-              if (res.ok && data.ok && url.includes('clear-sessions')) {
-                result.textContent = (data.message || 'Done.') + ' Redirecting to login…';
+              if (redirecting) {
                 setTimeout(function () { window.location.href = '/'; }, 2500);
               }
             })
@@ -260,8 +263,10 @@ block scripts
               result.style.color = '#ff6b6b';
             })
             .finally(function () {
-              btn.disabled = false;
-              btn.textContent = 'Clear Sessions';
+              if (!redirecting) {
+                btn.disabled = false;
+                btn.textContent = 'Clear Sessions';
+              }
             });
         });
       }

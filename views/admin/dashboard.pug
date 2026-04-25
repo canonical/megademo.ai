@@ -64,6 +64,22 @@ block content
             input.md-input(type='url', name='mattermostWebhook', value=(settings.mattermostWebhook || ''), placeholder='https://mattermost.../hooks/...')
           button.btn.btn-neon-cyan(type='submit') Save Webhook
 
+  .md-card.mt-4
+    h3.section-label Announcement Banner
+    form(method='POST', action='/admin/settings')
+      input(type='hidden', name='_csrf', value=_csrf)
+      input(type='hidden', name='section', value='banner')
+      .mb-2
+        label.md-label Banner Text
+        textarea.md-input(name='announcementBanner', rows='3', maxlength='500',
+          placeholder='Leave empty to hide banner. Markdown supported.')= (settings.announcementBanner || '')
+        .d-flex.justify-content-between.mt-1
+          span.small.text-muted Markdown supported. Empty = no banner.
+          span.small.text-muted
+            span#banner-char-count= (settings.announcementBanner || '').length
+            |  / 500
+      button.btn.btn-neon-cyan(type='submit') Save Banner
+
   .admin-nav.mt-4
     a.btn.btn-neon-outline.me-2(href='/admin/projects') Manage Projects
     a.btn.btn-neon-outline.me-2(href='/admin/users') Manage Users
@@ -210,4 +226,11 @@ block scripts
       }
       update();
       setInterval(update, 1000);
+    })();
+    // Banner char counter
+    (function () {
+      var ta = document.querySelector('textarea[name="announcementBanner"]');
+      var counter = document.getElementById('banner-char-count');
+      if (!ta || !counter) return;
+      ta.addEventListener('input', function () { counter.textContent = ta.value.length; });
     })();

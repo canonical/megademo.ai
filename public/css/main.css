@@ -23114,6 +23114,32 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   padding: 0.55rem 0.75rem !important;
 }
 
+.announcement-banner {
+  background: rgba(0, 212, 255, 0.07);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.25);
+  padding: 0.6rem 0;
+  font-size: 0.82rem;
+  color: #c8e6ff;
+}
+.announcement-banner .announcement-banner-body p {
+  margin: 0;
+}
+.announcement-banner .announcement-banner-body p + p {
+  margin-top: 0.25rem;
+}
+.announcement-banner .announcement-banner-body a {
+  color: #00d4ff;
+  text-decoration: underline;
+}
+.announcement-banner .announcement-banner-body strong {
+  color: #00d4ff;
+}
+.announcement-banner .announcement-banner-body code {
+  background: rgba(0, 212, 255, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+}
+
 .countdown-section {
   background: linear-gradient(90deg, rgba(139, 0, 255, 0.1), rgba(255, 0, 110, 0.1));
   border-top: 1px solid rgba(139, 0, 255, 0.3);

@@ -60,11 +60,12 @@ exports.dashboard = async (req, res, next) => {
       Project.find().sort({ createdAt: -1 }).limit(5).populate('owner', 'profile.name').lean(),
     ]);
 
-    const [submissionDeadline, megademoDate, mattermostWebhook, hackathonStart] = await Promise.all([
+    const [submissionDeadline, megademoDate, mattermostWebhook, hackathonStart, announcementBanner] = await Promise.all([
       Settings.get('submissionDeadline'),
       Settings.get('megademoDate'),
       Settings.get('mattermostWebhook'),
       Settings.get('hackathonStart'),
+      Settings.get('announcementBanner'),
     ]);
 
     const testLoginToken = process.env.TEST_LOGIN_TOKEN || null;
@@ -75,7 +76,7 @@ exports.dashboard = async (req, res, next) => {
       stats: { totalProjects, totalVotes, totalUsers, finalists },
       categoryStats,
       recentProjects,
-      settings: { submissionDeadline, megademoDate, mattermostWebhook, hackathonStart },
+      settings: { submissionDeadline, megademoDate, mattermostWebhook, hackathonStart, announcementBanner },
       testLoginToken,
       baseUrl,
     });
@@ -272,7 +273,21 @@ exports.exportCsv = async (req, res, next) => {
  */
 exports.saveSettings = async (req, res, next) => {
   try {
-    const { section, hackStart, subDeadline, megaDatetime, mattermostWebhook } = req.body;
+    const { section, hackStart, subDeadline, megaDatetime, mattermostWebhook, announcementBanner } = req.body;
+
+    // Banner form
+    if (section === 'banner') {
+      const text = (announcementBanner || '').trim();
+      if (text.length > 500) {
+        req.flash('errors', { msg: 'Announcement text exceeds 500 characters.' });
+        return res.redirect('/admin');
+      }
+      await Settings.set('announcementBanner', text || null);
+      // Bust the in-process banner cache so the change is visible immediately
+      try { require('../app').bustBannerCache(); } catch { /* non-fatal */ }
+      req.flash('success', { msg: text ? 'Banner saved.' : 'Banner cleared.' });
+      return res.redirect('/admin');
+    }
 
     // Mattermost-only form — save webhook and return immediately
     if (section === 'mattermost') {
@@ -651,10 +666,11 @@ exports.resetAll = async (req, res, next) => {
  * POST /admin/users/clear-sessions
  * Delete all MongoDB sessions — forces every user to re-login (picture fetched on next OIDC callback).
  */
+const SESSION_COLLECTION = 'sessions'; // matches collectionName in MongoStore config (app.js)
 exports.clearSessions = async (req, res, next) => {
   try {
     const mongoose = require('mongoose');
-    const result   = await mongoose.connection.db.collection('sessions').deleteMany({});
+    const result   = await mongoose.connection.db.collection(SESSION_COLLECTION).deleteMany({});
     res.json({
       ok: true,
       message: `Cleared ${result.deletedCount} session(s). All users have been signed out and will re-authenticate on their next visit.`,

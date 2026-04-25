@@ -16,6 +16,11 @@ html.h-100(lang='en-GB')
   body.d-flex.flex-column.h-100
     include partials/header
 
+    if announcementBannerHtml
+      .announcement-banner
+        .container
+          .announcement-banner-body!= announcementBannerHtml
+
     main.flex-shrink-0
       .container.mt-4
         include partials/flash

@@ -118,7 +118,7 @@ async function run() {
 
   // 2. Client-credentials token (client_secret_basic: credentials in Authorization header)
   console.log('Requesting client-credentials token …');
-  const basicAuth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+  const basicAuth = Buffer.from(`${encodeURIComponent(CLIENT_ID)}:${encodeURIComponent(CLIENT_SECRET)}`).toString('base64');
   const tokenRes = await post(tokenEndpoint, {
     grant_type: 'client_credentials',
     scope: 'openid profile',

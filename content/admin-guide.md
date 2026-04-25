@@ -31,6 +31,14 @@ Paste a channel webhook URL to receive automatic notifications:
 - Voting milestones (5, 10, 25, 50 votes)
 - Daily stats summary (3× per day via cron)
 
+### Announcement banner
+
+A full-width banner shown on **every page**, just below the site header. Useful for timely notices ("Voting is now open", "Submissions close tonight").
+
+- **Markdown supported** — bold, links, `code`, etc.
+- **500 character limit**
+- **Leave blank and save** to remove the banner immediately
+
 ### Test login
 
 When `TEST_LOGIN_TOKEN` is set in the environment, the dashboard shows ready-to-copy login URLs for a synthetic **participant** and **admin** account — useful for end-to-end testing without a real GitHub/OIDC session.
