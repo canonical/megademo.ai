@@ -23012,16 +23012,16 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   padding: 0.55rem 1.1rem;
   border-radius: 2px;
   line-height: 1;
-  background: #00d4ff;
-  color: #05050f;
+  background: transparent;
+  color: #00d4ff;
   border: 1px solid #00d4ff;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
   text-decoration: none !important;
 }
 .btn.btn-neon-cyan:hover, .btn.btn-neon-cyan:focus, .btn-neon-cyan:hover, .btn-neon-cyan:focus {
-  background: rgb(45.9, 219.74, 255);
-  border-color: rgb(45.9, 219.74, 255);
+  background: #00d4ff;
+  border-color: #00d4ff;
   box-shadow: 0 0 18px rgba(0, 212, 255, 0.6);
   color: #05050f;
   text-decoration: none !important;
@@ -23053,16 +23053,16 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   padding: 0.55rem 1.1rem;
   border-radius: 2px;
   line-height: 1;
-  background: #ff006e;
-  color: white;
+  background: transparent;
+  color: #ff006e;
   border: 1px solid #ff006e;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
   text-decoration: none !important;
 }
 .btn.btn-neon-pink:hover, .btn.btn-neon-pink:focus, .btn-neon-pink:hover, .btn-neon-pink:focus {
-  background: rgb(255, 45.9, 136.1);
-  border-color: rgb(255, 45.9, 136.1);
+  background: #ff006e;
+  border-color: #ff006e;
   box-shadow: 0 0 18px rgba(255, 0, 110, 0.55);
   color: white;
   text-decoration: none !important;
@@ -23137,6 +23137,14 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   text-transform: uppercase;
   min-width: 160px;
   text-align: right;
+}
+
+.countdown-sublabel {
+  font-size: 0.55rem;
+  color: rgba(122, 139, 170, 0.75);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-top: 4px;
 }
 
 .countdown-units {
@@ -24170,7 +24178,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   background: #0d0d2b;
   border: 1px solid rgba(0, 212, 255, 0.2);
   border-radius: 4px;
-  padding: 1.5rem;
+  padding: 0.5rem 1.5rem 1.5rem;
 }
 
 .md-card h1, .md-card .h1, .md-card h2, .md-card .h2, .md-card h3, .md-card .h3, .md-card h4, .md-card .h4 {
@@ -24239,6 +24247,12 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 
 .danger-zone-card {
   border-color: rgba(255, 107, 107, 0.3);
+}
+
+.text-danger-soft {
+  color: rgba(255, 107, 107, 0.85);
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
 }
 
 .md-modal {

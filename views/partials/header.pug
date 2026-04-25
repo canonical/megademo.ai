@@ -16,7 +16,10 @@ nav.navbar.navbar-expand-lg.navbar-dark.md-navbar
           li.nav-item
             a.nav-link.btn-nav(href='/projects/mine') My Projects
           li.nav-item
-            a.nav-link.btn-register(href='/projects/new') + Register Project
+            if registrationOpen
+              a.nav-link.btn-register(href='/projects/new') + Register Project
+            else
+              span.nav-link.btn-register.disabled(aria-disabled='true', title='Registration opens at hackathon start') + Register Project
       ul.navbar-nav
         li.nav-item.d-flex.align-items-center.me-2
           a.btn.btn-sm.btn-help(href='/get-started') Get started

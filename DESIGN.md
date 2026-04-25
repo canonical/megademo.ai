@@ -107,13 +107,15 @@ When `OIDC_ISSUER_URL` is absent:
 
 **totalStars voting.** Leaderboard sorts by `totalStars` (sum of all stars cast) with `avgRating` as tiebreaker. This rewards both quality *and* engagement: 2×4★ (8 pts) beats 1×5★ (5 pts).
 
-**Settings as key-value.** `submissionDeadline`, `megademoDate`, Mattermost webhook URL, custom lists are stored in the `Settings` collection — not in code or env vars — so admins can change them live.
+**Settings as key-value.** `hackathonStart`, `submissionDeadline`, `megademoDate`, Mattermost webhook URL, custom lists are stored in the `Settings` collection — not in code or env vars — so admins can change them live.
 
 **Markdown content from disk.** The `/get-started` page reads `content/get-started.md` on every request. Content updates ship with code deploys.
 
 **Seed data from YAML.** `config/defaults.yml` holds canonical teams, AI tools, and tech-stack tags. Seeds on first startup (idempotent). Admins can override via dashboard.
 
-**Countdown state machine.** Homepage JS covers four states: submissions open → submissions closed → megademo countdown → megademo live. Deadlines stored as `"YYYY-MM-DDTHH:mm"` strings (no timezone conversion) to avoid UTC drift.
+**Countdown state machine.** Homepage JS covers five states: pre-start (hackathon not yet begun) → submissions open → submissions closed → megademo countdown → megademo live. All deadlines stored as `"YYYY-MM-DDTHH:mm"` strings (no timezone conversion) to avoid UTC drift. The `hackathonStart` setting gates project registration: when set and in the future, all add-project buttons are disabled and `/projects/new` redirects with a flash message.
+
+**registrationOpen middleware.** A lightweight in-memory cache (60s TTL) in `app.js` checks `hackathonStart` and sets `res.locals.registrationOpen` for every request, making it available in all templates including the site-wide header partial.
 
 **Kiosk mode.** `/kiosk` is a separate, auth-free read-only view for projecting the leaderboard. Keyboard-navigable; keyboard nav is guarded against interfering with input focus.
 

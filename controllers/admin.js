@@ -60,10 +60,11 @@ exports.dashboard = async (req, res, next) => {
       Project.find().sort({ createdAt: -1 }).limit(5).populate('owner', 'profile.name').lean(),
     ]);
 
-    const [submissionDeadline, megademoDate, mattermostWebhook] = await Promise.all([
+    const [submissionDeadline, megademoDate, mattermostWebhook, hackathonStart] = await Promise.all([
       Settings.get('submissionDeadline'),
       Settings.get('megademoDate'),
       Settings.get('mattermostWebhook'),
+      Settings.get('hackathonStart'),
     ]);
 
     const testLoginToken = process.env.TEST_LOGIN_TOKEN || null;
@@ -74,7 +75,7 @@ exports.dashboard = async (req, res, next) => {
       stats: { totalProjects, totalVotes, totalUsers, finalists },
       categoryStats,
       recentProjects,
-      settings: { submissionDeadline, megademoDate, mattermostWebhook },
+      settings: { submissionDeadline, megademoDate, mattermostWebhook, hackathonStart },
       testLoginToken,
       baseUrl,
     });
@@ -271,36 +272,67 @@ exports.exportCsv = async (req, res, next) => {
  */
 exports.saveSettings = async (req, res, next) => {
   try {
-    const { subDate, subTime, megaDate, megaTime, mattermostWebhook } = req.body;
+    const { section, hackStart, subDeadline, megaDatetime, mattermostWebhook } = req.body;
 
-    // Combine split date+time inputs into "YYYY-MM-DDTHH:mm" (or null when cleared)
-    const submissionDeadline = subDate ? `${subDate}T${subTime || '00:00'}` : null;
-    const megademoDate       = megaDate ? `${megaDate}T${megaTime || '00:00'}` : null;
-
-    // Validate ordering — megademo must come after submission deadline
-    let megaDateRejected = false;
-    if (submissionDeadline && megademoDate) {
-      const subTs  = new Date(submissionDeadline);
-      const megaTs = new Date(megademoDate);
-      if (!isNaN(subTs.getTime()) && !isNaN(megaTs.getTime()) && megaTs <= subTs) {
-        megaDateRejected = true;
-        req.flash('errors', { msg: 'MegaDemo date must be later than the submission deadline.' });
-      }
-    }
-
-    // Always save valid fields; skip only the rejected megademoDate
-    await Promise.all([
-      Settings.set('submissionDeadline', submissionDeadline),
-      megaDateRejected ? Promise.resolve() : Settings.set('megademoDate', megademoDate),
-      mattermostWebhook !== undefined ? Settings.set('mattermostWebhook', mattermostWebhook || null) : Promise.resolve(),
-    ]);
-
-    if (megaDateRejected) {
-      req.flash('success', { msg: 'Other settings saved.' });
+    // Mattermost-only form — save webhook and return immediately
+    if (section === 'mattermost') {
+      await Settings.set('mattermostWebhook', mattermostWebhook || null);
+      req.flash('success', { msg: 'Webhook saved.' });
       return res.redirect('/admin');
     }
 
-    req.flash('success', { msg: 'Settings saved.' });
+    // Dates form (section === 'dates' or unspecified)
+    const hackathonStart     = hackStart    || null;
+    const submissionDeadline = subDeadline  || null;
+    const megademoDate       = megaDatetime || null;
+
+    // Reject unparseable date strings before further processing
+    if (hackathonStart && isNaN(new Date(hackathonStart))) {
+      req.flash('errors', { msg: 'Invalid Hackathon Start — please use the date/time picker.' });
+      return res.redirect('/admin');
+    }
+    if (submissionDeadline && isNaN(new Date(submissionDeadline))) {
+      req.flash('errors', { msg: 'Invalid Submission Deadline — please use the date/time picker.' });
+      return res.redirect('/admin');
+    }
+    if (megademoDate && isNaN(new Date(megademoDate))) {
+      req.flash('errors', { msg: 'Invalid MegaDemo Date — please use the date/time picker.' });
+      return res.redirect('/admin');
+    }
+
+    // Validate ordering
+    let hackStartRejected = false;
+    let megaDateRejected  = false;
+    const hackTs = hackathonStart     ? new Date(hackathonStart)     : null;
+    const subTs  = submissionDeadline ? new Date(submissionDeadline) : null;
+    const megaTs = megademoDate       ? new Date(megademoDate)       : null;
+
+    if (hackTs && subTs && !isNaN(hackTs) && !isNaN(subTs) && hackTs >= subTs) {
+      hackStartRejected = true;
+      req.flash('errors', { msg: 'Hackathon Start must be earlier than the Submission Deadline.' });
+    }
+    if (hackTs && megaTs && !isNaN(hackTs) && !isNaN(megaTs) && hackTs >= megaTs) {
+      hackStartRejected = true;
+      req.flash('errors', { msg: 'Hackathon Start must be earlier than the MegaDemo Date.' });
+    }
+    if (subTs && megaTs && !isNaN(subTs) && !isNaN(megaTs) && megaTs <= subTs) {
+      megaDateRejected = true;
+      req.flash('errors', { msg: 'MegaDemo date must be later than the submission deadline.' });
+    }
+
+    // Save valid fields; skip rejected ones
+    await Promise.all([
+      hackStartRejected ? Promise.resolve() : Settings.set('hackathonStart', hackathonStart),
+      Settings.set('submissionDeadline', submissionDeadline),
+      megaDateRejected  ? Promise.resolve() : Settings.set('megademoDate', megademoDate),
+    ]);
+
+    if (hackStartRejected || megaDateRejected) {
+      req.flash('success', { msg: 'Other dates saved.' });
+      return res.redirect('/admin');
+    }
+
+    req.flash('success', { msg: 'Dates saved.' });
     res.redirect('/admin');
   } catch (err) {
     next(err);
@@ -610,6 +642,24 @@ exports.resetAll = async (req, res, next) => {
 
     req.flash('success', { msg: 'All projects and votes deleted. Lists reset to defaults.' });
     res.redirect('/admin');
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /admin/users/clear-sessions
+ * Delete all MongoDB sessions — forces every user to re-login (picture fetched on next OIDC callback).
+ */
+exports.clearSessions = async (req, res, next) => {
+  try {
+    const mongoose = require('mongoose');
+    const result   = await mongoose.connection.db.collection('sessions').deleteMany({});
+    res.json({
+      ok: true,
+      message: `Cleared ${result.deletedCount} session(s). All users have been signed out and will re-authenticate on their next visit.`,
+      count: result.deletedCount,
+    });
   } catch (err) {
     next(err);
   }

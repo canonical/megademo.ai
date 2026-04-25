@@ -170,6 +170,11 @@ exports.list = async (req, res) => {
  * GET /projects/new
  */
 exports.newForm = async (req, res) => {
+  const hackathonStart = await Settings.get('hackathonStart');
+  if (hackathonStart && Date.now() < new Date(hackathonStart).getTime()) {
+    req.flash('errors', { msg: 'Project registration is not open yet — it opens when the hackathon starts.' });
+    return res.redirect('/');
+  }
   const [teamList, aiToolsList, techStackList] = await Promise.all([getTeamList(), getAiToolsList(), getTechStackList()]);
   res.render('projects/new', {
     title: 'Register Project',
@@ -188,6 +193,11 @@ exports.newForm = async (req, res) => {
  * POST /projects
  */
 exports.create = async (req, res) => {
+  const hackathonStart = await Settings.get('hackathonStart');
+  if (hackathonStart && Date.now() < new Date(hackathonStart).getTime()) {
+    req.flash('errors', { msg: 'Project registration is not open yet — it opens when the hackathon starts.' });
+    return res.redirect('/');
+  }
   const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, teamEmails, asciinemaId, asciinemaTitle, videoUrl, videoTitle } = req.body;
   const errors = [];
   const [teamList, aiToolsList, techStackList] = await Promise.all([getTeamList(), getAiToolsList(), getTechStackList()]);

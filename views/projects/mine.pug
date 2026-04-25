@@ -3,7 +3,10 @@ extends ../layout
 block content
   .page-header
     h1.pixel-text MY PROJECTS
-    a.btn.btn-neon-cyan(href='/projects/new') + Register New Project
+    if registrationOpen
+      a.btn.btn-neon-cyan(href='/projects/new') + Register New Project
+    else
+      span.btn.btn-neon-cyan.disabled(aria-disabled='true', title='Registration opens at hackathon start') + Register New Project
 
   if Array.isArray(projects) && projects.length
     .projects-grid
@@ -14,4 +17,7 @@ block content
   else
     .empty-state.text-center.py-5
       p.text-muted You haven't joined any projects yet.
-      a.btn.btn-neon-outline(href='/projects/new') Register Your First Project
+      if registrationOpen
+        a.btn.btn-neon-outline(href='/projects/new') Register Your First Project
+      else
+        span.btn.btn-neon-outline.disabled(aria-disabled='true') Registration opens at hackathon start

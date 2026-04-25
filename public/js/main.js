@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return isNaN(d.getTime()) ? null : d;
   }
 
+  const hackathonStart = parseDate(widget.dataset.hackathonStart);
   const deadline = parseDate(widget.dataset.deadline);
   const megademo  = parseDate(widget.dataset.megademo);
   const label  = document.getElementById('countdown-label');
@@ -110,14 +111,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const cdSecs = document.getElementById('cd-secs');
   if (!label || !cdDays || !cdHrs || !cdMins || !cdSecs) return;
 
+  // Optional sub-label for pre-start state (not present on all pages)
+  const subLabel = document.getElementById('countdown-sublabel');
+
+  // Track unsaved form edits so auto-reload doesn't clobber them
+  let formsDirty = false;
+  document.querySelectorAll('form').forEach((form) => {
+    form.addEventListener('input', () => { formsDirty = true; });
+    form.addEventListener('change', () => { formsDirty = true; });
+    form.addEventListener('submit', () => { formsDirty = false; });
+  });
+
+  // Detect transition out of pre-start to enable reg buttons via reload
+  let wasPreStart = !!(hackathonStart && Date.now() < hackathonStart.getTime());
+
   function pad(n) { return String(n).padStart(2, '0'); }
 
   function tick() {
     const now = Date.now();
+
+    // Reload when hackathon start transitions so reg buttons become enabled
+    if (wasPreStart && hackathonStart && now >= hackathonStart.getTime()) {
+      if (!formsDirty) { location.reload(); return; }
+      wasPreStart = false; // can't reload (dirty forms) — just continue
+    }
+
     let target = null;
     let text   = '';
+    let subText = '';
 
-    if (deadline && now < deadline.getTime()) {
+    if (hackathonStart && now < hackathonStart.getTime()) {
+      // Pre-start: hackathon hasn't begun yet
+      target  = hackathonStart;
+      text    = 'Hackathon starts in';
+      subText = 'Project registration opens at hackathon start.';
+    } else if (deadline && now < deadline.getTime()) {
       // Submission window still open
       target = deadline;
       text = 'Submissions close in';
@@ -128,11 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (megademo && now >= megademo.getTime()) {
       // Event is live
       label.textContent = 'MEGADEMO IS NOW!';
+      if (subLabel) subLabel.style.display = 'none';
       cdDays.textContent = cdHrs.textContent = cdMins.textContent = cdSecs.textContent = '00';
       return;
     } else if (deadline && now >= deadline.getTime()) {
       // Submissions closed, no megademo date configured
       label.textContent = 'Submissions Closed';
+      if (subLabel) subLabel.style.display = 'none';
       cdDays.textContent = cdHrs.textContent = cdMins.textContent = cdSecs.textContent = '00';
       return;
     }
@@ -151,6 +181,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const secs  = Math.floor((diff % 60000)    / 1000);
 
     label.textContent = text;
+    if (subLabel) {
+      if (subText) {
+        subLabel.textContent = subText;
+        subLabel.style.display = '';
+      } else {
+        subLabel.style.display = 'none';
+      }
+    }
     cdDays.textContent = pad(days);
     cdHrs.textContent  = pad(hours);
     cdMins.textContent = pad(mins);

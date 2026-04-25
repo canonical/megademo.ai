@@ -265,6 +265,29 @@ app.use((req, res, next) => {
   next();
 });
 
+/**
+ * registrationOpen — cached with a 60s TTL to avoid a DB lookup on every request.
+ * Used by all templates that render add-project controls (header, home, mine).
+ */
+const _regOpenCache = { value: true, expiresAt: 0 };
+app.use(async (req, res, next) => {
+  try {
+    const now = Date.now();
+    if (now >= _regOpenCache.expiresAt) {
+      const Settings = require('./models/Settings');
+      const hackathonStart = await Settings.get('hackathonStart');
+      const startTs        = hackathonStart ? Date.parse(hackathonStart) : NaN;
+      // Registration is open when no valid start is set, or when now >= start
+      _regOpenCache.value     = isNaN(startTs) || now >= startTs;
+      _regOpenCache.expiresAt = now + 60_000;
+    }
+    res.locals.registrationOpen = _regOpenCache.value;
+  } catch {
+    res.locals.registrationOpen = true; // fail open
+  }
+  next();
+});
+
 app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1d' }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
@@ -344,6 +367,7 @@ app.post('/admin/projects/:id/status', authController.isAdmin, adminController.s
 app.post('/admin/projects/:id/delete', authController.isAdmin, adminController.deleteProject);
 app.post('/admin/projects/:id/mock-github', authController.isAdmin, adminController.mockGithubStats);
 app.get('/admin/users', authController.isAdmin, adminController.users);
+app.post('/admin/users/clear-sessions', authController.isAdmin, adminController.clearSessions);
 app.post('/admin/users/:id/role', authController.isAdmin, adminController.setRole);
 app.get('/admin/export', authController.isAdmin, adminController.exportCsv);
 app.post('/admin/settings', authController.isAdmin, adminController.saveSettings);

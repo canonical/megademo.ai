@@ -29,7 +29,10 @@ block content
             a.hero-help-link(href='/get-started') Get started -&gt;
           .hero-ctas
             if user
-              a.btn.btn-neon-cyan.me-3(href='/projects/new') + Register Your Project
+              if registrationOpen
+                a.btn.btn-neon-cyan.me-3(href='/projects/new') + Register Your Project
+              else
+                span.btn.btn-neon-cyan.me-3.disabled(aria-disabled='true', title='Registration opens at hackathon start') + Register Your Project
               a.btn.btn-neon-outline(href='/projects') Browse Projects
             else
               a.btn.btn-github-hero(href=loginUrl)
@@ -39,10 +42,13 @@ block content
           img.hero-wave(src='/images/megademo-wave.jpg', alt='MegaDemo.ai wave')
 
   // Countdown Timer
-  if submissionDeadline || megademoDate
+  if hackathonStart || submissionDeadline || megademoDate
     section.countdown-section
       .container
-        #countdown-widget(data-deadline=submissionDeadline, data-megademo=megademoDate)
+        #countdown-widget(
+          data-hackathon-start=hackathonStart,
+          data-deadline=submissionDeadline,
+          data-megademo=megademoDate)
           .countdown-display
             .countdown-label#countdown-label Loading...
             .countdown-units
@@ -61,6 +67,7 @@ block content
               .countdown-unit
                 span#cd-secs 00
                 span.unit-label SEC
+          #countdown-sublabel.countdown-sublabel(style='display:none')
 
   // Main content grid
   .container.mt-5
@@ -69,7 +76,7 @@ block content
       .col-lg-7
         .section-header
           h2.section-title.pixel-text LATEST ENTRIES
-          a.section-link(href='/projects') View all &rarr;
+          a.section-link(href='/projects') View all ->
 
         if newest && newest.length
           .projects-grid
@@ -79,13 +86,16 @@ block content
           .empty-state
             p.text-muted No projects yet. Be the first to register!
             if user
-              a.btn.btn-neon-cyan(href='/projects/new') Register Now
+              if registrationOpen
+                a.btn.btn-neon-cyan(href='/projects/new') Register Now
+              else
+                span.btn.btn-neon-cyan.disabled(aria-disabled='true') Registration opens at hackathon start
 
       // Leaderboard
       .col-lg-5
         .section-header
           h2.section-title.pixel-text LEADERBOARD
-          a.section-link(href='/projects?sort=rating') Full board &rarr;
+          a.section-link(href='/projects?sort=rating') Full board ->
 
         if leaderboard && leaderboard.length
           .leaderboard-list

@@ -51,6 +51,32 @@ block content
     span#page-info.small.text-muted
     button#next-btn.btn.btn-neon-outline.btn-sm(type='button', disabled) Next ->
 
+  // Danger Zone
+  .md-card.mt-4.danger-zone-card
+    h3.section-label !!! Danger Zone
+    .mb-2
+      h5.text-danger-soft Clear All Sessions
+      p.text-muted.mb-2
+        | Signs every user out immediately. On their next visit they re-authenticate via OIDC,
+        | and their profile picture is fetched automatically.
+      button.btn.btn-danger-outline(type='button', data-bs-toggle='modal', data-bs-target='#clearSessionsModal') Clear All Sessions
+
+  // Clear sessions modal
+  #clearSessionsModal.modal.fade(tabindex='-1', aria-labelledby='clearSessionsModalLabel', aria-hidden='true')
+    .modal-dialog.modal-dialog-centered
+      .modal-content.md-modal
+        .modal-header
+          h5.modal-title#clearSessionsModalLabel !!! Confirm Clear Sessions
+          button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+        .modal-body
+          p This will sign out <strong>all users</strong> immediately.
+          p.text-muted Each user will be prompted to log in again on their next visit, at which point their avatar is fetched.
+          p.text-muted This action cannot be undone.
+        .modal-footer
+          button.btn.btn-neon-outline(type='button', data-bs-dismiss='modal') Cancel
+          button#clearSessionsConfirmBtn.btn.btn-danger-outline(type='button') Clear Sessions
+  #clearSessionsResult.mt-2.small(style='display:none')
+
 block scripts
   script(nonce=cspNonce).
     (function () {
@@ -190,4 +216,55 @@ block scripts
 
       // Replace server-rendered rows with JS-managed ones
       applyFilters();
+    })();
+    // Danger-zone action buttons
+    (function () {
+      var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+      function dangerAction(btnId, url, resultId, modalId) {
+        var btn = document.getElementById(btnId);
+        var result = document.getElementById(resultId);
+        if (!btn || !result) return;
+        btn.addEventListener('click', function () {
+          btn.disabled = true;
+          btn.textContent = 'Working…';
+          fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+          })
+            .then(function (r) {
+              return r.json().then(function (data) {
+                return { ok: r.ok, data: data };
+              }).catch(function () {
+                return { ok: false, data: { message: 'Unexpected response (HTTP ' + r.status + ').' } };
+              });
+            })
+            .then(function (res) {
+              var data = res.data;
+              result.style.display = '';
+              result.textContent = data.message || (data.ok ? 'Done.' : 'Error.');
+              result.style.color = (res.ok && data.ok) ? '#00ff88' : '#ff6b6b';
+              var modal = document.getElementById(modalId);
+              if (modal && window.bootstrap) {
+                var instance = window.bootstrap.Modal.getInstance(modal);
+                if (instance) instance.hide();
+              }
+              if (res.ok && data.ok && url.includes('clear-sessions')) {
+                result.textContent = (data.message || 'Done.') + ' Redirecting to login…';
+                setTimeout(function () { window.location.href = '/'; }, 2500);
+              }
+            })
+            .catch(function (err) {
+              result.style.display = '';
+              result.textContent = 'Network error: ' + err.message;
+              result.style.color = '#ff6b6b';
+            })
+            .finally(function () {
+              btn.disabled = false;
+              btn.textContent = 'Clear Sessions';
+            });
+        });
+      }
+
+      dangerAction('clearSessionsConfirmBtn', '/admin/users/clear-sessions', 'clearSessionsResult', 'clearSessionsModal');
     })();

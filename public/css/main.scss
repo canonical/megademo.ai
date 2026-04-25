@@ -338,15 +338,15 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   padding:     $btn-px-pad;
   border-radius: $btn-px-radius;
   line-height: 1;
-  background:  $color-primary;
-  color:       $color-bg;
+  background:  transparent;
+  color:       $color-primary;
   border:      1px solid $color-primary;
   cursor:      pointer;
   transition:  $btn-px-trans;
   text-decoration: none !important;
   &:hover, &:focus {
-    background:   color.scale($color-primary, $lightness: 18%);
-    border-color: color.scale($color-primary, $lightness: 18%);
+    background:   $color-primary;
+    border-color: $color-primary;
     box-shadow:   0 0 18px rgba($color-primary, 0.6);
     color:        $color-bg;
     text-decoration: none !important;
@@ -379,15 +379,15 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   padding:     $btn-px-pad;
   border-radius: $btn-px-radius;
   line-height: 1;
-  background:  $color-secondary;
-  color:       white;
+  background:  transparent;
+  color:       $color-secondary;
   border:      1px solid $color-secondary;
   cursor:      pointer;
   transition:  $btn-px-trans;
   text-decoration: none !important;
   &:hover, &:focus {
-    background:   color.scale($color-secondary, $lightness: 18%);
-    border-color: color.scale($color-secondary, $lightness: 18%);
+    background:   $color-secondary;
+    border-color: $color-secondary;
     box-shadow:   0 0 18px rgba($color-secondary, 0.55);
     color:        white;
     text-decoration: none !important;
@@ -459,6 +459,14 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   text-transform: uppercase;
   min-width: 160px;
   text-align: right;
+}
+
+.countdown-sublabel {
+  font-size: 0.55rem;
+  color: rgba($color-muted, 0.75);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-top: 4px;
 }
 
 .countdown-units { display: flex; align-items: flex-start; gap: 0.5rem; }
@@ -987,7 +995,7 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
 .stat-number { font-family: $font-pixel; font-size: 2rem; color: $color-primary; }
 .stat-label  { font-size: 0.7rem; color: $color-muted; margin-top: 0.25rem; }
 
-.md-card { background: $color-surface; border: 1px solid $color-border; border-radius: 4px; padding: 1.5rem; }
+.md-card { background: $color-surface; border: 1px solid $color-border; border-radius: 4px; padding: 0.5rem 1.5rem 1.5rem; }
 
 // Markdown prose styles for rendered .md content inside .md-card
 .md-card {
@@ -1013,6 +1021,7 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
   pre { background: $color-surface-2; border: 1px solid $color-border; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; }
 }
 .danger-zone-card { border-color: rgba(#ff6b6b, 0.3); }
+.text-danger-soft { color: rgba(#ff6b6b, 0.85); font-size: 0.95rem; margin-bottom: 0.4rem; }
 .md-modal { background: $color-surface-2; border: 1px solid $color-border; color: $color-text;
   .modal-header { border-bottom-color: $color-border; }
   .modal-footer { border-top-color: $color-border; }

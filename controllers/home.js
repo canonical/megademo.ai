@@ -9,7 +9,7 @@ const Settings = require('../models/Settings');
  */
 exports.index = async (req, res) => {
   try {
-    const [newest, leaderboard, submissionDeadline, megademoDate, rawCategoryStats] = await Promise.all([
+    const [newest, leaderboard, submissionDeadline, megademoDate, hackathonStart, rawCategoryStats] = await Promise.all([
       Project.find({ status: { $in: ['submitted', 'finalist'] } })
         .sort({ createdAt: -1 })
         .limit(6)
@@ -22,6 +22,7 @@ exports.index = async (req, res) => {
         .lean(),
       Settings.get('submissionDeadline'),
       Settings.get('megademoDate'),
+      Settings.get('hackathonStart'),
       Project.aggregate([
         { $match: { status: { $in: ['submitted', 'finalist'] } } },
         { $group: { _id: '$category', count: { $sum: 1 } } },
@@ -34,12 +35,16 @@ exports.index = async (req, res) => {
     newest.forEach((p) => { p.liveliness = computeLiveliness(p); });
     leaderboard.forEach((p) => { p.liveliness = computeLiveliness(p); });
 
+    const registrationOpen = !hackathonStart || Date.now() >= new Date(hackathonStart).getTime();
+
     res.render('home', {
       title: 'MegaDemo.ai',
       newest,
       leaderboard,
       submissionDeadline: submissionDeadline || null,
       megademoDate: megademoDate || null,
+      hackathonStart: hackathonStart || null,
+      registrationOpen,
       categoryStats,
     });
   } catch (err) {
@@ -50,6 +55,8 @@ exports.index = async (req, res) => {
       leaderboard: [],
       submissionDeadline: null,
       megademoDate: null,
+      hackathonStart: null,
+      registrationOpen: true,
       categoryStats: [],
     });
   }
