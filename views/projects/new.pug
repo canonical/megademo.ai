@@ -230,7 +230,7 @@ block scripts
       const btns = this.querySelectorAll('button[type="submit"]');
       btns.forEach(b => { b.disabled = true; });
       try {
-        const res = await fetch(this.action, {
+        const res = await fetch(this.getAttribute('action'), {
           method: 'POST',
           headers: { 'x-csrf-token': getCsrfToken() },
           body: fd,
