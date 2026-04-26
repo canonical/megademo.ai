@@ -1,8 +1,10 @@
 /**
  * Project controller — CRUD, voting, media
  */
+const fs = require('node:fs');
 const multer = require('multer');
 const path = require('node:path');
+const FileType = require('file-type');
 const { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness } = require('../models/Project');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../public/uploads');
@@ -102,13 +104,27 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ALLOWED_EXTENSIONS.includes(ext) && ALLOWED_MIMETYPES.includes(file.mimetype)) {
+    if (ALLOWED_EXTENSIONS.includes(ext)) {
       cb(null, true);
     } else {
       cb(new Error('Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.'));
     }
   },
 }).single('logo');
+
+/**
+ * Verify an uploaded file's actual content type using magic bytes.
+ * Deletes the file and throws if the content is not an allowed image type.
+ * Calling with no file is a safe no-op.
+ */
+async function verifyImageMagicBytes(file) {
+  if (!file) return;
+  const type = await FileType.fromFile(file.path);
+  if (!type || !ALLOWED_MIMETYPES.includes(type.mime)) {
+    await fs.promises.unlink(file.path).catch(() => {});
+    throw new Error('Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.');
+  }
+}
 
 /** Category starter descriptions */
 const CATEGORY_TEMPLATES = {
@@ -203,6 +219,7 @@ exports.create = async (req, res) => {
   // Parse multipart body (handles logo file upload); must run before reading req.body
   try {
     await new Promise((resolve, reject) => upload(req, res, (err) => (err ? reject(err) : resolve())));
+    await verifyImageMagicBytes(req.file);
   } catch (err) {
     return res.status(400).json({ errors: [{ msg: err.message }] });
   }
@@ -372,6 +389,7 @@ exports.update = async (req, res) => {
   // unauthorized users from writing files to disk.
   try {
     await new Promise((resolve, reject) => upload(req, res, (err) => (err ? reject(err) : resolve())));
+    await verifyImageMagicBytes(req.file);
   } catch (err) {
     req.flash('errors', { msg: err.message });
     return res.redirect(`/projects/${project._id}/edit`);
@@ -558,6 +576,13 @@ exports.addMedia = async (req, res, _next) => {
   upload(req, res, async (err) => {
     if (err) {
       req.flash('errors', { msg: err.message });
+      return res.redirect(`/projects/${req.params.id}/edit`);
+    }
+
+    try {
+      await verifyImageMagicBytes(req.file);
+    } catch (magicErr) {
+      req.flash('errors', { msg: magicErr.message });
       return res.redirect(`/projects/${req.params.id}/edit`);
     }
 
