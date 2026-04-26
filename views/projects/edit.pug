@@ -6,7 +6,7 @@ block content
     p.lead
       a(href='/projects/' + project.slug)= project.title
 
-  form#project-edit-form(method='POST', action='/projects/' + project._id, data-dirty-guard)
+  form#project-edit-form(method='POST', action='/projects/' + project._id, enctype='multipart/form-data', data-dirty-guard)
     input(type='hidden', name='_csrf', value=_csrf)
 
     if errors && errors.length
@@ -103,13 +103,12 @@ block content
         label.md-label Slides URL
         input.md-input(type='url', name='slidesUrl', value=(project.slidesUrl || ''))
 
-  // Media section is a separate form (cannot nest forms in HTML)
-  .form-section
-    h2.form-step-title
-      span.step-num 03
-      |  MEDIA
+    // Media inputs are part of the main form.
+    .form-section
+      h2.form-step-title
+        span.step-num 03
+        |  MEDIA
 
-    form.media-subform(method='POST', action='/projects/' + project._id + '/media', enctype='multipart/form-data')
       .mb-3
         label.md-label Logo (PNG/JPG, max 2MB)
         input.md-input(type='file', name='logo', accept='image/*')
@@ -121,27 +120,29 @@ block content
         label.md-label Video URL (YouTube or Vimeo)
         input.md-input(type='url', name='videoUrl', placeholder='https://www.youtube.com/watch?v=...')
         input.md-input.mt-2(type='text', name='videoTitle', placeholder='Title (optional)')
-      button.btn.btn-neon-outline(type='submit') Update Media
 
-    if project.asciinema && project.asciinema.length
-      h4.mt-3 Asciinema Demos
-      each cast in project.asciinema
-        .media-item
-          span= cast.title || cast.castId
-          form(method='POST', action='/projects/' + project._id + '/media', style='display:inline')
-            input(type='hidden', name='_csrf', value=_csrf)
-            input(type='hidden', name='removeAsciinemaId', value=cast.castId)
-            button.btn.btn-sm.btn-danger(type='submit') Remove
+  // Existing saved media — each Remove uses its own standalone POST to /media
+  if project.asciinema && project.asciinema.length || project.videos && project.videos.length
+    .form-section
+      if project.asciinema && project.asciinema.length
+        h4.mt-0 Asciinema Demos
+        each cast in project.asciinema
+          .media-item
+            span= cast.title || cast.castId
+            form(method='POST', action='/projects/' + project._id + '/media', style='display:inline')
+              input(type='hidden', name='_csrf', value=_csrf)
+              input(type='hidden', name='removeAsciinemaId', value=cast.castId)
+              button.btn.btn-sm.btn-danger(type='submit') Remove
 
-    if project.videos && project.videos.length
-      h4.mt-3 Videos
-      each video in project.videos
-        .media-item
-          span= video.title || video.url
-          form(method='POST', action='/projects/' + project._id + '/media', style='display:inline')
-            input(type='hidden', name='_csrf', value=_csrf)
-            input(type='hidden', name='removeVideoId', value=video._id)
-            button.btn.btn-sm.btn-danger(type='submit') Remove
+      if project.videos && project.videos.length
+        h4.mt-3 Videos
+        each video in project.videos
+          .media-item
+            span= video.title || video.url
+            form(method='POST', action='/projects/' + project._id + '/media', style='display:inline')
+              input(type='hidden', name='_csrf', value=_csrf)
+              input(type='hidden', name='removeVideoId', value=video._id)
+              button.btn.btn-sm.btn-danger(type='submit') Remove
 
   // Team management section
   .form-section(data-project-id=project._id)
@@ -228,37 +229,36 @@ block scripts
     document.querySelectorAll('.remove-member-btn').forEach(btn => {
       btn.addEventListener('click', () => removeMember(btn.dataset.memberId));
     });
-    // Require at least one AI tool before submit
-    document.getElementById('project-edit-form').addEventListener('submit', function(e) {
+    // The form is multipart — submit via fetch with CSRF token in header
+    // (lusca cannot read _csrf from a multipart body; the header is the correct channel).
+    document.getElementById('project-edit-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
       const checked = this.querySelectorAll('input[type="checkbox"][name="aiTools"]:checked');
       const errorEl = document.getElementById('ai-tools-error');
       if (!checked.length) {
-        e.preventDefault();
         errorEl.style.display = '';
         errorEl.focus();
-      } else {
-        errorEl.style.display = 'none';
+        return;
+      }
+      errorEl.style.display = 'none';
+      const fd = new FormData(this);
+      if (e.submitter && e.submitter.name) fd.set(e.submitter.name, e.submitter.value);
+      const btns = document.querySelectorAll('[form="project-edit-form"][type="submit"]');
+      btns.forEach(b => { b.disabled = true; });
+      try {
+        const res = await fetch(this.action, {
+          method: 'POST',
+          headers: { 'x-csrf-token': getCsrfToken() },
+          body: fd,
+        });
+        if (res.ok) {
+          location.href = res.url;
+        } else {
+          btns.forEach(b => { b.disabled = false; });
+          alert('Save failed. Please try again.');
+        }
+      } catch (err) {
+        btns.forEach(b => { b.disabled = false; });
+        alert('Save failed. Please try again.');
       }
     });
-
-    // Media form uses multipart — submit via fetch so the X-CSRF-Token header is sent
-    // (lusca can't read _csrf from a multipart body; the header is the correct channel)
-    const mediaForm = document.querySelector('.media-subform');
-    if (mediaForm) {
-      mediaForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const btn = mediaForm.querySelector('[type="submit"]');
-        btn.disabled = true;
-        try {
-          const res = await fetch(mediaForm.action, {
-            method: 'POST',
-            headers: { 'x-csrf-token': getCsrfToken() },
-            body: new FormData(mediaForm),
-          });
-          location.href = res.url;
-        } catch (err) {
-          btn.disabled = false;
-          alert('Media update failed. Please try again.');
-        }
-      });
-    }

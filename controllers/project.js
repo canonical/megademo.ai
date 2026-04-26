@@ -374,14 +374,21 @@ exports.update = async (req, res) => {
   if (!canEdit(project, req.user)) {
     return res.status(403).render('error', { title: 'Forbidden', message: 'You cannot edit this project.', user: req.user || null });
   }
-  const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, status } = req.body;
-  const [teamList, aiToolsList, techStackList] = await Promise.all([getTeamList(), getAiToolsList(), getTechStackList()]);
+
+  // Parse multipart body (file upload) only after auth check to prevent
+  // unauthorized users from writing files to disk.
+  try {
+    await new Promise((resolve, reject) => upload(req, res, (err) => (err ? reject(err) : resolve())));
+  } catch (err) {
+    req.flash('errors', { msg: err.message });
+    return res.redirect(`/projects/${project._id}/edit`);
+  }
+
+  const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, status, castId, castTitle, videoUrl, videoTitle } = req.body;
 
   if (title !== undefined && title.trim().length < 3) {
-    return res.status(400).render('projects/edit', {
-      title: 'Edit Project', project, errors: [{ msg: 'Title must be at least 3 characters.' }],
-      CATEGORIES, CATEGORY_TEMPLATES, AI_TOOLS: aiToolsList, CANONICAL_TEAMS: teamList, TECH_STACK_DEFAULTS: techStackList, COMPLETION_STAGES,
-    });
+    req.flash('errors', { msg: 'Title must be at least 3 characters.' });
+    return res.redirect(`/projects/${project._id}/edit`);
   }
 
   // Validate URL fields (reject javascript:, data: etc.)
@@ -390,10 +397,8 @@ exports.update = async (req, res) => {
     : null;
   const urlsToCheck = [...(newRepoLinks || []), demoUrl, slidesUrl].filter(Boolean);
   if (urlsToCheck.some((l) => !isSafeUrl(l))) {
-    return res.status(400).render('projects/edit', {
-      title: 'Edit Project', project, errors: [{ msg: 'Links must use http:// or https://.' }],
-      CATEGORIES, CATEGORY_TEMPLATES, AI_TOOLS: aiToolsList, CANONICAL_TEAMS: teamList, TECH_STACK_DEFAULTS: techStackList, COMPLETION_STAGES,
-    });
+    req.flash('errors', { msg: 'Links must use http:// or https://.' });
+    return res.redirect(`/projects/${project._id}/edit`);
   }
 
   // Duplicate title check (excluding this project)
@@ -403,10 +408,8 @@ exports.update = async (req, res) => {
       _id: { $ne: project._id },
     });
     if (dup) {
-      return res.status(400).render('projects/edit', {
-        title: 'Edit Project', project, errors: [{ msg: `A project named "${title.trim()}" is already registered.` }],
-        CATEGORIES, CATEGORY_TEMPLATES, AI_TOOLS: aiToolsList, CANONICAL_TEAMS: teamList, TECH_STACK_DEFAULTS: techStackList, COMPLETION_STAGES,
-      });
+      req.flash('errors', { msg: `A project named "${title.trim()}" is already registered.` });
+      return res.redirect(`/projects/${project._id}/edit`);
     }
   }
 
@@ -432,6 +435,33 @@ exports.update = async (req, res) => {
   project.repoLinks = newRepoLinks !== null ? newRepoLinks : project.repoLinks;
   project.demoUrl = demoUrl !== undefined ? demoUrl : project.demoUrl;
   project.slidesUrl = slidesUrl !== undefined ? slidesUrl : project.slidesUrl;
+
+  // Handle logo upload
+  if (req.file) {
+    project.logo = `/uploads/${req.file.filename}`;
+  }
+
+  // Handle new asciinema cast
+  if (castId && castId.trim()) {
+    if (project.asciinema.length >= 3) {
+      req.flash('errors', { msg: 'Maximum 3 asciinema recordings allowed. Remove one before adding another.' });
+      return res.redirect(`/projects/${project._id}/edit`);
+    }
+    project.asciinema.push({ castId: parseCastId(castId), title: castTitle || '' });
+  }
+
+  // Handle new video
+  if (videoUrl && videoUrl.trim()) {
+    if (!isValidVideoUrl(videoUrl)) {
+      req.flash('errors', { msg: 'Invalid video URL. Please use a YouTube (youtube.com/watch?v=... or youtu.be/...) or Vimeo (vimeo.com/...) link.' });
+      return res.redirect(`/projects/${project._id}/edit`);
+    }
+    if (project.videos.length >= 3) {
+      req.flash('errors', { msg: 'Maximum 3 videos allowed. Remove one before adding another.' });
+      return res.redirect(`/projects/${project._id}/edit`);
+    }
+    project.videos.push({ url: videoUrl.trim(), title: videoTitle || '', type: detectVideoType(videoUrl) });
+  }
 
   // Only change status to submitted (not finalist — that's admin-only)
   if (status === 'submitted' && project.status === 'draft') {

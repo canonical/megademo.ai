@@ -16,11 +16,12 @@ const ctrl = require('../../controllers/project');
 
 function makeReq(overrides = {}) {
   return {
-    user:   { _id: new mongoose.Types.ObjectId(), role: 'participant' },
-    params: {},
-    body:   {},
-    query:  {},
-    flash:  jest.fn(),
+    user:    { _id: new mongoose.Types.ObjectId(), role: 'participant' },
+    params:  {},
+    body:    {},
+    query:   {},
+    headers: {},
+    flash:   jest.fn(),
     ...overrides,
   };
 }
@@ -302,11 +303,12 @@ describe('update()', () => {
     expect(res.status).toHaveBeenCalledWith(403);
   });
 
-  it('returns 400 when title is updated to < 3 chars', async () => {
+  it('flashes an error and redirects for title < 3 chars', async () => {
     const req = makeReq({ params: { id: project._id.toString() }, body: { title: 'ab' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.update(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(req.flash).toHaveBeenCalledWith('errors', expect.objectContaining({ msg: expect.stringContaining('3 characters') }));
+    expect(res.redirect).toHaveBeenCalledWith(expect.stringContaining('/edit'));
   });
 
   it('saves updated title and redirects', async () => {
