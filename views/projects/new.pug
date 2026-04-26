@@ -5,13 +5,10 @@ block content
     h1.pixel-text REGISTER PROJECT
     p.lead Tell us about your AI experiment
 
-  form#project-form(method='POST', action='/projects', data-dirty-guard)
+  form#project-form(method='POST', action='/projects', enctype='multipart/form-data', data-dirty-guard)
     input(type='hidden', name='_csrf', value=_csrf)
 
-    if errors && errors.length
-      .alert.alert-danger
-        each e in errors
-          div= e.msg
+    #register-errors.alert.alert-danger(style='display:none')
 
     // Step 1: Category
     .form-section
@@ -99,7 +96,8 @@ block content
     .form-section
       h2.form-step-title
         span.step-num 03
-        |  LINKS &amp; REPO (optional now)
+        |  LINKS &amp; REPO
+        span.step-optional  (optional)
 
       .mb-3
         label.md-label Repository URL(s)
@@ -129,7 +127,7 @@ block content
 
       .mb-3
         label.md-label Colleague emails
-        input.md-input(type='text', name='teamEmails',
+        input#teamEmailsInput.md-input(type='text', name='teamEmails',
           placeholder='alice@canonical.com, bob@canonical.com',
           value=(project.teamEmails || ''))
         p.form-hint.mt-1 Separate multiple emails with commas. Unrecognised addresses are skipped.
@@ -141,9 +139,9 @@ block content
         |  MEDIA
         span.step-optional  (optional)
 
-      p.form-hint.mb-3
-        | Add an asciinema cast or video now, or later from the project page.
-        | Logo and file uploads are available after saving.
+      .mb-3
+        label.md-label Logo (PNG/JPG, max 2MB)
+        input.md-input(type='file', name='logo', accept='image/*')
 
       .mb-3
         label.md-label Asciinema Cast ID
@@ -164,8 +162,9 @@ block content
           value=(project.videoTitle || ''))
 
     .form-actions
-      button.btn.btn-neon-outline(type='submit', name='action', value='draft') Save as Draft
-      button.btn.btn-neon-cyan.ms-3(type='submit', name='action', value='continue') Submit
+      button.btn.btn-neon-cyan(type='submit', name='action', value='continue') Submit
+      button.btn.btn-neon-outline.ms-3(type='submit', name='action', value='draft') Save as Draft
+      a.btn.btn-neon-outline.ms-3(href='/projects/mine') Cancel
 
 block scripts
   script(nonce=cspNonce).
@@ -215,15 +214,43 @@ block scripts
         input.value = current.join(', ');
       });
     });
-    // Require at least one AI tool before submit
-    document.getElementById('project-form').addEventListener('submit', function(e) {
+    // Require at least one AI tool before submit; submit via fetch (multipart + CSRF header)
+    document.getElementById('project-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
       const checked = this.querySelectorAll('input[type="checkbox"][name="aiTools"]:checked');
       const errorEl = document.getElementById('ai-tools-error');
       if (!checked.length) {
-        e.preventDefault();
         errorEl.style.display = '';
         errorEl.focus();
-      } else {
-        errorEl.style.display = 'none';
+        return;
+      }
+      errorEl.style.display = 'none';
+      const fd = new FormData(this);
+      if (e.submitter && e.submitter.name) fd.set(e.submitter.name, e.submitter.value);
+      const btns = this.querySelectorAll('button[type="submit"]');
+      btns.forEach(b => { b.disabled = true; });
+      try {
+        const res = await fetch(this.action, {
+          method: 'POST',
+          headers: { 'x-csrf-token': getCsrfToken() },
+          body: fd,
+        });
+        if (res.redirected) {
+          location.href = res.url;
+        } else if (!res.ok) {
+          const data = await res.json().catch(() => ({ errors: [{ msg: 'Registration failed. Please try again.' }] }));
+          const errBox = document.getElementById('register-errors');
+          errBox.innerHTML = (data.errors || [{ msg: 'Registration failed. Please try again.' }])
+            .map(e => '<div>' + e.msg.replace(/</g, '&lt;') + '</div>').join('');
+          errBox.style.display = '';
+          errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          btns.forEach(b => { b.disabled = false; });
+        } else {
+          location.href = res.url;
+        }
+      } catch (err) {
+        btns.forEach(b => { b.disabled = false; });
+        alert('Registration failed. Please try again.');
       }
     });
+    initTeamEmailAutocomplete('teamEmailsInput');

@@ -215,47 +215,41 @@ describe('remove()', () => {
 // ─── create ───────────────────────────────────────────────────────────────
 
 describe('create()', () => {
-  it('re-renders form when title is too short', async () => {
+  it('returns 422 JSON when title is too short', async () => {
     const req = makeReq({ body: { title: 'ab', category: 'Other' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.render).toHaveBeenCalledWith('projects/new', expect.objectContaining({ errors: expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('3') })]) }));
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('3') })]) }));
   });
 
-  it('normalises aiTools to array on re-render (single checkbox value is a string)', async () => {
-    // When only one AI tool checkbox is ticked, req.body.aiTools is a string.
-    // The template calls .some() on it — must receive an array or crash.
-    const req = makeReq({ body: { title: 'ab', category: 'Other', aiTools: 'ChatGPT' }, user: { _id: owner._id, role: 'participant' } });
-    const res = makeRes();
-    await ctrl.create(req, res);
-    const call = res.render.mock.calls[0];
-    expect(Array.isArray(call[1].project.aiTools)).toBe(true);
-  });
-
-  it('re-renders form for an invalid category', async () => {
+  it('returns 422 JSON with errors for an invalid category', async () => {
     const req = makeReq({ body: { title: 'Valid Title', category: 'Fake Category' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.render).toHaveBeenCalledWith('projects/new', expect.objectContaining({
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       errors: expect.arrayContaining([expect.objectContaining({ msg: expect.any(String) })]),
     }));
   });
 
-  it('re-renders form when videoUrl is not a valid YouTube/Vimeo URL', async () => {
+  it('returns 422 JSON when videoUrl is not a valid YouTube/Vimeo URL', async () => {
     const req = makeReq({ body: { title: 'Video Test', category: 'Other', videoUrl: 'https://example.com/video' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.render).toHaveBeenCalledWith('projects/new', expect.objectContaining({
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       errors: expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('video') })]),
     }));
   });
 
-  it('re-renders form when a project with the same name already exists (case-insensitive)', async () => {
+  it('returns 422 JSON when a project with the same name already exists (case-insensitive)', async () => {
     await Project.create({ title: 'Existing Project', slug: 'existing-project', owner: owner._id, team: [owner._id], category: 'Other' });
     const req = makeReq({ body: { title: 'existing project', category: 'Other' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.render).toHaveBeenCalledWith('projects/new', expect.objectContaining({
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       errors: expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('already registered') })]),
     }));
   });

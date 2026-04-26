@@ -95,19 +95,51 @@ block content
 
       .mb-3
         label.md-label Repository URL
-        input.md-input(type='url', name='repoLinks', value=(project.repoLinks ? project.repoLinks[0] : ''))
+        input.md-input(type='url', name='repoLinks', value=(project.repoLinks ? project.repoLinks[0] : ''), placeholder='https://github.com/canonical/...')
       .mb-3
         label.md-label Demo URL
-        input.md-input(type='url', name='demoUrl', value=(project.demoUrl || ''))
+        input.md-input(type='url', name='demoUrl', value=(project.demoUrl || ''), placeholder='https://...')
       .mb-3
         label.md-label Slides URL
-        input.md-input(type='url', name='slidesUrl', value=(project.slidesUrl || ''))
+        input.md-input(type='url', name='slidesUrl', value=(project.slidesUrl || ''), placeholder='https://docs.google.com/presentation/...')
+
+    // Team management section — inside the main form so Save Changes handles adds
+    .form-section(data-project-id=project._id)
+      h2.form-step-title
+        span.step-num 03
+        |  TEAM MEMBERS
+        span.step-optional  (optional)
+
+      p.form-hint
+        | Add colleagues by their @canonical.com email (comma-separated). They must have logged in at least once.
+        br
+        | 💡 Alternatively, just share the project link — team members can click
+        strong  "+ Join Project"
+        |  themselves once signed in.
+
+      .mb-3
+        label.md-label Colleague emails
+        input#teamEmailsInput.md-input(type='text', name='teamEmails',
+          placeholder='alice@canonical.com, bob@canonical.com')
+        p.form-hint.mt-1 Separate multiple emails with commas. Unrecognised addresses are skipped.
+
+      if project.team && project.team.length
+        .team-list#teamList
+          each member in project.team
+            .team-member-row(data-id=member._id)
+              if member.profile && member.profile.picture
+                img.avatar-xs(src=member.profile.picture, alt=member.profile.name)
+              span.ms-2= member.profile && member.profile.name ? member.profile.name : member.email
+              if member._id && project.owner && member._id.toString() !== project.owner.toString()
+                button.btn.btn-sm.btn-outline-danger.ms-auto.remove-member-btn(
+                  type='button', data-member-id=member._id) Remove
 
     // Media inputs are part of the main form.
     .form-section
       h2.form-step-title
-        span.step-num 03
+        span.step-num 04
         |  MEDIA
+        span.step-optional  (optional)
 
       .mb-3
         label.md-label Logo (PNG/JPG, max 2MB)
@@ -143,28 +175,6 @@ block content
               input(type='hidden', name='_csrf', value=_csrf)
               input(type='hidden', name='removeVideoId', value=video._id)
               button.btn.btn-sm.btn-danger(type='submit') Remove
-
-  // Team management section
-  .form-section(data-project-id=project._id)
-    h2.form-step-title
-      span.step-num 04
-      |  TEAM MEMBERS
-
-    .mb-3
-      p.form-hint Add team members by their @canonical.com email. They must have logged in at least once.
-      .d-flex.gap-2
-        input#addEmailInput.md-input(type='email', placeholder='colleague@canonical.com')
-        button#addMemberBtn.btn.btn-neon-outline(type='button') Add Member
-
-    .team-list#teamList
-      each member in (project.team || [])
-        .team-member-row(data-id=member._id)
-          if member.profile && member.profile.picture
-            img.avatar-xs(src=member.profile.picture, alt=member.profile.name)
-          span.ms-2= member.profile && member.profile.name ? member.profile.name : member.email
-          if member._id && project.owner && member._id.toString() !== project.owner.toString()
-            button.btn.btn-sm.btn-outline-danger.ms-auto.remove-member-btn(
-              type='button', data-member-id=member._id) Remove
 
   // Submit actions at the bottom — associated with the main form via form= attribute
   .form-actions.mt-4
@@ -207,16 +217,6 @@ block scripts
 
     const projectId = document.querySelector('[data-project-id]').dataset.projectId;
 
-    async function addMember() {
-      const email = document.getElementById('addEmailInput').value.trim();
-      if (!email) return;
-      try {
-        const data = await apiPost('/projects/' + projectId + '/team', { addEmail: email });
-        if (data.success) location.reload();
-      } catch (e) {
-        alert('Could not add member: ' + e.message);
-      }
-    }
     async function removeMember(id) {
       try {
         const data = await apiPost('/projects/' + projectId + '/team', { removeUserId: id });
@@ -225,10 +225,10 @@ block scripts
         alert('Could not remove member: ' + e.message);
       }
     }
-    document.getElementById('addMemberBtn').addEventListener('click', addMember);
     document.querySelectorAll('.remove-member-btn').forEach(btn => {
       btn.addEventListener('click', () => removeMember(btn.dataset.memberId));
     });
+    initTeamEmailAutocomplete('teamEmailsInput');
     // The form is multipart — submit via fetch with CSRF token in header
     // (lusca cannot read _csrf from a multipart body; the header is the correct channel).
     document.getElementById('project-edit-form').addEventListener('submit', async function(e) {

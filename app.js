@@ -364,6 +364,7 @@ app.get('/get-started', (req, res) => {
 });
 
 // Projects
+app.get('/api/users/search', authController.isAuthenticated, projectController.searchUsers);
 app.get('/projects', projectController.list);
 app.get('/projects/mine', authController.isAuthenticated, projectController.mine);
 app.get('/projects/new', authController.isAuthenticated, projectController.newForm);

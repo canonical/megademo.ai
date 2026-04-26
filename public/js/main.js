@@ -18,7 +18,54 @@ async function apiPost(url, body) {
   return res.json();
 }
 
-/* -- Star voting ------------------------------------------- */
+/* -- Team email autocomplete ------------------------------- */
+window.initTeamEmailAutocomplete = function initTeamEmailAutocomplete(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const wrap = input.parentElement;
+  wrap.style.position = 'relative';
+  const dropdown = document.createElement('div');
+  dropdown.className = 'email-autocomplete';
+  dropdown.style.display = 'none';
+  wrap.appendChild(dropdown);
+
+  let timer;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const val = input.value;
+    const lastComma = val.lastIndexOf(',');
+    const token = val.slice(lastComma + 1).trimStart();
+    if (token.length < 2) { dropdown.style.display = 'none'; return; }
+    timer = setTimeout(async () => {
+      try {
+        const r = await fetch('/api/users/search?q=' + encodeURIComponent(token));
+        if (!r.ok) return;
+        const users = await r.json();
+        if (!users.length) { dropdown.style.display = 'none'; return; }
+        dropdown.innerHTML = '';
+        users.forEach((u) => {
+          const item = document.createElement('div');
+          item.className = 'email-suggestion-item';
+          item.textContent = u.name && u.name !== u.email ? u.name + ' <' + u.email + '>' : u.email;
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const prefix = lastComma >= 0 ? val.slice(0, lastComma + 1) + ' ' : '';
+            input.value = prefix + u.email + ', ';
+            dropdown.style.display = 'none';
+            input.focus();
+          });
+          dropdown.appendChild(item);
+        });
+        dropdown.style.display = '';
+      } catch { /* non-critical — silently ignore */ }
+    }, 200);
+  });
+  input.addEventListener('blur', () => setTimeout(() => { dropdown.style.display = 'none'; }, 150));
+  input.addEventListener('keydown', (e) => { if (e.key === 'Escape') dropdown.style.display = 'none'; });
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   const voteWidget = document.querySelector('.star-voting');
   if (!voteWidget) return;

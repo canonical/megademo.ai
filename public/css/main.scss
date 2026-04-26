@@ -677,6 +677,25 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 .form-actions { display: flex; align-items: center; gap: 1rem; padding: 1.5rem 0; }
 .md-label    { display: block; font-size: 0.75rem; color: $color-muted; margin-bottom: 0.5rem; letter-spacing: 1px; text-transform: uppercase; }
 
+.email-autocomplete {
+  position: absolute;
+  z-index: 200;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: $color-surface-2;
+  border: 1px solid $color-primary;
+  border-top: none;
+
+  .email-suggestion-item {
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: $color-text;
+    &:hover { background: rgba($color-primary, 0.1); }
+  }
+}
+
 .md-input, .md-textarea, .md-select {
   background: $color-surface-2;
   border: 1px solid $color-border;

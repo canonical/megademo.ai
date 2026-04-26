@@ -23550,6 +23550,26 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   text-transform: uppercase;
 }
 
+.email-autocomplete {
+  position: absolute;
+  z-index: 200;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #12123a;
+  border: 1px solid #00d4ff;
+  border-top: none;
+}
+.email-autocomplete .email-suggestion-item {
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #c8e6ff;
+}
+.email-autocomplete .email-suggestion-item:hover {
+  background: rgba(0, 212, 255, 0.1);
+}
+
 .md-input, .md-textarea, .md-select {
   background: #12123a;
   border: 1px solid rgba(0, 212, 255, 0.2);

@@ -93,7 +93,8 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `logo-${req.params.id}-${Date.now()}${ext}`);
+    const id = req.params.id || req.user._id;
+    cb(null, `logo-${id}-${Date.now()}${ext}`);
   },
 });
 const upload = multer({
@@ -198,9 +199,16 @@ exports.create = async (req, res) => {
     req.flash('errors', { msg: 'Project registration is not open yet — it opens when the hackathon starts.' });
     return res.redirect('/');
   }
+
+  // Parse multipart body (handles logo file upload); must run before reading req.body
+  try {
+    await new Promise((resolve, reject) => upload(req, res, (err) => (err ? reject(err) : resolve())));
+  } catch (err) {
+    return res.status(400).json({ errors: [{ msg: err.message }] });
+  }
+
   const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, teamEmails, asciinemaId, asciinemaTitle, videoUrl, videoTitle } = req.body;
   const errors = [];
-  const [teamList, aiToolsList, techStackList] = await Promise.all([getTeamList(), getAiToolsList(), getTechStackList()]);
 
   if (!title || title.trim().length < 3) errors.push({ msg: 'Title must be at least 3 characters.' });
   if (!category || !CATEGORIES.includes(category)) errors.push({ msg: 'Please select a valid category.' });
@@ -217,24 +225,7 @@ exports.create = async (req, res) => {
   }
 
   if (errors.length) {
-    // Normalize body fields that the template expects as arrays so re-render doesn't crash.
-    // aiTools/repoLinks: may be a string (single value) or array (multiple values).
-    // techStack: arrives as a comma-separated string from the hidden text input.
-    const rawTechStack = req.body.techStack;
-    const formData = {
-      ...req.body,
-      aiTools: Array.isArray(req.body.aiTools) ? req.body.aiTools : req.body.aiTools ? [req.body.aiTools] : [],
-      repoLinks: Array.isArray(req.body.repoLinks) ? req.body.repoLinks : req.body.repoLinks ? [req.body.repoLinks] : [],
-      techStack: Array.isArray(rawTechStack)
-        ? rawTechStack
-        : rawTechStack ? rawTechStack.split(',').map((t) => t.trim()).filter(Boolean) : [],
-    };
-    return res.render('projects/new', {
-      title: 'Register Project',
-      CATEGORIES, CATEGORY_TEMPLATES, AI_TOOLS: aiToolsList, CANONICAL_TEAMS: teamList, TECH_STACK_DEFAULTS: techStackList, COMPLETION_STAGES,
-      project: formData,
-      errors,
-    });
+    return res.status(422).json({ errors });
   }
 
   const resolvedTeam = (canonicalTeam === 'Other' && customTeam && customTeam.trim())
@@ -260,6 +251,7 @@ exports.create = async (req, res) => {
     slidesUrl: slidesUrl || '',
     owner: req.user._id,
     team: [req.user._id],
+    logo: req.file ? `/uploads/${req.file.filename}` : undefined,
   });
 
   // Optional: add asciinema cast from registration form
@@ -384,7 +376,7 @@ exports.update = async (req, res) => {
     return res.redirect(`/projects/${project._id}/edit`);
   }
 
-  const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, status, castId, castTitle, videoUrl, videoTitle } = req.body;
+  const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, status, castId, castTitle, videoUrl, videoTitle, teamEmails } = req.body;
 
   if (title !== undefined && title.trim().length < 3) {
     req.flash('errors', { msg: 'Title must be at least 3 characters.' });
@@ -461,6 +453,17 @@ exports.update = async (req, res) => {
       return res.redirect(`/projects/${project._id}/edit`);
     }
     project.videos.push({ url: videoUrl.trim(), title: videoTitle || '', type: detectVideoType(videoUrl) });
+  }
+
+  // Handle new team members added by email
+  if (teamEmails && teamEmails.trim()) {
+    const emails = teamEmails.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+    for (const email of emails) {
+      const member = await User.findOne({ email });
+      if (member && !project.team.some((m) => (m._id || m).toString() === member._id.toString())) {
+        project.team.push(member._id);
+      }
+    }
   }
 
   // Only change status to submitted (not finalist — that's admin-only)
@@ -626,6 +629,20 @@ exports.updateTeam = async (req, res) => {
   }
 
   res.status(400).json({ error: 'Nothing to do.' });
+};
+
+/**
+ * GET /api/users/search?q=<term>
+ * Returns up to 10 canonical.com users matching name or email prefix (for autocomplete).
+ */
+exports.searchUsers = async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (q.length < 2) return res.json([]);
+  const re = new RegExp(escapeRegex(q), 'i');
+  const users = await User.find({
+    $or: [{ email: re }, { 'profile.name': re }],
+  }).select('email profile.name').limit(10).lean();
+  res.json(users.map((u) => ({ email: u.email, name: u.profile?.name || u.email })));
 };
 
 /**
