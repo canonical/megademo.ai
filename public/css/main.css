@@ -22938,7 +22938,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .hero-section {
   position: relative;
   overflow: hidden;
-  padding: 5rem 0 4rem;
+  padding: 2.5rem 0 4rem;
   background: linear-gradient(135deg, #05050f 0%, #0a0820 50%, #050520 100%);
 }
 .hero-section::after {
@@ -24499,7 +24499,7 @@ input[type=file]::file-selector-button:hover {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding-top: 1.5rem;
+    padding-top: 0.75rem;
   }
   .hero-wave-mobile {
     margin-bottom: 1.5rem;

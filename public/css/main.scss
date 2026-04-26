@@ -238,7 +238,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
 .hero-section {
   position: relative;
   overflow: hidden;
-  padding: 5rem 0 4rem;
+  padding: 2.5rem 0 4rem;
   background: linear-gradient(135deg, $color-bg 0%, #0a0820 50%, #050520 100%);
 
   &::after {
@@ -1189,7 +1189,7 @@ input[type='file'] {
 }
 
 @media (max-width: 768px) {
-  .hero-section { padding-top: 1.5rem; }
+  .hero-section { padding-top: 0.75rem; }
   .hero-wave-mobile { margin-bottom: 1.5rem; }
   .hero-title { font-size: 0.9rem; }
   .countdown-label { display: none; }
