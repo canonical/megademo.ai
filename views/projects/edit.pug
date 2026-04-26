@@ -143,7 +143,7 @@ block content
 
       .mb-3
         label.md-label Logo (PNG/JPG, max 2MB)
-        input.md-input(type='file', name='logo', accept='image/*')
+        input.md-input#logoInput(type='file', name='logo', accept='.jpg,.jpeg,.png,.gif,.webp')
       .mb-3
         label.md-label Asciinema Cast ID
         input.md-input(type='text', name='castId', placeholder='e.g. abc123 from asciinema.org/a/abc123')
@@ -229,6 +229,16 @@ block scripts
       btn.addEventListener('click', () => removeMember(btn.dataset.memberId));
     });
     initTeamEmailAutocomplete('teamEmailsInput');
+    // Client-side logo size guard (mirrors the 2 MB server limit)
+    const logoInput = document.getElementById('logoInput');
+    if (logoInput) {
+      logoInput.addEventListener('change', () => {
+        if (logoInput.files[0] && logoInput.files[0].size > 2 * 1024 * 1024) {
+          alert('Logo must be 2 MB or less.');
+          logoInput.value = '';
+        }
+      });
+    }
     // The form is multipart — submit via fetch with CSRF token in header
     // (lusca cannot read _csrf from a multipart body; the header is the correct channel).
     document.getElementById('project-edit-form').addEventListener('submit', async function(e) {

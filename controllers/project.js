@@ -268,10 +268,11 @@ exports.create = async (req, res) => {
   project.status = isDraft ? 'draft' : 'submitted';
   await project.save();
 
-  // Optional: add team members by email (best-effort; skip unrecognised)
+  // Optional: add team members by email (best-effort; skip unrecognised or non-canonical)
   if (teamEmails && teamEmails.trim()) {
     const emails = teamEmails.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
     for (const email of emails) {
+      if (!email.endsWith('@canonical.com')) continue;
       const member = await User.findOne({ email });
       if (member && !project.team.some((id) => id.toString() === member._id.toString())) {
         project.team.push(member._id);
@@ -455,10 +456,11 @@ exports.update = async (req, res) => {
     project.videos.push({ url: videoUrl.trim(), title: videoTitle || '', type: detectVideoType(videoUrl) });
   }
 
-  // Handle new team members added by email
+  // Handle new team members added by email (only @canonical.com addresses)
   if (teamEmails && teamEmails.trim()) {
     const emails = teamEmails.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
     for (const email of emails) {
+      if (!email.endsWith('@canonical.com')) continue;
       const member = await User.findOne({ email });
       if (member && !project.team.some((m) => (m._id || m).toString() === member._id.toString())) {
         project.team.push(member._id);
@@ -633,7 +635,7 @@ exports.updateTeam = async (req, res) => {
 
 /**
  * GET /api/users/search?q=<term>
- * Returns up to 10 canonical.com users matching name or email prefix (for autocomplete).
+ * Returns up to 10 canonical.com users matching name or email substring (for autocomplete).
  */
 exports.searchUsers = async (req, res) => {
   const q = (req.query.q || '').trim();
