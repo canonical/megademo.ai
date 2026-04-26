@@ -353,6 +353,19 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   }
 }
 
+.btn.btn-neon-cyan.disabled, .btn-neon-cyan.disabled {
+  color:        $color-muted !important;
+  border-color: $color-muted !important;
+  cursor:       not-allowed;
+  opacity:      1;
+  &:hover, &:focus {
+    background:  transparent !important;
+    box-shadow:  none !important;
+    color:       $color-muted !important;
+    border-color: $color-muted !important;
+  }
+}
+
 .btn.btn-neon-outline, .btn-neon-outline {
   font-family: $btn-px-font;
   font-size:   $btn-px-size;

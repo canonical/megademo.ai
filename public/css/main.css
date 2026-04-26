@@ -23027,6 +23027,19 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   text-decoration: none !important;
 }
 
+.btn.btn-neon-cyan.disabled, .btn-neon-cyan.disabled {
+  color: #7a8baa !important;
+  border-color: #7a8baa !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.btn.btn-neon-cyan.disabled:hover, .btn.btn-neon-cyan.disabled:focus, .btn-neon-cyan.disabled:hover, .btn-neon-cyan.disabled:focus {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #7a8baa !important;
+  border-color: #7a8baa !important;
+}
+
 .btn.btn-neon-outline, .btn-neon-outline, .btn-github-hero {
   font-family: "Press Start 2P", monospace;
   font-size: 0.65rem;
