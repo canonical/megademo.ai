@@ -240,8 +240,12 @@ block scripts
         } else if (!res.ok) {
           const data = await res.json().catch(() => ({ errors: [{ msg: 'Registration failed. Please try again.' }] }));
           const errBox = document.getElementById('register-errors');
-          errBox.innerHTML = (data.errors || [{ msg: 'Registration failed. Please try again.' }])
-            .map(e => '<div>' + e.msg.replace(/</g, '&lt;') + '</div>').join('');
+          errBox.replaceChildren();
+          (data.errors || [{ msg: 'Registration failed. Please try again.' }]).forEach(e => {
+            const div = document.createElement('div');
+            div.textContent = e.msg;
+            errBox.appendChild(div);
+          });
           errBox.style.display = '';
           errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
           btns.forEach(b => { b.disabled = false; });
