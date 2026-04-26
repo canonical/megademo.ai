@@ -23071,12 +23071,8 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .btn-github-hero {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
   border-color: #ff006e;
   color: #ff006e;
-}
-.btn-github-hero .fa-github {
-  transform: translateY(-1px);
 }
 .btn-github-hero:hover, .btn-github-hero:focus {
   background: #ff006e;

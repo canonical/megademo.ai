@@ -398,10 +398,8 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   @extend .btn-neon-outline;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
   border-color: $color-secondary;
   color: $color-secondary;
-  .fa-github { transform: translateY(-1px); }
   &:hover, &:focus {
     background:  $color-secondary;
     border-color: $color-secondary;

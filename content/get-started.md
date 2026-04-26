@@ -4,7 +4,7 @@ Madrid Engineering Sprint AI hackathon. See the announcement on Discourse: [Init
 
 ## Sign in
 
-Click **Sign in with GitHub** — you need a `@canonical.com` GitHub account.
+Click **Sign in** — you need a `@canonical.com` account.
 That's it. No separate registration.
 
 ---
@@ -47,7 +47,7 @@ You can leave at any time.
 ## Vote
 
 Browse projects and use the **★ star rating** (1–5) on any project page.
-You can change your vote. You cannot vote on your own project.
+You can change your vote.
 
 ---
 
