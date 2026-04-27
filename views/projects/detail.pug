@@ -90,14 +90,16 @@ block content
                 if video.type === 'youtube'
                   - const ytId = (() => { const m = (video.url||'').match(/(?:youtube\.com\/(?:.*[?&]v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : null; })()
                   if ytId
-                    iframe(src='https://www.youtube-nocookie.com/embed/' + ytId,
-                      title=(video.title || 'YouTube video'), style='border:none', allowfullscreen, loading='lazy',
-                      allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture')
+                    iframe(src='https://www.youtube-nocookie.com/embed/' + ytId + '?rel=0',
+                      title=(video.title || 'YouTube video'), frameborder='0', allowfullscreen,
+                      referrerpolicy='strict-origin-when-cross-origin',
+                      allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share')
                 else if video.type === 'vimeo'
                   - const vimeoId = video.url.match(/vimeo\.com\/(\d+)/)?.[1]
                   if vimeoId
                     iframe(src='https://player.vimeo.com/video/' + vimeoId,
-                      title=(video.title || 'Vimeo video'), style='border:none', allowfullscreen, loading='lazy')
+                      title=(video.title || 'Vimeo video'), frameborder='0', allowfullscreen,
+                      referrerpolicy='strict-origin-when-cross-origin')
 
         // Links
         if project.repoLinks && project.repoLinks.length || project.demoUrl || project.slidesUrl
