@@ -17,6 +17,7 @@ $color-border:    rgba(0, 212, 255, 0.2);
 
 $font-pixel: 'Press Start 2P', monospace;
 $font-mono:  'JetBrains Mono', 'Courier New', monospace;
+$font-size-min: 0.8rem;   // floor for all non-pixel-font text
 
 // -- Bootstrap overrides (must come before import) -----------
 $body-bg:    $color-bg;
@@ -227,7 +228,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
   border-top: 1px solid $color-border;
   padding: 1.5rem 0;
   margin-top: 4rem;
-  font-size: 0.75rem;
+  font-size: $font-size-min;
   color: $color-muted;
 }
 
@@ -486,7 +487,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 }
 
 .countdown-sublabel {
-  font-size: 0.55rem;
+  font-size: $font-size-min;
   color: rgba($color-muted, 0.75);
   letter-spacing: 1px;
   text-align: center;
@@ -523,7 +524,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 }
 
 .section-title { font-size: 0.8rem; color: $color-primary; letter-spacing: 2px; margin: 0; }
-.section-link  { font-size: 0.75rem; color: $color-muted; &:hover { color: $color-primary; } }
+.section-link  { font-size: $font-size-min; color: $color-muted; &:hover { color: $color-primary; } }
 .section-label { font-family: $font-pixel; font-size: 0.62rem; color: $color-muted; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1rem; }
 
 // -- Project cards -------------------------------------------
@@ -600,7 +601,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 .project-meta    { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }
 
 .category-tag, .team-tag {
-  font-size: 0.65rem;
+  font-size: $font-size-min;
   padding: 0.15rem 0.4rem;
   border-radius: 2px;
   background: $color-surface-2;
@@ -608,7 +609,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 }
 
 .ai-tool-tag {
-  font-size: 0.6rem;
+  font-size: $font-size-min;
   padding: 0.1rem 0.35rem;
   background: rgba($color-accent, 0.15);
   color: $color-accent;
@@ -641,11 +642,11 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 .rank-number { font-family: $font-pixel; font-size: 1rem; color: $color-primary; min-width: 1.5rem; }
 .leaderboard-info { flex: 1; }
 .leaderboard-title { color: $color-text; font-weight: bold; &:hover { color: $color-primary; } }
-.leaderboard-team  { font-size: 0.7rem; color: $color-muted; display: block; }
+.leaderboard-team  { font-size: $font-size-min; color: $color-muted; display: block; }
 .leaderboard-rating { font-size: 0.85rem; color: gold; white-space: nowrap; }
 .pts-display    { font-family: $font-pixel; font-size: 1.1rem; color: $color-primary; }
-.pts-label      { font-size: 0.7rem; color: $color-primary; margin-right: 0.4rem; }
-.avg-secondary  { font-size: 0.7rem; color: $color-muted; }
+.pts-label      { font-size: $font-size-min; color: $color-primary; margin-right: 0.4rem; }
+.avg-secondary  { font-size: $font-size-min; color: $color-muted; }
 
 // -- Badges --------------------------------------------------
 .status-badge {
@@ -658,11 +659,11 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   &.status-finalist  { background: rgba($color-secondary, 0.15); color: $color-secondary; border: 1px solid rgba($color-secondary, 0.4); }
 }
 
-.category-badge { @extend .category-tag; font-size: 0.75rem; }
+.category-badge { @extend .category-tag; font-size: $font-size-min; }
 .finalist-badge-lg { font-family: $font-pixel; font-size: 0.78rem; color: $color-secondary; text-shadow: 0 0 10px rgba($color-secondary, 0.6); }
 
 .role-badge {
-  font-size: 0.6rem; padding: 0.15rem 0.4rem; border-radius: 2px;
+  font-size: $font-size-min; padding: 0.15rem 0.4rem; border-radius: 2px;
   &.role-admin       { background: rgba($color-secondary, 0.2); color: $color-secondary; }
   &.role-participant { background: rgba($color-primary, 0.15); color: $color-primary; }
   &.role-viewer      { background: rgba($color-muted, 0.2); color: $color-muted; }
@@ -681,9 +682,9 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   .step-num { color: $color-secondary; margin-right: 0.75rem; }
   .step-optional { color: $color-muted; font-size: 0.55rem; margin-left: 0.5rem; }
 }
-.form-hint   { font-size: 0.75rem; color: $color-muted; margin-bottom: 0.5rem; }
+.form-hint   { font-size: $font-size-min; color: $color-muted; margin-bottom: 0.5rem; }
 .form-actions { display: flex; align-items: center; gap: 1rem; padding: 1.5rem 0; }
-.md-label    { display: block; font-size: 0.75rem; color: $color-muted; margin-bottom: 0.5rem; letter-spacing: 1px; text-transform: uppercase; }
+.md-label    { display: block; font-size: $font-size-min; color: $color-muted; margin-bottom: 0.5rem; letter-spacing: 1px; text-transform: uppercase; }
 
 .email-autocomplete {
   position: absolute;
@@ -838,7 +839,7 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
   input[type="radio"]:checked ~ .cat-name { color: $color-primary; }
 
   .cat-icon { font-size: 1.8rem; }
-  .cat-name { font-size: 0.65rem; color: $color-muted; }
+  .cat-name { font-size: $font-size-min; color: $color-muted; }
 
   &:hover, &.selected {
     border-color: $color-primary;

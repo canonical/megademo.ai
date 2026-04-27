@@ -22928,7 +22928,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   border-top: 1px solid rgba(0, 212, 255, 0.2);
   padding: 1.5rem 0;
   margin-top: 4rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #7a8baa;
 }
 
@@ -23172,7 +23172,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .countdown-sublabel {
-  font-size: 0.55rem;
+  font-size: 0.8rem;
   color: rgba(122, 139, 170, 0.75);
   letter-spacing: 1px;
   text-align: center;
@@ -23230,7 +23230,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .section-link {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #7a8baa;
 }
 .section-link:hover {
@@ -23337,7 +23337,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .category-tag, .stage-tag, .category-badge, .team-tag {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   padding: 0.15rem 0.4rem;
   border-radius: 2px;
   background: #12123a;
@@ -23345,7 +23345,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .ai-tool-tag {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   padding: 0.1rem 0.35rem;
   background: rgba(179, 102, 255, 0.15);
   color: #b366ff;
@@ -23417,7 +23417,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .leaderboard-team {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #7a8baa;
   display: block;
 }
@@ -23435,13 +23435,13 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .pts-label {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #00d4ff;
   margin-right: 0.4rem;
 }
 
 .avg-secondary {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: #7a8baa;
 }
 
@@ -23467,7 +23467,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .category-badge {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .finalist-badge-lg {
@@ -23478,7 +23478,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .role-badge {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   padding: 0.15rem 0.4rem;
   border-radius: 2px;
 }
@@ -23535,7 +23535,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .form-hint {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #7a8baa;
   margin-bottom: 0.5rem;
 }
@@ -23549,7 +23549,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 
 .md-label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #7a8baa;
   margin-bottom: 0.5rem;
   letter-spacing: 1px;
@@ -23714,7 +23714,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   font-size: 1.8rem;
 }
 .category-card .cat-name {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: #7a8baa;
 }
 .category-card:hover, .category-card.selected {
