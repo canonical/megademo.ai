@@ -37,6 +37,7 @@ const User = require('../models/User');
 const Settings = require('../models/Settings');
 const { notifyProjectSubmitted, notifyVotingMilestone } = require('../services/mattermost');
 const { refreshProjectStats } = require('../services/github');
+const { logActivity } = require('../services/activityLog');
 
 async function getTeamList() {
   const custom = await Settings.get('customTeams');
@@ -59,6 +60,56 @@ function canEdit(project, user) {
   if (user.role === 'admin') return true;
   if (project.owner.toString() === user._id.toString()) return true;
   return project.team.some((m) => (m._id || m).toString() === user._id.toString());
+}
+
+/**
+ * Take a lightweight snapshot of fields we want to diff for activity logging.
+ * Called before mutations are applied to `project`.
+ */
+function snapshotProject(project) {
+  return {
+    title:         project.title,
+    category:      project.category,
+    canonicalTeam: project.canonicalTeam,
+    status:        project.status,
+    hasLogo:       !!project.logo,
+    aiTools:       [...(project.aiTools || [])].sort(),
+    techStack:     [...(project.techStack || [])].sort(),
+    teamIds:       (project.team || []).map((m) => (m._id || m).toString()),
+    asciinemaCount: (project.asciinema || []).length,
+    videoCount:    (project.videos || []).length,
+  };
+}
+
+/**
+ * Compute human-readable change descriptions by comparing a snapshot to the
+ * saved project. Returns an array of strings.
+ */
+function diffProject(old, project) {
+  const changes = [];
+  if (project.title !== old.title)
+    changes.push(`title changed to '${project.title}'`);
+  if (project.category !== old.category)
+    changes.push(`category changed to '${project.category}'`);
+  if (project.canonicalTeam !== old.canonicalTeam)
+    changes.push(`canonical team changed to '${project.canonicalTeam}'`);
+  if (project.status !== old.status)
+    changes.push(`status changed to '${project.status}'`);
+  if (!old.hasLogo && project.logo)
+    changes.push('uploaded logo');
+  const newAiTools = [...(project.aiTools || [])].sort();
+  for (const t of newAiTools) { if (!old.aiTools.includes(t)) changes.push(`added AI tool '${t}'`); }
+  for (const t of old.aiTools)  { if (!newAiTools.includes(t)) changes.push(`removed AI tool '${t}'`); }
+  const newTech = [...(project.techStack || [])].sort();
+  for (const t of newTech)       { if (!old.techStack.includes(t)) changes.push(`added tech '${t}'`); }
+  for (const t of old.techStack) { if (!newTech.includes(t)) changes.push(`removed tech '${t}'`); }
+  const newTeamIds = (project.team || []).map((m) => (m._id || m).toString());
+  for (const id of newTeamIds) { if (!old.teamIds.includes(id)) changes.push('added team member'); }
+  if ((project.asciinema || []).length > old.asciinemaCount)
+    changes.push('added asciinema recording');
+  if ((project.videos || []).length > old.videoCount)
+    changes.push('added video');
+  return changes;
 }
 
 /**
@@ -302,6 +353,7 @@ exports.create = async (req, res) => {
     ? `Project "${project.title}" saved as draft.`
     : `Project "${project.title}" submitted! Add media and team members any time.`;
   req.flash('success', { msg });
+  logActivity(req.user.email, `${isDraft ? 'Saved draft project' : 'Submitted project'} '${project.title}'`).catch(() => {});
   const redirectUrl = isDraft ? '/projects/mine' : `/projects/${project.slug}`;
   return res.json({ redirect: redirectUrl });
 };
@@ -436,6 +488,9 @@ exports.update = async (req, res) => {
     parsedAiTools.push(aiToolOther.trim());
   }
 
+  // Snapshot before mutations for activity logging
+  const oldSnap = snapshotProject(project);
+
   project.title = title ? title.trim() : project.title;
   project.description = description !== undefined ? description : project.description;
   project.category = CATEGORIES.includes(category) ? category : project.category;
@@ -491,12 +546,18 @@ exports.update = async (req, res) => {
     project.status = 'submitted';
     await project.save();
     notifyProjectSubmitted(project, process.env.BASE_URL || 'http://localhost:8080').catch(() => {});
+    const changes = diffProject(oldSnap, project);
+    const detail = changes.length ? `: ${changes.join(', ')}` : '';
+    logActivity(req.user.email, `Submitted project '${project.title}'${detail}`).catch(() => {});
     req.flash('success', { msg: 'Project submitted! Good luck!' });
     return res.json({ redirect: `/projects/${project.slug}` });
   }
   if (status === 'draft' && project.status === 'submitted' && req.user.role === 'admin') project.status = 'draft';
 
   await project.save();
+  const changes = diffProject(oldSnap, project);
+  const detail = changes.length ? `: ${changes.join(', ')}` : ' (no changes)';
+  logActivity(req.user.email, `Updated project '${project.title}'${detail}`).catch(() => {});
   req.flash('success', { msg: 'Project updated.' });
   return res.json({ redirect: `/projects/${project.slug}` });
 };
@@ -515,6 +576,7 @@ exports.remove = async (req, res) => {
   }
   await Project.deleteOne({ _id: project._id });
   await Vote.deleteMany({ project: project._id });
+  logActivity(req.user.email, `Deleted project '${project.title}'`).catch(() => {});
   res.json({ success: true, message: `Project "${project.title}" deleted.` });
 };
 
@@ -548,6 +610,8 @@ exports.vote = async (req, res) => {
     project.voteCount  = agg[0]?.count || 0;
     project.totalStars = agg[0]?.total || 0;
     await project.save();
+
+    logActivity(req.user.email, `Voted ${stars}★ on project '${project.title}'`).catch(() => {});
 
     const MILESTONES = [5, 10, 25, 50];
     const hit = MILESTONES.find((m) => prevCount < m && project.voteCount >= m);

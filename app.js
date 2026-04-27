@@ -393,6 +393,7 @@ app.get('/admin/users', authController.isAdmin, adminController.users);
 app.post('/admin/users/clear-sessions', authController.isAdmin, adminController.clearSessions);
 app.post('/admin/users/:id/role', authController.isAdmin, adminController.setRole);
 app.get('/admin/export', authController.isAdmin, adminController.exportCsv);
+app.get('/admin/activity-log', authController.isAdmin, adminController.activityLog);
 app.post('/admin/settings', authController.isAdmin, adminController.saveSettings);
 app.get('/admin/teams', authController.isAdmin, adminController.teamsPage);
 app.post('/admin/teams', authController.isAdmin, adminController.saveTeams);

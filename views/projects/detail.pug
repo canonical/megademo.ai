@@ -24,12 +24,6 @@ block content
               .detail-meta-row
                 span.meta-label Completion stage:
                 span.meta-value= project.completionStage.charAt(0).toUpperCase() + project.completionStage.slice(1)
-            if project.aiTools && project.aiTools.length
-              .detail-meta-row
-                span.meta-label AI tools:
-                .meta-tags
-                  each tool in project.aiTools
-                    span.ai-tool-tag= tool
             if project.canonicalTeam
               .detail-meta-row
                 span.meta-label Canonical team:
@@ -94,8 +88,11 @@ block content
                 if video.title
                   p.media-title= video.title
                 if video.type === 'youtube'
-                  iframe(src='https://www.youtube-nocookie.com/embed/' + video.url.replace(/.*v=/, '').replace(/&.*/, ''),
-                    title=(video.title || 'YouTube video'), style='border:none', allowfullscreen, loading='lazy')
+                  - const ytId = (() => { const m = (video.url||'').match(/(?:youtube\.com\/(?:.*[?&]v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : null; })()
+                  if ytId
+                    iframe(src='https://www.youtube-nocookie.com/embed/' + ytId,
+                      title=(video.title || 'YouTube video'), style='border:none', allowfullscreen, loading='lazy',
+                      allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture')
                 else if video.type === 'vimeo'
                   - const vimeoId = video.url.match(/vimeo\.com\/(\d+)/)?.[1]
                   if vimeoId
@@ -170,12 +167,18 @@ block content
               a(href=loginUrl) Sign in
               |  to cast your vote.
 
-        if project.techStack && project.techStack.length
+        if (project.techStack && project.techStack.length) || (project.aiTools && project.aiTools.length)
           .tech-stack-panel
-            h3.section-label TECH STACK
-            .tech-tags
-              each tag in project.techStack
-                span.tech-tag= tag
+            if project.techStack && project.techStack.length
+              h3.section-label TECH STACK
+              .tech-tags.mb-3
+                each tag in project.techStack
+                  span.tech-tag= tag
+            if project.aiTools && project.aiTools.length
+              h3.section-label AI TOOLS
+              .tech-tags
+                each tool in project.aiTools
+                  span.ai-tool-tag= tool
 
 block scripts
   if project.asciinema && project.asciinema.length

@@ -11,6 +11,7 @@ const passport = require('passport');
 const User = require('../models/User');
 const { generators } = require('openid-client');
 const { getClient } = require('../config/oidc');
+const { logActivity } = require('../services/activityLog');
 
 /** Resolve the appropriate login URL for the current environment. */
 function resolveLoginUrl() {
@@ -74,6 +75,7 @@ exports.githubCallback = (req, res, next) => {
     if (!user) return res.redirect('/');
     req.logIn(user, (loginErr) => {
       if (loginErr) return next(loginErr);
+      logActivity(user.email, 'Logged in').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
       delete req.session.returnTo;
       res.redirect(returnTo);
@@ -85,8 +87,10 @@ exports.githubCallback = (req, res, next) => {
  * GET /logout
  */
 exports.logout = (req, res, next) => {
+  const email = req.user?.email;
   req.logout((err) => {
     if (err) return next(err);
+    if (email) logActivity(email, 'Logged out').catch(() => {});
     res.redirect('/');
   });
 };
@@ -142,6 +146,7 @@ exports.testLogin = async (req, res, next) => {
 
     req.logIn(user, (err) => {
       if (err) return next(err);
+      logActivity(user.email, 'Logged in (test)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
       delete req.session.returnTo;
       res.redirect(returnTo);
@@ -184,6 +189,7 @@ exports.devLogin = async (req, res, next) => {
     }
     req.logIn(user, (err) => {
       if (err) return next(err);
+      logActivity(user.email, 'Logged in (dev)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
       delete req.session.returnTo;
       res.redirect(returnTo);
@@ -269,6 +275,7 @@ exports.oidcCallback = async (req, res, next) => {
 
     req.logIn(user, (err) => {
       if (err) return next(err);
+      logActivity(user.email, 'Logged in (OIDC)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
       delete req.session.returnTo;
       res.redirect(returnTo);

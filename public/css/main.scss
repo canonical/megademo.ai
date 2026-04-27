@@ -138,7 +138,6 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
     border: 1px solid rgba($color-muted, 0.4);
     border-radius: 2px;
     padding: 0.2rem 0.7rem;
-    font-size: 0.72rem;
     letter-spacing: 0.5px;
     transition: all 0.2s;
     &:hover {
@@ -155,7 +154,6 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
     border: 1px solid $color-primary;
     border-radius: 2px;
     padding: 0.2rem 0.7rem;
-    font-size: 0.72rem;
     transition: all 0.2s;
     &:hover {
       background: rgba($color-primary, 0.1);
@@ -170,7 +168,6 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
     border: 1px solid $color-secondary;
     border-radius: 2px;
     padding: 0.2rem 0.7rem;
-    font-size: 0.8rem;
     transition: all 0.2s;
     &:hover {
       background: rgba($color-secondary, 0.1);
@@ -186,7 +183,6 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
     border-radius: 2px !important;
     color: $color-secondary !important;
     background: rgba($color-secondary, 0.12) !important;
-    font-size: 0.8rem;
     letter-spacing: 0.5px;
     white-space: nowrap;
     transition: all 0.2s;
@@ -585,7 +581,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 
   .finalist-badge {
     font-family: $font-pixel;
-    font-size: 0.45rem;
+    font-size: 0.62rem;
     color: $color-secondary;
     border: 1px solid $color-secondary;
     padding: 0.2rem 0.5rem;
@@ -959,7 +955,32 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
   column-gap: 0.5rem;
   @media (max-width: 576px) { column-count: 2; }
 }
-.tech-tag         { font-size: 0.65rem; padding: 0.2rem 0.5rem; background: $color-surface-2; border: 1px solid rgba($color-primary, 0.2); border-radius: 2px; color: $color-primary; }
+.tech-tag         { font-size: $font-size-min; padding: 0.2rem 0.5rem; background: $color-surface-2; border: 1px solid rgba($color-primary, 0.2); border-radius: 2px; color: $color-primary; }
+
+// Override vote/tech-stack panel headings: bigger, non-pixel font
+.vote-panel, .tech-stack-panel {
+  .section-label {
+    font-family: $font-mono;
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+}
+
+// Activity log admin page
+.activity-log-pre {
+  background: $color-surface-2;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  padding: 1rem;
+  font-size: 0.8rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  .log-ts     { color: $color-muted; }
+  .log-actor  { color: $color-primary; }
+  .log-action { color: $color-text; }
+}
 
 .tech-tag-check {
   display: flex; align-items: center; gap: 0.3rem;

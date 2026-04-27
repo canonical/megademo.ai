@@ -10,10 +10,12 @@ const UPLOADS_URL_PREFIX = '/uploads/';
 const ALLOWED_STATUSES = ['draft', 'submitted', 'finalist'];
 exports.ALLOWED_STATUSES = ALLOWED_STATUSES;
 
-
-function safeDecodeURIComponent(str) {
-  try { return decodeURIComponent(str); } catch { return null; }
-}
+const Vote = require('../models/Vote');
+const User = require('../models/User');
+const Settings = require('../models/Settings');
+const ActivityLog = require('../models/ActivityLog');
+const { notifyFinalistPromoted } = require('../services/mattermost');
+const { logActivity } = require('../services/activityLog');
 
 function safeUnlinkLogo(logoRelPath) {
   if (!logoRelPath || !logoRelPath.startsWith(UPLOADS_URL_PREFIX)) return;
@@ -22,10 +24,10 @@ function safeUnlinkLogo(logoRelPath) {
   if (!filename || path.basename(filename) !== filename) return;
   fs.unlink(path.join(UPLOADS_DIR, filename), () => {});
 }
-const Vote = require('../models/Vote');
-const User = require('../models/User');
-const Settings = require('../models/Settings');
-const { notifyFinalistPromoted } = require('../services/mattermost');
+
+function safeDecodeURIComponent(str) {
+  try { return decodeURIComponent(str); } catch { return null; }
+}
 
 async function getTeamList() {
   const custom = await Settings.get('customTeams');
@@ -129,6 +131,7 @@ exports.setStatus = async (req, res, next) => {
       notifyFinalistPromoted(project, process.env.BASE_URL || 'http://localhost:8080').catch(() => {});
     }
 
+    logActivity(req.user.email, `Set project '${project.title}' status to '${status}'`).catch(() => {});
     res.json({ success: true, status: project.status, title: project.title });
   } catch (err) {
     next(err);
@@ -151,6 +154,7 @@ exports.deleteProject = async (req, res, next) => {
       Project.deleteOne({ _id: project._id }),
     ]);
 
+    logActivity(req.user.email, `Deleted project '${project.title}' (admin)`).catch(() => {});
     res.json({ success: true, title: project.title });
   } catch (err) {
     next(err);
@@ -214,6 +218,7 @@ exports.setRole = async (req, res, next) => {
 
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { returnDocument: 'after' });
     if (!user) return res.status(404).json({ error: 'User not found.' });
+    logActivity(req.user.email, `Set role of '${user.email}' to '${role}'`).catch(() => {});
     res.json({ success: true, role: user.role });
   } catch (err) {
     next(err);
@@ -656,6 +661,7 @@ exports.resetAll = async (req, res, next) => {
     ]);
 
     req.flash('success', { msg: 'All projects and votes deleted. Lists reset to defaults.' });
+    logActivity(req.user.email, 'Reset all projects and votes (admin)').catch(() => {});
     res.redirect('/admin');
   } catch (err) {
     next(err);
@@ -675,6 +681,36 @@ exports.clearSessions = async (req, res, next) => {
       ok: true,
       message: `Cleared ${result.deletedCount} session(s). All users have been signed out and will re-authenticate on their next visit.`,
       count: result.deletedCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /admin/activity-log
+ * GET /admin/activity-log?format=text  — plain-text download
+ */
+exports.activityLog = async (req, res, next) => {
+  try {
+    const PAGE_SIZE = 200;
+    const entries = await ActivityLog.find()
+      .sort({ timestamp: -1 })
+      .limit(PAGE_SIZE)
+      .lean();
+
+    if (req.query.format === 'text') {
+      const lines = entries.map((e) =>
+        `[${new Date(e.timestamp).toISOString()}] ${e.userEmail}: ${e.action}`
+      ).join('\n');
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="activity-log.txt"');
+      return res.send(lines);
+    }
+
+    res.render('admin/activity-log', {
+      title: 'Activity Log',
+      entries,
     });
   } catch (err) {
     next(err);
