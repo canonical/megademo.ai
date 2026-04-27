@@ -15,7 +15,7 @@ $color-text:      #c8e6ff;
 $color-muted:     #7a8baa;
 $color-border:    rgba(0, 212, 255, 0.2);
 
-$font-pixel: 'Bitcount Prop Single Ink', 'Press Start 2P', monospace;
+$font-pixel: 'Press Start 2P', monospace;
 $font-mono:  'JetBrains Mono', 'Courier New', monospace;
 
 // -- Bootstrap overrides (must come before import) -----------
@@ -169,10 +169,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
     border: 1px solid $color-secondary;
     border-radius: 2px;
     padding: 0.2rem 0.7rem;
-    font-size: 0.72rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
+    font-size: 0.8rem;
     transition: all 0.2s;
     &:hover {
       background: rgba($color-secondary, 0.1);
@@ -188,7 +185,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
     border-radius: 2px !important;
     color: $color-secondary !important;
     background: rgba($color-secondary, 0.12) !important;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     letter-spacing: 0.5px;
     white-space: nowrap;
     transition: all 0.2s;
@@ -287,7 +284,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
 
 .hero-title {
   font-family: $font-pixel;
-  font-size: clamp(1.1rem, 3vw, 1.8rem);
+  font-size: clamp(1.25rem, 3.3vw, 2rem);
   line-height: 2;
   margin-bottom: 1rem;
   text-shadow: 0 0 20px $color-primary, 0 0 40px rgba($color-primary, 0.3);
@@ -327,7 +324,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
 // Unified hover: outline buttons fill with border color + glow.
 
 $btn-px-font:    $font-pixel;
-$btn-px-size:    0.65rem;
+$btn-px-size:    0.72rem;
 $btn-px-pad:     0.55rem 1.1rem;
 $btn-px-radius:  2px;
 $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
@@ -513,7 +510,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   .unit-label { font-size: 0.5rem; color: $color-muted; letter-spacing: 1px; margin-top: 4px; }
 }
 
-.countdown-sep { font-family: $font-pixel; font-size: 2rem; color: $color-muted; line-height: 1; padding-top: 0.5rem; }
+.countdown-sep { font-family: $font-pixel; font-size: 2.2rem; color: $color-muted; line-height: 1; padding-top: 0.5rem; }
 
 // -- Section headers -----------------------------------------
 .section-header {
@@ -527,7 +524,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 
 .section-title { font-size: 0.8rem; color: $color-primary; letter-spacing: 2px; margin: 0; }
 .section-link  { font-size: 0.75rem; color: $color-muted; &:hover { color: $color-primary; } }
-.section-label { font-family: $font-pixel; font-size: 0.55rem; color: $color-muted; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1rem; }
+.section-label { font-family: $font-pixel; font-size: 0.62rem; color: $color-muted; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1rem; }
 
 // -- Project cards -------------------------------------------
 .projects-grid {
@@ -641,12 +638,12 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
   &:hover { border-color: rgba($color-primary, 0.4); }
 }
 
-.rank-number { font-family: $font-pixel; font-size: 0.9rem; color: $color-primary; min-width: 1.5rem; }
+.rank-number { font-family: $font-pixel; font-size: 1rem; color: $color-primary; min-width: 1.5rem; }
 .leaderboard-info { flex: 1; }
 .leaderboard-title { color: $color-text; font-weight: bold; &:hover { color: $color-primary; } }
 .leaderboard-team  { font-size: 0.7rem; color: $color-muted; display: block; }
 .leaderboard-rating { font-size: 0.85rem; color: gold; white-space: nowrap; }
-.pts-display    { font-family: $font-pixel; font-size: 1rem; color: $color-primary; }
+.pts-display    { font-family: $font-pixel; font-size: 1.1rem; color: $color-primary; }
 .pts-label      { font-size: 0.7rem; color: $color-primary; margin-right: 0.4rem; }
 .avg-secondary  { font-size: 0.7rem; color: $color-muted; }
 
@@ -662,7 +659,7 @@ $btn-px-trans:   background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s
 }
 
 .category-badge { @extend .category-tag; font-size: 0.75rem; }
-.finalist-badge-lg { font-family: $font-pixel; font-size: 0.7rem; color: $color-secondary; text-shadow: 0 0 10px rgba($color-secondary, 0.6); }
+.finalist-badge-lg { font-family: $font-pixel; font-size: 0.78rem; color: $color-secondary; text-shadow: 0 0 10px rgba($color-secondary, 0.6); }
 
 .role-badge {
   font-size: 0.6rem; padding: 0.15rem 0.4rem; border-radius: 2px;
@@ -949,8 +946,8 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
 }
 
 .vote-stats      { font-size: 0.8rem; color: $color-muted; }
-.vote-pts        { font-family: $font-pixel; font-size: 1.2rem; color: $color-primary; margin-right: 0.15rem; }
-.vote-avg        { font-family: $font-pixel; font-size: 0.95rem; color: gold; margin-right: 0.1rem; }
+.vote-pts        { font-family: $font-pixel; font-size: 1.35rem; color: $color-primary; margin-right: 0.15rem; }
+.vote-avg        { font-family: $font-pixel; font-size: 1.05rem; color: gold; margin-right: 0.1rem; }
 .vote-count-label { margin-left: 0.25rem; }
 .your-vote       { font-size: 0.75rem; color: gold; margin-top: 0.5rem; }
 
@@ -1038,7 +1035,7 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
   &.finalist { border-color: rgba($color-secondary, 0.4); }
 }
 
-.stat-number { font-family: $font-pixel; font-size: 2rem; color: $color-primary; }
+.stat-number { font-family: $font-pixel; font-size: 2.2rem; color: $color-primary; }
 .stat-label  { font-size: 0.7rem; color: $color-muted; margin-top: 0.25rem; }
 
 .md-card { background: $color-surface; border: 1px solid $color-border; border-radius: 4px; padding: 0.5rem 1.5rem 1.5rem; }
@@ -1202,7 +1199,7 @@ input[type='file'] {
 @media (max-width: 768px) {
   .hero-section { padding-top: 0.75rem; }
   .hero-wave-mobile { margin-bottom: 1.5rem; }
-  .hero-title { font-size: 0.9rem; }
+  .hero-title { font-size: 1rem; }
   .countdown-label { display: none; }
   .countdown-unit span:first-child { font-size: 1.5rem; }
   .category-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
