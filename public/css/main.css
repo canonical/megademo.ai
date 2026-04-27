@@ -22767,7 +22767,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .neon-pink {
-  color: #ff006e;
+  color: #ff4da6;
 }
 
 .neon-cyan {
@@ -22845,8 +22845,8 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   text-decoration: none !important;
 }
 .md-navbar .btn-github-login {
-  color: #ff006e !important;
-  border: 1px solid #ff006e;
+  color: #ff4da6 !important;
+  border: 1px solid #ff4da6;
   border-radius: 2px;
   padding: 0.2rem 0.7rem;
   font-size: 0.72rem;
@@ -22856,25 +22856,25 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   transition: all 0.2s;
 }
 .md-navbar .btn-github-login:hover {
-  background: rgba(255, 0, 110, 0.1);
-  box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
-  color: #ff006e !important;
+  background: rgba(255, 77, 166, 0.1);
+  box-shadow: 0 0 15px rgba(255, 77, 166, 0.4);
+  color: #ff4da6 !important;
   text-decoration: none !important;
 }
 .md-navbar .btn-help {
-  border: 1px solid #ff006e !important;
+  border: 1px solid #ff4da6 !important;
   border-radius: 2px !important;
-  color: #ff006e !important;
-  background: rgba(255, 0, 110, 0.12) !important;
+  color: #ff4da6 !important;
+  background: rgba(255, 77, 166, 0.12) !important;
   font-size: 0.72rem;
   letter-spacing: 0.5px;
   white-space: nowrap;
   transition: all 0.2s;
 }
 .md-navbar .btn-help:hover, .md-navbar .btn-help:focus {
-  background: rgba(255, 0, 110, 0.22) !important;
-  box-shadow: 0 0 10px rgba(255, 0, 110, 0.4) !important;
-  color: #ff006e !important;
+  background: rgba(255, 77, 166, 0.22) !important;
+  box-shadow: 0 0 10px rgba(255, 77, 166, 0.4) !important;
+  color: #ff4da6 !important;
 }
 .md-navbar .nav-admin {
   text-decoration: none !important;
@@ -22957,7 +22957,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .hero-grid-overlay {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0px, transparent 59px, rgba(139, 0, 255, 0.06) 60px), repeating-linear-gradient(0deg, transparent 0px, transparent 59px, rgba(139, 0, 255, 0.06) 60px);
+  background: repeating-linear-gradient(90deg, transparent 0px, transparent 59px, rgba(179, 102, 255, 0.06) 60px), repeating-linear-gradient(0deg, transparent 0px, transparent 59px, rgba(179, 102, 255, 0.06) 60px);
 }
 
 .hero-content {
@@ -22974,7 +22974,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .hero-subtitle {
-  color: #ff006e;
+  color: #ff4da6;
   font-size: 0.85rem;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -23067,16 +23067,16 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   border-radius: 2px;
   line-height: 1;
   background: transparent;
-  color: #ff006e;
-  border: 1px solid #ff006e;
+  color: #ff4da6;
+  border: 1px solid #ff4da6;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
   text-decoration: none !important;
 }
 .btn.btn-neon-pink:hover, .btn.btn-neon-pink:focus, .btn-neon-pink:hover, .btn-neon-pink:focus {
-  background: #ff006e;
-  border-color: #ff006e;
-  box-shadow: 0 0 18px rgba(255, 0, 110, 0.55);
+  background: #ff4da6;
+  border-color: #ff4da6;
+  box-shadow: 0 0 18px rgba(255, 77, 166, 0.55);
   color: white;
   text-decoration: none !important;
 }
@@ -23084,13 +23084,13 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .btn-github-hero {
   display: inline-flex;
   align-items: center;
-  border-color: #ff006e;
-  color: #ff006e;
+  border-color: #ff4da6;
+  color: #ff4da6;
 }
 .btn-github-hero:hover, .btn-github-hero:focus {
-  background: #ff006e;
-  border-color: #ff006e;
-  box-shadow: 0 0 20px rgba(255, 0, 110, 0.55);
+  background: #ff4da6;
+  border-color: #ff4da6;
+  box-shadow: 0 0 20px rgba(255, 77, 166, 0.55);
   color: white;
 }
 
@@ -23150,9 +23150,9 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .countdown-section {
-  background: linear-gradient(90deg, rgba(139, 0, 255, 0.1), rgba(255, 0, 110, 0.1));
-  border-top: 1px solid rgba(139, 0, 255, 0.3);
-  border-bottom: 1px solid rgba(139, 0, 255, 0.3);
+  background: linear-gradient(90deg, rgba(179, 102, 255, 0.1), rgba(255, 77, 166, 0.1));
+  border-top: 1px solid rgba(179, 102, 255, 0.3);
+  border-bottom: 1px solid rgba(179, 102, 255, 0.3);
   padding: 1.5rem 0;
 }
 
@@ -23277,12 +23277,12 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
 }
 .project-card.finalist {
-  border-color: rgba(255, 0, 110, 0.5);
-  box-shadow: 0 0 25px rgba(255, 0, 110, 0.2);
+  border-color: rgba(255, 77, 166, 0.5);
+  box-shadow: 0 0 25px rgba(255, 77, 166, 0.2);
 }
 .project-card.finalist:hover {
-  border-color: rgba(255, 0, 110, 0.85);
-  box-shadow: 0 0 30px rgba(255, 0, 110, 0.4);
+  border-color: rgba(255, 77, 166, 0.85);
+  box-shadow: 0 0 30px rgba(255, 77, 166, 0.4);
 }
 .project-card .project-title::after {
   content: "";
@@ -23300,12 +23300,12 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .project-card .finalist-badge {
   font-family: "Press Start 2P", monospace;
   font-size: 0.45rem;
-  color: #ff006e;
-  border: 1px solid #ff006e;
+  color: #ff4da6;
+  border: 1px solid #ff4da6;
   padding: 0.2rem 0.5rem;
   margin-bottom: 0.5rem;
   display: inline-block;
-  text-shadow: 0 0 8px rgba(255, 0, 110, 0.5);
+  text-shadow: 0 0 8px rgba(255, 77, 166, 0.5);
 }
 
 .card-header-row {
@@ -23350,9 +23350,9 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .ai-tool-tag {
   font-size: 0.6rem;
   padding: 0.1rem 0.35rem;
-  background: rgba(139, 0, 255, 0.15);
-  color: #8b00ff;
-  border: 1px solid rgba(139, 0, 255, 0.3);
+  background: rgba(179, 102, 255, 0.15);
+  color: #b366ff;
+  border: 1px solid rgba(179, 102, 255, 0.3);
   border-radius: 2px;
 }
 
@@ -23464,9 +23464,9 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   border: 1px solid rgba(0, 212, 255, 0.4);
 }
 .status-badge.status-finalist {
-  background: rgba(255, 0, 110, 0.15);
-  color: #ff006e;
-  border: 1px solid rgba(255, 0, 110, 0.4);
+  background: rgba(255, 77, 166, 0.15);
+  color: #ff4da6;
+  border: 1px solid rgba(255, 77, 166, 0.4);
 }
 
 .category-badge {
@@ -23476,8 +23476,8 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .finalist-badge-lg {
   font-family: "Press Start 2P", monospace;
   font-size: 0.7rem;
-  color: #ff006e;
-  text-shadow: 0 0 10px rgba(255, 0, 110, 0.6);
+  color: #ff4da6;
+  text-shadow: 0 0 10px rgba(255, 77, 166, 0.6);
 }
 
 .role-badge {
@@ -23486,8 +23486,8 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   border-radius: 2px;
 }
 .role-badge.role-admin {
-  background: rgba(255, 0, 110, 0.2);
-  color: #ff006e;
+  background: rgba(255, 77, 166, 0.2);
+  color: #ff4da6;
 }
 .role-badge.role-participant {
   background: rgba(0, 212, 255, 0.15);
@@ -23528,7 +23528,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   margin-bottom: 1.5rem;
 }
 .form-step-title .step-num {
-  color: #ff006e;
+  color: #ff4da6;
   margin-right: 0.75rem;
 }
 .form-step-title .step-optional {
@@ -24214,7 +24214,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   text-align: center;
 }
 .stat-card.finalist {
-  border-color: rgba(255, 0, 110, 0.4);
+  border-color: rgba(255, 77, 166, 0.4);
 }
 
 .stat-number {
@@ -24251,7 +24251,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 .md-card h3, .md-card .h3 {
   font-size: 0.95rem;
-  color: #ff006e;
+  color: #ff4da6;
 }
 .md-card p {
   line-height: 1.7;
@@ -24533,6 +24533,6 @@ input[type=file]::file-selector-button:hover {
   border: 1px solid rgba(0, 212, 255, 0.2);
   border-radius: 2px;
   padding: 0.2rem 0.5rem;
-  color: #8b00ff;
+  color: #b366ff;
   word-break: break-all;
 }
