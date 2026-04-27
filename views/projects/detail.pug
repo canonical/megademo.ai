@@ -100,6 +100,13 @@ block content
                     iframe(src='https://player.vimeo.com/video/' + vimeoId,
                       title=(video.title || 'Vimeo video'), frameborder='0', allowfullscreen,
                       referrerpolicy='strict-origin-when-cross-origin')
+                else if video.type === 'gdrive'
+                  - const gdriveMatch = (video.url||'').match(/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/)
+                  if gdriveMatch
+                    iframe(src='https://drive.google.com/file/d/' + gdriveMatch[1] + '/preview',
+                      title=(video.title || 'Google Drive video'), frameborder='0', allowfullscreen,
+                      referrerpolicy='strict-origin-when-cross-origin',
+                      allow='autoplay')
 
         // Links
         if project.repoLinks && project.repoLinks.length || project.demoUrl || project.slidesUrl

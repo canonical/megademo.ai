@@ -182,7 +182,7 @@ app.use(helmet({
       imgSrc:          ["'self'", 'data:', 'https:'],
       fontSrc:         ["'self'", 'https://fonts.gstatic.com'],
       connectSrc:      ["'self'", 'https://asciinema.org'],
-      frameSrc:        ['https://www.youtube-nocookie.com', 'https://player.vimeo.com'],
+      frameSrc:        ['https://www.youtube-nocookie.com', 'https://player.vimeo.com', 'https://drive.google.com'],
       objectSrc:       ["'none'"],
       baseUri:         ["'self'"],
       formAction:      ["'self'"],

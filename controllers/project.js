@@ -113,8 +113,10 @@ function diffProject(old, project) {
 }
 
 /**
- * Validate a YouTube or Vimeo URL.
- * Accepts: youtube.com/watch?v=..., youtu.be/..., vimeo.com/...
+ * Validate a YouTube, Vimeo, or Google Drive video URL.
+ * YouTube: watch?v=..., youtu.be/..., youtube.com/embed/..., youtube-nocookie.com/embed/...
+ * Vimeo:   vimeo.com/NUMERIC_ID
+ * Drive:   drive.google.com/file/d/FILE_ID/...
  */
 function isValidVideoUrl(url) {
   if (!url || typeof url !== 'string') return false;
@@ -122,8 +124,11 @@ function isValidVideoUrl(url) {
     const u = new URL(url.trim());
     const host = u.hostname.replace(/^www\./, '');
     if (host === 'youtube.com' && u.searchParams.get('v')) return true;
+    if (host === 'youtube.com' && /^\/embed\/[A-Za-z0-9_-]{11}/.test(u.pathname)) return true;
+    if (host === 'youtube-nocookie.com' && /^\/embed\/[A-Za-z0-9_-]{11}/.test(u.pathname)) return true;
     if (host === 'youtu.be' && u.pathname.length > 1) return true;
     if (host === 'vimeo.com' && /^\/\d+/.test(u.pathname)) return true;
+    if (host === 'drive.google.com' && /^\/file\/d\/[A-Za-z0-9_-]+/.test(u.pathname)) return true;
     return false;
   } catch {
     return false;
@@ -134,6 +139,7 @@ function detectVideoType(url) {
   try {
     const host = new URL((url || '').trim()).hostname.replace(/^www\./, '');
     if (host === 'vimeo.com') return 'vimeo';
+    if (host === 'drive.google.com') return 'gdrive';
   } catch { /* fall through */ }
   return 'youtube';
 }

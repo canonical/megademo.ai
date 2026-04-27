@@ -233,7 +233,7 @@ describe('create()', () => {
     }));
   });
 
-  it('returns 422 JSON when videoUrl is not a valid YouTube/Vimeo URL', async () => {
+  it('returns 422 JSON when videoUrl is not a valid YouTube/Vimeo/Drive URL', async () => {
     const req = makeReq({ body: { title: 'Video Test', category: 'Other', videoUrl: 'https://example.com/video' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
@@ -254,8 +254,22 @@ describe('create()', () => {
     }));
   });
 
-  it('accepts a valid YouTube URL', async () => {
+  it('accepts a valid YouTube watch URL', async () => {
     const req = makeReq({ body: { title: 'YT Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
+    const res = makeRes();
+    await ctrl.create(req, res);
+    expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
+  });
+
+  it('accepts a YouTube embed URL', async () => {
+    const req = makeReq({ body: { title: 'YT Embed Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
+    const res = makeRes();
+    await ctrl.create(req, res);
+    expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
+  });
+
+  it('accepts a Google Drive video URL', async () => {
+    const req = makeReq({ body: { title: 'Drive Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
     expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });

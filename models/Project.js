@@ -72,7 +72,7 @@ const projectSchema = new mongoose.Schema(
     completionStage: { type: String, enum: COMPLETION_STAGES, default: 'prototype' },
 
     asciinema: [{ castId: String, title: String }],
-    videos: [{ url: String, title: String, type: { type: String, enum: ['youtube', 'vimeo'] } }],
+    videos: [{ url: String, title: String, type: { type: String, enum: ['youtube', 'vimeo', 'gdrive'] } }],
 
     avgRating:  { type: Number, default: 0 },
     voteCount:  { type: Number, default: 0 },
