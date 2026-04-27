@@ -23,7 +23,8 @@
           span.ai-tool-tag= tool
   if mineActions
     .card-mine-actions
-      span(class='status-badge status-' + (project.status || 'draft'))= (project.status || 'draft').toUpperCase()
+      if project.status !== 'finalist'
+        span(class='status-badge status-' + (project.status || 'draft'))= (project.status || 'draft').toUpperCase()
       .card-mine-btns
         a.btn.btn-xs.btn-neon-outline(href='/projects/' + project._id + '/edit') Edit
         if project.status === 'draft'
