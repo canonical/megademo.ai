@@ -23978,7 +23978,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .vote-question {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #7a8baa;
   margin-bottom: 0.75rem;
 }
@@ -24068,12 +24068,11 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .vote-panel .section-label, .tech-stack-panel .section-label {
-  font-family: "JetBrains Mono", "Courier New", monospace;
-  font-size: 1rem;
-  letter-spacing: 1px;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
 }
 
-.activity-log-pre {
+.activity-log-scroll {
   background: #12123a;
   border: 1px solid rgba(0, 212, 255, 0.2);
   border-radius: 4px;
@@ -24081,16 +24080,17 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   font-size: 0.8rem;
   max-height: 70vh;
   overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
-.activity-log-pre .log-ts {
+.activity-log-scroll .log-line {
+  margin-bottom: 0.15rem;
+}
+.activity-log-scroll .log-ts {
   color: #7a8baa;
 }
-.activity-log-pre .log-actor {
+.activity-log-scroll .log-actor {
   color: #00d4ff;
 }
-.activity-log-pre .log-action {
+.activity-log-scroll .log-action {
   color: #c8e6ff;
 }
 

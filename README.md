@@ -81,7 +81,7 @@ Admins can then promote/demote other users via the **Admin → Users** page.
 
 ```bash
 npm run lint-check   # ESLint — must be zero errors before committing
-npm test             # Jest (84 tests) — must all pass before committing
+npm test             # Jest (98 tests) — must all pass before committing
 npm run lint         # ESLint with --fix (auto-fixes what it can)
 ```
 

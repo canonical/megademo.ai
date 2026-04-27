@@ -38,16 +38,18 @@ controllers/
   auth.js           Login/logout, OIDC callback, dev bypass, token-gated test login
   home.js           Homepage: newest projects, leaderboard, category chart
   project.js        CRUD, voting, media, team join/leave; isSafeUrl() URL validation
-  admin.js          Settings, user roles, tag/team management, CSV export, reset
+  admin.js          Settings, user roles, tag/team management, CSV export, activity log, reset
   kiosk.js          Read-only kiosk display (no auth)
 models/
   User.js           GitHub/OIDC identity, role (participant | admin)
   Project.js        Project data; embedded media; avgRating + totalStars virtuals/fields
   Vote.js           One vote per user/project pair (unique index)
   Settings.js       Key-value store for deadlines, webhook URL, custom lists
+  ActivityLog.js    Immutable audit log; 180-day TTL; indexed on timestamp
 services/
   github.js         GitHub API — org membership verification, repo stats
   mattermost.js     Webhook POST for new projects and daily summary
+  activityLog.js    logActivity(email, action) fire-and-forget helper
 scripts/
   seed-defaults.js  Idempotently seeds teams/tags from defaults.yml on startup
   seed-admin.js     CLI to promote a user to admin by email
@@ -60,7 +62,7 @@ views/
   partials/         header.pug, footer.pug, flash.pug, project-card.pug
   home.pug          Homepage
   projects/         list.pug, detail.pug, form.pug, mine.pug
-  admin/            dashboard.pug, projects.pug, users.pug, teams.pug, tags.pug
+  admin/            dashboard.pug, projects.pug, users.pug, teams.pug, tags.pug, activity-log.pug
   kiosk/            index.pug, project.pug
   get-started.pug   Renders content/get-started.md
 public/
@@ -110,6 +112,8 @@ When `OIDC_ISSUER_URL` is absent:
 **Settings as key-value.** `hackathonStart`, `submissionDeadline`, `megademoDate`, Mattermost webhook URL, custom lists are stored in the `Settings` collection — not in code or env vars — so admins can change them live.
 
 **Markdown content from disk.** The `/get-started` page reads `content/get-started.md` on every request. Content updates ship with code deploys.
+
+**Activity log.** All DB-mutating actions (login/logout, project create/update/delete/vote, admin status/role changes) are written to the `ActivityLog` collection via a fire-and-forget `logActivity()` helper that never throws. Project update entries include a granular diff (title, category, team, AI tools, tech stack, media, status). The log is accessible at `/admin/activity-log` with Refresh and plain-text Download. Entries auto-expire after 180 days via a MongoDB TTL index.
 
 **Seed data from YAML.** `config/defaults.yml` holds canonical teams, AI tools, and tech-stack tags. Seeds on first startup (idempotent). Admins can override via dashboard.
 

@@ -3,19 +3,20 @@ extends ../layout
 block content
   .page-header
     h1.pixel-text ACTIVITY LOG
+    a.btn.btn-neon-outline.me-2(href='/admin/guide') Admin Guide
+    a.btn.btn-neon-outline(href='/admin') <- Admin Dashboard
 
   .d-flex.align-items-center.gap-2.mb-3
-    a.btn.btn-neon-outline(href='/admin/activity-log') ↻ Refresh
-    a.btn.btn-neon-outline(href='/admin/activity-log?format=text', download) ↓ Save
-    a.btn.btn-neon-outline(href='/admin') ← Back
+    a.btn.btn-neon-outline(href='/admin/activity-log') Refresh
+    a.btn.btn-neon-outline(href='/admin/activity-log?format=text', download) Download
 
   .md-card
     if entries.length === 0
       p.text-muted No activity recorded yet.
     else
-      pre.activity-log-pre
+      .activity-log-scroll
         each entry in entries
-          span.log-ts= '[' + new Date(entry.timestamp).toISOString() + '] '
-          span.log-actor= entry.userEmail + ': '
-          span.log-action= entry.action
-          | \n
+          .log-line
+            span.log-ts= '[' + new Date(entry.timestamp).toISOString() + '] '
+            span.log-actor= entry.userEmail + ': '
+            span.log-action= entry.action
