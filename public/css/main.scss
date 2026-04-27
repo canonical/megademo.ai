@@ -15,7 +15,7 @@ $color-text:      #c8e6ff;
 $color-muted:     #7a8baa;
 $color-border:    rgba(0, 212, 255, 0.2);
 
-$font-pixel: 'Press Start 2P', monospace;
+$font-pixel: 'Bitcount Prop Single Ink', 'Press Start 2P', monospace;
 $font-mono:  'JetBrains Mono', 'Courier New', monospace;
 
 // -- Bootstrap overrides (must come before import) -----------
@@ -71,7 +71,7 @@ a:hover { color: color.scale($color-primary, $lightness: 30%); text-decoration: 
 a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !important; }
 
 .pixel-text { font-family: $font-pixel; }
-.neon-pink   { color: $color-secondary; }
+.neon-pink   { color: #ff006e; }
 .neon-cyan   { color: $color-primary; }
 
 // -- Navbar --------------------------------------------------

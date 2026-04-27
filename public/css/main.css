@@ -22763,11 +22763,11 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .pixel-text {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
 }
 
 .neon-pink {
-  color: #ff4da6;
+  color: #ff006e;
 }
 
 .neon-cyan {
@@ -22966,7 +22966,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .hero-title {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: clamp(1.1rem, 3vw, 1.8rem);
   line-height: 2;
   margin-bottom: 1rem;
@@ -23007,7 +23007,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .btn.btn-neon-cyan, .btn-neon-cyan {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.65rem;
   padding: 0.55rem 1.1rem;
   border-radius: 2px;
@@ -23041,7 +23041,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .btn.btn-neon-outline, .btn-neon-outline, .btn-github-hero {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.65rem;
   padding: 0.55rem 1.1rem;
   border-radius: 2px;
@@ -23061,7 +23061,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .btn.btn-neon-pink, .btn-neon-pink {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.65rem;
   padding: 0.55rem 1.1rem;
   border-radius: 2px;
@@ -23101,7 +23101,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .btn-danger-outline {
-  font-family: "Press Start 2P", monospace !important;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace !important;
   font-size: 0.65rem !important;
   line-height: 1 !important;
   padding: 0.55rem 1.1rem !important;
@@ -23165,7 +23165,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .countdown-label {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.6rem;
   color: #7a8baa;
   letter-spacing: 2px;
@@ -23194,7 +23194,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   align-items: center;
 }
 .countdown-unit span:first-child {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 2rem;
   color: #00d4ff;
   text-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
@@ -23209,7 +23209,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .countdown-sep {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 2rem;
   color: #7a8baa;
   line-height: 1;
@@ -23241,7 +23241,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .section-label {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.55rem;
   color: #7a8baa;
   letter-spacing: 3px;
@@ -23298,7 +23298,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   border-radius: 2px;
 }
 .project-card .finalist-badge {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.45rem;
   color: #ff4da6;
   border: 1px solid #ff4da6;
@@ -23401,7 +23401,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .rank-number {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.9rem;
   color: #00d4ff;
   min-width: 1.5rem;
@@ -23432,7 +23432,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .pts-display {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 1rem;
   color: #00d4ff;
 }
@@ -23452,7 +23452,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   font-size: 0.6rem;
   padding: 0.2rem 0.5rem;
   border-radius: 2px;
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
 }
 .status-badge.status-draft {
   background: rgba(122, 139, 170, 0.2);
@@ -23474,7 +23474,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .finalist-badge-lg {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.7rem;
   color: #ff4da6;
   text-shadow: 0 0 10px rgba(255, 77, 166, 0.6);
@@ -23522,7 +23522,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .form-step-title {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.65rem;
   color: #00d4ff;
   margin-bottom: 1.5rem;
@@ -24019,14 +24019,14 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .vote-pts {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 1.2rem;
   color: #00d4ff;
   margin-right: 0.15rem;
 }
 
 .vote-avg {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.95rem;
   color: gold;
   margin-right: 0.1rem;
@@ -24218,7 +24218,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 }
 
 .stat-number {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 2rem;
   color: #00d4ff;
 }
@@ -24421,7 +24421,7 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
 .btn-danger,
 .btn-outline-danger,
 .btn-outline-secondary {
-  font-family: "Press Start 2P", monospace !important;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace !important;
   font-size: 0.65rem !important;
   line-height: 1 !important;
   padding: 0.55rem 1.1rem !important;
@@ -24452,7 +24452,7 @@ input[type=file] {
   font-size: 0.75rem;
 }
 input[type=file]::file-selector-button {
-  font-family: "Press Start 2P", monospace;
+  font-family: "Bitcount Prop Single Ink", "Press Start 2P", monospace;
   font-size: 0.6rem;
   background: transparent;
   color: #00d4ff;
