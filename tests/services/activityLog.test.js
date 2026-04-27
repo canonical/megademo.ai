@@ -38,4 +38,18 @@ describe('logActivity service', () => {
     await expect(logActivity('x@canonical.com', 'test')).resolves.toBeUndefined();
     expect(orig).toBeTruthy(); // connection still alive
   });
+
+  it('strips newlines from action to prevent log injection', async () => {
+    const injected = "Real Project\n[2099-01-01T00:00:00.000Z] admin@example.com: Forged entry";
+    await logActivity('attacker@canonical.com', `Created project '${injected}'`);
+    const entry = await ActivityLog.findOne({ userEmail: 'attacker@canonical.com' });
+    expect(entry.action).not.toContain('\n');
+    expect(entry.action).not.toContain('\r');
+  });
+
+  it('strips control characters from userEmail', async () => {
+    await logActivity('user@canonical.com\nForgedLine', 'Some action');
+    const entry = await ActivityLog.findOne({});
+    expect(entry.userEmail).not.toContain('\n');
+  });
 });

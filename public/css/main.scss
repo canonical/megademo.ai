@@ -973,8 +973,14 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
   padding: 1rem;
   font-size: 0.8rem;
   max-height: 70vh;
+  overflow-x: hidden;
   overflow-y: auto;
-  .log-line  { margin-bottom: 0.15rem; }
+  .log-line {
+    margin-bottom: 0.15rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
   .log-ts    { color: $color-muted; }
   .log-actor { color: $color-primary; }
   .log-action { color: $color-text; }

@@ -24079,10 +24079,14 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   padding: 1rem;
   font-size: 0.8rem;
   max-height: 70vh;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .activity-log-scroll .log-line {
   margin-bottom: 0.15rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .activity-log-scroll .log-ts {
   color: #7a8baa;
