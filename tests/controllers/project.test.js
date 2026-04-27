@@ -311,6 +311,6 @@ describe('update()', () => {
     await ctrl.update(req, res);
     const updated = await Project.findById(project._id);
     expect(updated.title).toBe('Updated Title');
-    expect(res.redirect).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ redirect: expect.stringMatching(/\/projects\/[^/]+$/) });
   });
 });

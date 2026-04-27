@@ -261,7 +261,10 @@ block scripts
           headers: { 'x-csrf-token': getCsrfToken() },
           body: fd,
         });
-        if (res.ok) {
+        if (res.ok && !res.redirected) {
+          const data = await res.json().catch(() => null);
+          location.href = (data && data.redirect) ? data.redirect : '/projects/mine';
+        } else if (res.redirected) {
           location.href = res.url;
         } else {
           btns.forEach(b => { b.disabled = false; });

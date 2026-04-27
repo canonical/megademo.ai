@@ -492,13 +492,13 @@ exports.update = async (req, res) => {
     await project.save();
     notifyProjectSubmitted(project, process.env.BASE_URL || 'http://localhost:8080').catch(() => {});
     req.flash('success', { msg: 'Project submitted! Good luck!' });
-    return res.redirect(`/projects/${project.slug}`);
+    return res.json({ redirect: `/projects/${project.slug}` });
   }
   if (status === 'draft' && project.status === 'submitted' && req.user.role === 'admin') project.status = 'draft';
 
   await project.save();
   req.flash('success', { msg: 'Project updated.' });
-  res.redirect(`/projects/${project.slug}`);
+  return res.json({ redirect: `/projects/${project.slug}` });
 };
 
 /**
