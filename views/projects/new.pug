@@ -162,8 +162,8 @@ block content
           value=(project.videoTitle || ''))
 
     .form-actions
-      button.btn.btn-neon-cyan(type='submit', name='action', value='continue') Submit
-      button.btn.btn-neon-outline.ms-3(type='submit', name='action', value='draft') Save as Draft
+      button.btn.btn-neon-cyan(type='submit', name='submitAction', value='continue') Submit
+      button.btn.btn-neon-outline.ms-3(type='submit', name='submitAction', value='draft') Save as Draft
       a.btn.btn-neon-outline.ms-3(href='/projects/mine') Cancel
 
 block scripts
@@ -235,9 +235,10 @@ block scripts
           headers: { 'x-csrf-token': getCsrfToken() },
           body: fd,
         });
-        if (res.redirected) {
-          location.href = res.url;
-        } else if (!res.ok) {
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          location.href = (data && data.redirect) ? data.redirect : '/projects/mine';
+        } else {
           const data = await res.json().catch(() => ({ errors: [{ msg: 'Registration failed. Please try again.' }] }));
           const errBox = document.getElementById('register-errors');
           errBox.replaceChildren();
@@ -249,8 +250,6 @@ block scripts
           errBox.style.display = '';
           errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
           btns.forEach(b => { b.disabled = false; });
-        } else {
-          location.href = res.url;
         }
       } catch (err) {
         btns.forEach(b => { b.disabled = false; });

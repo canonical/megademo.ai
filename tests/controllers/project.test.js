@@ -255,32 +255,32 @@ describe('create()', () => {
   });
 
   it('accepts a valid YouTube URL', async () => {
-    const req = makeReq({ body: { title: 'YT Project', category: 'Other', action: 'draft', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'YT Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.redirect).toHaveBeenCalledWith('/projects/mine');
+    expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
   });
 
   it('redirects to /projects/mine when action=draft', async () => {
-    const req = makeReq({ body: { title: 'Draft Project', category: 'Other', action: 'draft' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Draft Project', category: 'Other', submitAction: 'draft' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.redirect).toHaveBeenCalledWith('/projects/mine');
+    expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
     const p = await Project.findOne({ title: 'Draft Project' });
     expect(p.status).toBe('draft');
   });
 
   it('sets status=submitted and redirects to project view when action=continue', async () => {
-    const req = makeReq({ body: { title: 'Continue Project', category: 'Other', action: 'continue' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Continue Project', category: 'Other', submitAction: 'continue' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
-    expect(res.redirect).toHaveBeenCalledWith(expect.stringMatching(/\/projects\/[^/]+$/));
+    expect(res.json).toHaveBeenCalledWith({ redirect: expect.stringMatching(/\/projects\/[^/]+$/) });
     const p = await Project.findOne({ title: 'Continue Project' });
     expect(p.status).toBe('submitted');
   });
 
   it('stores the owner as a team member', async () => {
-    const req = makeReq({ body: { title: 'Owned Project', category: 'Other', action: 'draft' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Owned Project', category: 'Other', submitAction: 'draft' }, user: { _id: owner._id, role: 'participant' } });
     await ctrl.create(req, makeRes());
     const p = await Project.findOne({ title: 'Owned Project' });
     expect(p.team.some((id) => id.toString() === owner._id.toString())).toBe(true);

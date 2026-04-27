@@ -281,7 +281,7 @@ exports.create = async (req, res) => {
     project.videos.push({ url: videoUrl.trim(), title: (videoTitle || '').trim(), type: detectVideoType(videoUrl) });
   }
 
-  const isDraft = req.body.action === 'draft';
+  const isDraft = req.body.submitAction === 'draft';
   project.status = isDraft ? 'draft' : 'submitted';
   await project.save();
 
@@ -302,8 +302,8 @@ exports.create = async (req, res) => {
     ? `Project "${project.title}" saved as draft.`
     : `Project "${project.title}" submitted! Add media and team members any time.`;
   req.flash('success', { msg });
-  if (isDraft) return res.redirect('/projects/mine');
-  res.redirect(`/projects/${project.slug}`);
+  const redirectUrl = isDraft ? '/projects/mine' : `/projects/${project.slug}`;
+  return res.json({ redirect: redirectUrl });
 };
 
 /**
