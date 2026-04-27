@@ -157,7 +157,7 @@ block content
   if project.asciinema && project.asciinema.length || project.videos && project.videos.length
     .form-section
       if project.asciinema && project.asciinema.length
-        h4.mt-0 Asciinema Demos
+        h4.mt-0.pixel-text Asciinema Demos
         each cast in project.asciinema
           .media-item
             span= cast.title || cast.castId
@@ -167,7 +167,7 @@ block content
               button.btn.btn-sm.btn-danger(type='submit') Remove
 
       if project.videos && project.videos.length
-        h4.mt-3 Videos
+        h4.mt-3.pixel-text Videos
         each video in project.videos
           .media-item
             span= video.title || video.url
