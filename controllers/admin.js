@@ -643,6 +643,7 @@ exports.resetAll = async (req, res, next) => {
       return res.redirect('/admin');
     }
 
+    const wipeLogs = req.body.wipeLogs === '1';
     const { loadDefaults } = require('../scripts/seed-defaults');
     const defaults = loadDefaults();
 
@@ -652,16 +653,24 @@ exports.resetAll = async (req, res, next) => {
       if (p.logo) safeUnlinkLogo(p.logo);
     }
 
-    await Promise.all([
+    const ops = [
       Project.deleteMany({}),
       Vote.deleteMany({}),
       Settings.set('customTeams',    defaults.teams      || []),
       Settings.set('customAiTools',  defaults.ai_tools   || []),
       Settings.set('customTechStack', defaults.tech_stack || []),
-    ]);
+    ];
+    if (wipeLogs) ops.push(ActivityLog.deleteMany({}));
+    await Promise.all(ops);
 
-    req.flash('success', { msg: 'All projects and votes deleted. Lists reset to defaults.' });
-    logActivity(req.user.email, 'Reset all projects and votes (admin)').catch(() => {});
+    const logMsg = wipeLogs
+      ? 'Reset all projects and votes (admin); activity log wiped'
+      : 'Reset all projects and votes (admin)';
+    const flashMsg = wipeLogs
+      ? 'All projects, votes and activity log deleted. Lists reset to defaults.'
+      : 'All projects and votes deleted. Lists reset to defaults.';
+    req.flash('success', { msg: flashMsg });
+    logActivity(req.user.email, logMsg).catch(() => {});
     res.redirect('/admin');
   } catch (err) {
     next(err);

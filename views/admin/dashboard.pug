@@ -146,11 +146,14 @@ block content
           p.text-muted This action cannot be undone.
           p Type <strong>RESET</strong> below to confirm:
           input#resetConfirmInput.md-input.mt-2(type='text', placeholder='RESET', autocomplete='off')
-        .modal-footer
-          button.btn.btn-neon-outline(type='button', data-bs-dismiss='modal') Cancel
-          form(method='POST', action='/admin/reset')
+        .modal-footer(style='justify-content:space-between; align-items:center;')
+          label.checkbox-item(style='cursor:pointer; font-size:0.85rem;')
+            input#wipeLogs(type='checkbox', name='wipeLogs', value='1', form='resetForm')
+            span Also wipe the activity log
+          form#resetForm(method='POST', action='/admin/reset')
             input(type='hidden', name='_csrf', value=_csrf)
             input#resetConfirmHidden(type='hidden', name='confirm', value='')
+            button.btn.btn-neon-outline(type='button', data-bs-dismiss='modal') Cancel
             button#resetSubmitBtn.btn.btn-danger-outline(type='submit', disabled) Confirm Reset
 
 block scripts
