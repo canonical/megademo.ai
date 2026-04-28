@@ -75,7 +75,7 @@ exports.githubCallback = (req, res, next) => {
     if (!user) return res.redirect('/');
     req.logIn(user, (loginErr) => {
       if (loginErr) return next(loginErr);
-      logActivity(user.email, 'Logged in').catch(() => {});
+      logActivity(user.email, 'Logged in (GitHub)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
       delete req.session.returnTo;
       res.redirect(returnTo);

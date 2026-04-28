@@ -11,12 +11,13 @@ block content
     a.btn.btn-neon-outline(href='/admin/activity-log?format=text', download) Download
 
   .md-card
-    if entries.length === 0
+    if !entries || entries.length === 0
       p.text-muted No activity recorded yet.
     else
       .activity-log-scroll
         each entry in entries
+          - const ts = entry.timestamp ? (() => { try { return new Date(entry.timestamp).toISOString(); } catch { return '??'; } })() : '??'
           .log-line
-            span.log-ts= '[' + new Date(entry.timestamp).toISOString() + '] '
+            span.log-ts= '[' + ts + '] '
             span.log-actor= entry.userEmail + ': '
             span.log-action= entry.action

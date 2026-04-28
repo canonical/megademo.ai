@@ -105,10 +105,15 @@ function diffProject(old, project) {
   for (const t of old.techStack) { if (!newTech.includes(t)) changes.push(`removed tech '${t}'`); }
   const newTeamIds = (project.team || []).map((m) => (m._id || m).toString());
   for (const id of newTeamIds) { if (!old.teamIds.includes(id)) changes.push('added team member'); }
+  for (const id of old.teamIds) { if (!newTeamIds.includes(id)) changes.push('removed team member'); }
   if ((project.asciinema || []).length > old.asciinemaCount)
     changes.push('added asciinema recording');
+  if ((project.asciinema || []).length < old.asciinemaCount)
+    changes.push('removed asciinema recording');
   if ((project.videos || []).length > old.videoCount)
     changes.push('added video');
+  if ((project.videos || []).length < old.videoCount)
+    changes.push('removed video');
   return changes;
 }
 
@@ -287,7 +292,7 @@ exports.create = async (req, res) => {
   if (!title || title.trim().length < 3) errors.push({ msg: 'Title must be at least 3 characters.' });
   if (!category || !CATEGORIES.includes(category)) errors.push({ msg: 'Please select a valid category.' });
   if (videoUrl && videoUrl.trim() && !isValidVideoUrl(videoUrl)) {
-    errors.push({ msg: 'Invalid video URL. Please use a YouTube or Vimeo link.' });
+    errors.push({ msg: 'Invalid video URL. Please use a YouTube, Vimeo, or Google Drive link.' });
   }
   const repoLinksArr = Array.isArray(repoLinks) ? repoLinks.filter(Boolean) : repoLinks ? [repoLinks] : [];
   if (repoLinksArr.some((l) => !isSafeUrl(l)) || !isSafeUrl(demoUrl) || !isSafeUrl(slidesUrl)) {
