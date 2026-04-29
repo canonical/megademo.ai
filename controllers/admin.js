@@ -4,7 +4,6 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const multer = require('multer');
-const FileType = require('file-type');
 const lusca = require('lusca');
 const { Project, CATEGORIES, CANONICAL_TEAMS, AI_TOOLS, TECH_STACK_DEFAULTS, computeLiveliness } = require('../models/Project');
 
@@ -833,7 +832,8 @@ exports.saveHomepageSettings = async (req, res, next) => {
 
     // Verify image magic bytes if a file was uploaded
     if (req.file) {
-      const type = await FileType.fromFile(req.file.path);
+      const { fileTypeFromFile } = await import('file-type');
+      const type = await fileTypeFromFile(req.file.path);
       if (!type || !HERO_ALLOWED_MIMETYPES.includes(type.mime)) {
         await fs.promises.unlink(req.file.path).catch(() => {});
         req.flash('errors', { msg: 'Only .jpg, .jpeg, .png, or .webp images are allowed.' });

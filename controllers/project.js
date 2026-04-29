@@ -4,7 +4,6 @@
 const fs = require('node:fs');
 const multer = require('multer');
 const path = require('node:path');
-const FileType = require('file-type');
 const { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness } = require('../models/Project');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../public/uploads');
@@ -181,7 +180,8 @@ const upload = multer({
  */
 async function verifyImageMagicBytes(file) {
   if (!file) return;
-  const type = await FileType.fromFile(file.path);
+  const { fileTypeFromFile } = await import('file-type');
+  const type = await fileTypeFromFile(file.path);
   if (!type || !ALLOWED_MIMETYPES.includes(type.mime)) {
     await fs.promises.unlink(file.path).catch(() => {});
     throw new Error('Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.');
