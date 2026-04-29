@@ -10,7 +10,7 @@
     "lint": "eslint \"**/*.js\" --fix",
     "lint-check": "eslint \"**/*.js\"",
     "load-test": "BASE_URL=${BASE_URL:-http://localhost:8080} npx artillery run scripts/load-test.yml",
-    "test": "jest --forceExit",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
     "prepare": "[ \"$NODE_ENV\" = 'production' ] || husky"
   },
   "dependencies": {
