@@ -232,6 +232,9 @@ app.use(flash());
 const csrfMiddleware = lusca.csrf();
 app.use((req, res, next) => {
   if (req.path.startsWith('/auth/')) return next();
+  // /admin/homepage POST uses multipart/form-data; multer must parse the body
+  // before the CSRF token is readable. The controller applies CSRF manually.
+  if (req.method === 'POST' && req.path === '/admin/homepage') return next();
   csrfMiddleware(req, res, next);
 });
 app.use(globalLimiter);

@@ -5,6 +5,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const multer = require('multer');
 const FileType = require('file-type');
+const lusca = require('lusca');
 const { Project, CATEGORIES, CANONICAL_TEAMS, AI_TOOLS, TECH_STACK_DEFAULTS, computeLiveliness } = require('../models/Project');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../public/uploads');
@@ -39,6 +40,9 @@ function safeUnlinkHeroImage(heroRelPath) {
 // Multer config for hero image uploads (max 3 MB, jpg/png/webp only)
 const HERO_ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const HERO_ALLOWED_MIMETYPES  = ['image/jpeg', 'image/png', 'image/webp'];
+
+// Separate lusca CSRF instance used after multer has parsed the multipart body
+const heroFormCsrf = lusca.csrf();
 
 const heroStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
@@ -797,6 +801,9 @@ exports.saveHomepageSettings = async (req, res, next) => {
   try {
     // Parse multipart (hero image upload)
     await new Promise((resolve, reject) => heroUpload(req, res, (err) => (err ? reject(err) : resolve())));
+
+    // Verify CSRF token now that multer has populated req.body
+    await new Promise((resolve, reject) => heroFormCsrf(req, res, (err) => (err ? reject(err) : resolve())));
 
     // Validate text fields
     const errors = [];

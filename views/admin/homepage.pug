@@ -14,95 +14,110 @@ block content
 
         //- ── Hero Text ──────────────────────────────────────────────
         .md-card.mb-4
-          .card-header
-            h5.mb-0 Hero Text
-          .card-body.px-4.py-4
+          h3.section-label Hero Text
 
-            .mb-4
-              label.form-label(for='heroLine1')
-                | Headline — line 1
-                span.text-muted.ms-2.small (max #{limits.heroLine1} chars)
-              input.form-control(
-                type='text', id='heroLine1', name='heroLine1',
-                value=(settings.heroLine1 || ''),
-                maxlength=limits.heroLine1,
-                placeholder='SURF THE WAVE.')
-              .form-text Leave blank to keep the default text.
+          .mb-4
+            label.md-label(for='heroLine1') Headline — line 1
+            input.md-input(
+              type='text', id='heroLine1', name='heroLine1',
+              value=(settings.heroLine1 || ''),
+              maxlength=limits.heroLine1,
+              placeholder='SURF THE WAVE.')
+            .d-flex.justify-content-between.mt-1
+              span.small.text-muted Leave blank to keep the default text.
+              span.small.text-muted
+                span= (settings.heroLine1 || '').length
+                |  / #{limits.heroLine1}
 
-            .mb-4
-              label.form-label(for='heroLine2')
-                | Headline — line 2
-                span.text-muted.ms-2.small (max #{limits.heroLine2} chars)
-              input.form-control(
-                type='text', id='heroLine2', name='heroLine2',
-                value=(settings.heroLine2 || ''),
-                maxlength=limits.heroLine2,
-                placeholder='BUILD THE FUTURE.')
-              .form-text Leave blank to keep the default text.
+          .mb-4
+            label.md-label(for='heroLine2') Headline — line 2
+            input.md-input(
+              type='text', id='heroLine2', name='heroLine2',
+              value=(settings.heroLine2 || ''),
+              maxlength=limits.heroLine2,
+              placeholder='BUILD THE FUTURE.')
+            .d-flex.justify-content-between.mt-1
+              span.small.text-muted Leave blank to keep the default text.
+              span.small.text-muted
+                span= (settings.heroLine2 || '').length
+                |  / #{limits.heroLine2}
 
-            .mb-4
-              label.form-label(for='heroSubtitle')
-                | Subtitle (one-liner below headline)
-                span.text-muted.ms-2.small (max #{limits.heroSubtitle} chars)
-              input.form-control(
-                type='text', id='heroSubtitle', name='heroSubtitle',
-                value=(settings.heroSubtitle || ''),
-                maxlength=limits.heroSubtitle,
-                placeholder='Canonical Madrid Engineering Sprint — AI Hackathon')
-              .form-text Leave blank to keep the default text.
+          .mb-4
+            label.md-label(for='heroSubtitle') Subtitle (one-liner below headline)
+            input.md-input(
+              type='text', id='heroSubtitle', name='heroSubtitle',
+              value=(settings.heroSubtitle || ''),
+              maxlength=limits.heroSubtitle,
+              placeholder='Canonical Madrid Engineering Sprint — AI Hackathon')
+            .d-flex.justify-content-between.mt-1
+              span.small.text-muted Leave blank to keep the default text.
+              span.small.text-muted
+                span= (settings.heroSubtitle || '').length
+                |  / #{limits.heroSubtitle}
 
-            .mb-2
-              label.form-label(for='heroDescription')
-                | Description paragraph
-                span.text-muted.ms-2.small (max #{limits.heroDescription} chars · Markdown supported)
-              textarea.form-control(
-                id='heroDescription', name='heroDescription',
-                rows='5',
-                maxlength=limits.heroDescription,
-                placeholder='Every engineer suddenly got access to superpowers...')= (settings.heroDescription || '')
-              .form-text
-                | Markdown is supported: <strong>**bold**</strong>, <em>*italic*</em>, and <code>[link text](url)</code> for links.
-                br
-                | Embed the "Get started" link here, e.g. <code>[Get started -&gt;](/get-started)</code>
-                br
-                | Leave blank to keep the default text.
+          .mb-4
+            label.md-label(for='heroDescription') Description paragraph
+            textarea.md-input(
+              id='heroDescription', name='heroDescription',
+              rows='5',
+              maxlength=limits.heroDescription,
+              placeholder='Every engineer suddenly got access to superpowers...')= (settings.heroDescription || '')
+            .d-flex.justify-content-between.mt-1
+              span.small.text-muted
+                | Markdown: <strong>**bold**</strong>, <em>*italic*</em>, <code>[text](url)</code> — embed the Get started link here, e.g. <code>[Get started -&gt;](/get-started)</code>
+              span.small.text-muted
+                span#desc-char-count= (settings.heroDescription || '').length
+                |  / #{limits.heroDescription}
+
+          button.btn.btn-neon-cyan.mb-2(type='submit') Save Homepage Settings
 
         //- ── Hero Image ──────────────────────────────────────────────
         .md-card.mb-4
-          .card-header
-            h5.mb-0 Hero Image
-          .card-body.px-4.py-4
+          h3.section-label Hero Image
 
-            .mb-3
-              p.mb-1 Current image:
-              - const currentSrc = settings.heroImage || '/images/megademo-wave.jpg'
-              img.img-fluid.mb-2(
-                src=currentSrc,
-                alt='Current hero image',
-                style='max-height:200px; border-radius:4px; opacity:0.9;')
-              if settings.heroImage
-                p.text-muted.small Using custom uploaded image.
-              else
-                p.text-muted.small Using default image.
-
+          .mb-3
+            p.md-label Current image
+            - const currentSrc = settings.heroImage || '/images/megademo-wave.jpg'
+            img.img-fluid.mb-2(
+              src=currentSrc,
+              alt='Current hero image',
+              style='max-height:200px; border-radius:4px; opacity:0.9;')
             if settings.heroImage
-              .mb-4
-                label.checkbox-item
-                  input(type='checkbox', name='removeHeroImage', value='1')
-                  span Remove custom image and revert to default
+              p.small.text-muted Custom uploaded image.
+            else
+              p.small.text-muted Using the default image.
 
-            .mb-2
-              label.form-label(for='heroImageFile') Upload new image
-              input.form-control(
-                type='file', id='heroImageFile', name='heroImage',
-                accept='.jpg,.jpeg,.png,.webp')
-              .form-text
-                | Max 3 MB · Formats: JPG, PNG, WebP
-                br
-                | Recommended: <strong>16:9 aspect ratio</strong>, at least <strong>1 200 × 675 px</strong>
-                br
-                | Uploading a new image replaces the current one.
+          if settings.heroImage
+            .mb-4
+              label.checkbox-item
+                input(type='checkbox', name='removeHeroImage', value='1')
+                span Remove custom image and revert to default
 
-        .d-flex.gap-3
+          .mb-4
+            label.md-label(for='heroImageFile') Upload new image
+            input.md-input(
+              type='file', id='heroImageFile', name='heroImage',
+              accept='.jpg,.jpeg,.png,.webp')
+            .mt-1
+              span.small.text-muted Max 3 MB · JPG, PNG, WebP
+              br
+              span.small.text-muted
+                | Recommended: <strong>16:9 aspect ratio</strong>, at least <strong>1 200 × 675 px</strong>. Uploading replaces the current image.
+
           button.btn.btn-neon-cyan(type='submit') Save Homepage Settings
-          a.btn.btn-neon-outline(href='/admin') Cancel
+
+block scripts
+  script(nonce=cspNonce).
+    // Live char counters
+    [
+      ['heroLine1',       document.querySelector('input[name="heroLine1"]'),    null],
+      ['heroLine2',       document.querySelector('input[name="heroLine2"]'),    null],
+      ['heroSubtitle',    document.querySelector('input[name="heroSubtitle"]'), null],
+      ['heroDescription', document.querySelector('#heroDescription'),           document.getElementById('desc-char-count')],
+    ].forEach(([, el, counter]) => {
+      if (!el) return;
+      const row = el.closest('.mb-4');
+      const span = counter || row.querySelector('span.small.text-muted:last-child span');
+      if (!span) return;
+      el.addEventListener('input', () => { span.textContent = el.value.length; });
+    });
