@@ -80,14 +80,18 @@ block content
             |  / 500
       button.btn.btn-neon-cyan(type='submit') Save Banner
 
-  .admin-nav.mt-4
-    a.btn.btn-neon-outline.me-2(href='/admin/projects') Manage Projects
-    a.btn.btn-neon-outline.me-2(href='/admin/users') Manage Users
-    a.btn.btn-neon-outline.me-2(href='/admin/teams') Manage Teams
-    a.btn.btn-neon-outline.me-2(href='/admin/tags') Manage Tags &amp; AI Tools
-    a.btn.btn-neon-outline.me-2(href='/admin/export') Export CSV
-    a.btn.btn-neon-outline.me-2(href='/admin/activity-log') Activity Log
-    a.btn.btn-neon-outline(href='/admin/homepage') Homepage Settings
+  .row.mt-4
+    .col-md-6
+      .d-flex.flex-column.gap-2
+        a.btn.btn-neon-outline(href='/admin/projects') Manage Projects
+        a.btn.btn-neon-outline(href='/admin/users') Manage Users
+        a.btn.btn-neon-outline(href='/admin/teams') Manage Teams
+        a.btn.btn-neon-outline(href='/admin/tags') Manage Tags &amp; AI Tools
+    .col-md-6
+      .d-flex.flex-column.gap-2
+        a.btn.btn-neon-outline(href='/admin/homepage') Homepage Settings
+        a.btn.btn-neon-outline(href='/admin/activity-log') Activity Log
+        a.btn.btn-neon-outline(href='/admin/export') Export CSV
 
   .md-card.mt-4
     h3.section-label Recent Projects
@@ -112,7 +116,7 @@ block content
   // Test Login
   if testLoginToken
     .md-card.mt-4
-      h3.section-label 🧪 Test Login URLs
+      h3.section-label Test Login URLs
       p.text-muted.mb-3
         | Use these URLs to log in as a synthetic test user without GitHub OAuth.
         | Revoke access by removing the <code>TEST_LOGIN_TOKEN</code> environment variable.
