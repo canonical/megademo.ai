@@ -45,14 +45,24 @@ describe('renderHeroDescription', () => {
   });
 
   it('strips disallowed tags (script, img, h1)', () => {
-    const html = renderHeroDescription('<script>alert(1)</script>');
-    expect(html).not.toContain('<script>');
-    expect(html).not.toContain('alert');
+    const scriptHtml = renderHeroDescription('<script>alert(1)</script>');
+    expect(scriptHtml).not.toContain('<script>');
+    expect(scriptHtml).not.toContain('alert');
+
+    const imgHtml = renderHeroDescription('<img src="x" onerror="alert(1)">caption');
+    expect(imgHtml).not.toContain('<img');
+    expect(imgHtml).not.toContain('onerror');
+
+    const h1Html = renderHeroDescription('# Heading');
+    expect(h1Html).not.toContain('<h1>');
   });
 
   it('strips disallowed attributes (onclick, data-x)', () => {
-    const html = renderHeroDescription('<strong onclick="evil()">text</strong>');
-    expect(html).not.toContain('onclick');
+    const onclickHtml = renderHeroDescription('<strong onclick="evil()">text</strong>');
+    expect(onclickHtml).not.toContain('onclick');
+
+    const dataHtml = renderHeroDescription('<strong data-x="val">text</strong>');
+    expect(dataHtml).not.toContain('data-x');
   });
 
   it('returns empty string for null input', () => {

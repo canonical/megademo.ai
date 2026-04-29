@@ -24,6 +24,9 @@ block content
             br
             span.pixel-text.neon-pink= heroLine2
           p.hero-subtitle= heroSubtitle
+          //- Safe: heroDescriptionHtml is admin-supplied Markdown rendered via
+          //- marked.parse() then sanitized by sanitize-html with a strict
+          //- allowlist (p, strong, em, a, br). javascript: scheme is blocked.
           .hero-description!= heroDescriptionHtml
           .hero-ctas
             if user
