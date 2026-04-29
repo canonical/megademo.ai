@@ -1,0 +1,108 @@
+extends ../layout
+
+block content
+  .page-header
+    h1.pixel-text HOMEPAGE SETTINGS
+    a.btn.btn-neon-outline.me-2(href='/admin/guide') Admin Guide
+    a.btn.btn-neon-outline(href='/admin') <- Admin Dashboard
+
+  .row.justify-content-center.mt-2
+    .col-lg-8
+
+      form(method='POST', action='/admin/homepage', enctype='multipart/form-data')
+        input(type='hidden', name='_csrf', value=_csrf)
+
+        //- ── Hero Text ──────────────────────────────────────────────
+        .md-card.mb-4
+          .card-header
+            h5.mb-0 Hero Text
+          .card-body.px-4.py-4
+
+            .mb-4
+              label.form-label(for='heroLine1')
+                | Headline — line 1
+                span.text-muted.ms-2.small (max #{limits.heroLine1} chars)
+              input.form-control(
+                type='text', id='heroLine1', name='heroLine1',
+                value=(settings.heroLine1 || ''),
+                maxlength=limits.heroLine1,
+                placeholder='SURF THE WAVE.')
+              .form-text Leave blank to keep the default text.
+
+            .mb-4
+              label.form-label(for='heroLine2')
+                | Headline — line 2
+                span.text-muted.ms-2.small (max #{limits.heroLine2} chars)
+              input.form-control(
+                type='text', id='heroLine2', name='heroLine2',
+                value=(settings.heroLine2 || ''),
+                maxlength=limits.heroLine2,
+                placeholder='BUILD THE FUTURE.')
+              .form-text Leave blank to keep the default text.
+
+            .mb-4
+              label.form-label(for='heroSubtitle')
+                | Subtitle (one-liner below headline)
+                span.text-muted.ms-2.small (max #{limits.heroSubtitle} chars)
+              input.form-control(
+                type='text', id='heroSubtitle', name='heroSubtitle',
+                value=(settings.heroSubtitle || ''),
+                maxlength=limits.heroSubtitle,
+                placeholder='Canonical Madrid Engineering Sprint — AI Hackathon')
+              .form-text Leave blank to keep the default text.
+
+            .mb-2
+              label.form-label(for='heroDescription')
+                | Description paragraph
+                span.text-muted.ms-2.small (max #{limits.heroDescription} chars · Markdown supported)
+              textarea.form-control(
+                id='heroDescription', name='heroDescription',
+                rows='5',
+                maxlength=limits.heroDescription,
+                placeholder='Every engineer suddenly got access to superpowers...')= (settings.heroDescription || '')
+              .form-text
+                | Markdown is supported: <strong>**bold**</strong>, <em>*italic*</em>, and <code>[link text](url)</code> for links.
+                br
+                | Embed the "Get started" link here, e.g. <code>[Get started -&gt;](/get-started)</code>
+                br
+                | Leave blank to keep the default text.
+
+        //- ── Hero Image ──────────────────────────────────────────────
+        .md-card.mb-4
+          .card-header
+            h5.mb-0 Hero Image
+          .card-body.px-4.py-4
+
+            .mb-3
+              p.mb-1 Current image:
+              - const currentSrc = settings.heroImage || '/images/megademo-wave.jpg'
+              img.img-fluid.mb-2(
+                src=currentSrc,
+                alt='Current hero image',
+                style='max-height:200px; border-radius:4px; opacity:0.9;')
+              if settings.heroImage
+                p.text-muted.small Using custom uploaded image.
+              else
+                p.text-muted.small Using default image.
+
+            if settings.heroImage
+              .mb-4
+                label.checkbox-item
+                  input(type='checkbox', name='removeHeroImage', value='1')
+                  span Remove custom image and revert to default
+
+            .mb-2
+              label.form-label(for='heroImageFile') Upload new image
+              input.form-control(
+                type='file', id='heroImageFile', name='heroImage',
+                accept='.jpg,.jpeg,.png,.webp')
+              .form-text
+                | Max 3 MB · Formats: JPG, PNG, WebP
+                br
+                | Recommended: <strong>16:9 aspect ratio</strong>, at least <strong>1 200 × 675 px</strong>
+                br
+                | Uploading a new image replaces the current one.
+
+        .d-flex.gap-3
+          button.btn.btn-neon-cyan(type='submit') Save Homepage Settings
+          a.btn.btn-neon-outline(href='/admin') Cancel

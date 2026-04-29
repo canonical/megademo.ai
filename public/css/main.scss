@@ -301,6 +301,8 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover { text-decoration: none !import
   max-width: 580px;
   line-height: 1.8;
   margin-bottom: 2rem;
+  // marked wraps content in <p> — collapse its margins so spacing stays consistent
+  p { margin-bottom: 0; }
 }
 
 .hero-help-link {

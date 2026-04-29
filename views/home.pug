@@ -14,22 +14,17 @@ block content
 
     // Mobile-only hero image appears at top of section (before hero text)
     .d-lg-none.text-center.px-3
-      img.hero-wave-mobile(src='/images/megademo-wave.jpg', alt='MegaDemo.ai wave')
+      img.hero-wave-mobile(src=heroImageSrc, alt='MegaDemo.ai wave')
 
     .container.hero-content
       .row.align-items-center
         .col-lg-7
           h1.hero-title
-            span.pixel-text SURF THE WAVE.
+            span.pixel-text= heroLine1
             br
-            span.pixel-text.neon-pink BUILD THE FUTURE.
-          p.hero-subtitle Canonical Madrid Engineering Sprint — AI Hackathon
-          p.hero-description
-            | Every engineer suddenly got access to superpowers — and it's time to
-            | properly exercise our new magical abilities. Register your AI project,
-            | show your work, and compete for a spot at the MegaDemo on Friday.
-            |  
-            a.hero-help-link(href='/get-started') Get started -&gt;
+            span.pixel-text.neon-pink= heroLine2
+          p.hero-subtitle= heroSubtitle
+          .hero-description!= heroDescriptionHtml
           .hero-ctas
             if user
               if registrationOpen
@@ -41,7 +36,7 @@ block content
               a.btn.btn-github-hero(href=loginUrl)
                 span Sign in
         .col-lg-5.text-center.d-none.d-lg-block
-          img.hero-wave(src='/images/megademo-wave.jpg', alt='MegaDemo.ai wave')
+          img.hero-wave(src=heroImageSrc, alt='MegaDemo.ai wave')
 
   // Countdown Timer
   if hackathonStart || submissionDeadline || megademoDate

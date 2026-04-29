@@ -3,13 +3,40 @@
  */
 const { Project, computeLiveliness } = require('../models/Project');
 const Settings = require('../models/Settings');
+const { marked } = require('marked');
+const sanitizeHtml = require('sanitize-html');
+
+const HERO_DEFAULTS = {
+  heroLine1:       'SURF THE WAVE.',
+  heroLine2:       'BUILD THE FUTURE.',
+  heroSubtitle:    'Canonical Madrid Engineering Sprint — AI Hackathon',
+  heroDescription: 'Every engineer suddenly got access to superpowers — and it\'s time to properly exercise our new magical abilities. Register your AI project, show your work, and compete for a spot at the MegaDemo on Friday. [Get started ->](/get-started)',
+  heroImage:       null,
+};
+
+/**
+ * Render admin-supplied Markdown description as safe HTML.
+ * Allows inline elements and links; strips everything else.
+ * Auto-adds hero-help-link class to any <a> tags.
+ */
+function renderHeroDescription(raw) {
+  const html = sanitizeHtml(marked.parse(raw || ''), {
+    allowedTags: ['p', 'strong', 'em', 'a', 'br'],
+    allowedAttributes: { 'a': ['href', 'title'] },
+    allowedSchemes: ['http', 'https'],
+    transformTags: {
+      'a': sanitizeHtml.simpleTransform('a', { class: 'hero-help-link' }),
+    },
+  });
+  return html;
+}
 
 /**
  * GET /
  */
 exports.index = async (req, res) => {
   try {
-    const [newest, leaderboard, submissionDeadline, megademoDate, hackathonStart, rawCategoryStats] = await Promise.all([
+    const [newest, leaderboard, submissionDeadline, megademoDate, hackathonStart, rawCategoryStats, heroLine1, heroLine2, heroSubtitle, heroDescription, heroImage] = await Promise.all([
       Project.find({ status: { $in: ['submitted', 'finalist'] } })
         .sort({ createdAt: -1 })
         .limit(6)
@@ -28,6 +55,11 @@ exports.index = async (req, res) => {
         { $group: { _id: '$category', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
       ]),
+      Settings.get('heroLine1'),
+      Settings.get('heroLine2'),
+      Settings.get('heroSubtitle'),
+      Settings.get('heroDescription'),
+      Settings.get('heroImage'),
     ]);
 
     const categoryStats = rawCategoryStats.map((s) => ({ category: s._id, count: s.count }));
@@ -46,6 +78,11 @@ exports.index = async (req, res) => {
       hackathonStart: hackathonStart || null,
       registrationOpen,
       categoryStats,
+      heroLine1:           heroLine1       || HERO_DEFAULTS.heroLine1,
+      heroLine2:           heroLine2       || HERO_DEFAULTS.heroLine2,
+      heroSubtitle:        heroSubtitle    || HERO_DEFAULTS.heroSubtitle,
+      heroDescriptionHtml: renderHeroDescription(heroDescription || HERO_DEFAULTS.heroDescription),
+      heroImageSrc:        heroImage       || '/images/megademo-wave.jpg',
     });
   } catch (err) {
     console.error('Home controller error:', err);
@@ -58,6 +95,11 @@ exports.index = async (req, res) => {
       hackathonStart: null,
       registrationOpen: true,
       categoryStats: [],
+      heroLine1:           HERO_DEFAULTS.heroLine1,
+      heroLine2:           HERO_DEFAULTS.heroLine2,
+      heroSubtitle:        HERO_DEFAULTS.heroSubtitle,
+      heroDescriptionHtml: renderHeroDescription(HERO_DEFAULTS.heroDescription),
+      heroImageSrc:        '/images/megademo-wave.jpg',
     });
   }
 };

@@ -22981,6 +22981,9 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   line-height: 1.8;
   margin-bottom: 2rem;
 }
+.hero-description p {
+  margin-bottom: 0;
+}
 
 .hero-help-link {
   color: rgba(0, 212, 255, 0.75);

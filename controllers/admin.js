@@ -3,6 +3,8 @@
  */
 const path = require('node:path');
 const fs = require('node:fs');
+const multer = require('multer');
+const FileType = require('file-type');
 const { Project, CATEGORIES, CANONICAL_TEAMS, AI_TOOLS, TECH_STACK_DEFAULTS, computeLiveliness } = require('../models/Project');
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../public/uploads');
@@ -24,6 +26,39 @@ function safeUnlinkLogo(logoRelPath) {
   if (!filename || path.basename(filename) !== filename) return;
   fs.unlink(path.join(UPLOADS_DIR, filename), () => {});
 }
+
+function safeUnlinkHeroImage(heroRelPath) {
+  // Only delete custom uploaded images (those under /uploads/), not the default static asset
+  if (!heroRelPath || !heroRelPath.startsWith(UPLOADS_URL_PREFIX)) return;
+  const filename = heroRelPath.slice(UPLOADS_URL_PREFIX.length);
+  if (!filename || path.basename(filename) !== filename) return;
+  if (!filename.startsWith('hero-')) return; // extra safety guard
+  fs.unlink(path.join(UPLOADS_DIR, filename), () => {});
+}
+
+// Multer config for hero image uploads (max 3 MB, jpg/png/webp only)
+const HERO_ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const HERO_ALLOWED_MIMETYPES  = ['image/jpeg', 'image/png', 'image/webp'];
+
+const heroStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `hero-${Date.now()}${ext}`);
+  },
+});
+const heroUpload = multer({
+  storage: heroStorage,
+  limits: { fileSize: 3 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (HERO_ALLOWED_EXTENSIONS.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .jpg, .jpeg, .png, or .webp images are allowed.'));
+    }
+  },
+}).single('heroImage');
 
 function safeDecodeURIComponent(str) {
   try { return decodeURIComponent(str); } catch { return null; }
@@ -722,6 +757,95 @@ exports.activityLog = async (req, res, next) => {
       entries,
     });
   } catch (err) {
+    next(err);
+  }
+};
+
+const HERO_TEXT_LIMITS = {
+  heroLine1:       60,
+  heroLine2:       60,
+  heroSubtitle:    120,
+  heroDescription: 600,
+};
+
+/**
+ * GET /admin/homepage
+ */
+exports.homepageSettings = async (req, res, next) => {
+  try {
+    const [heroLine1, heroLine2, heroSubtitle, heroDescription, heroImage] = await Promise.all([
+      Settings.get('heroLine1'),
+      Settings.get('heroLine2'),
+      Settings.get('heroSubtitle'),
+      Settings.get('heroDescription'),
+      Settings.get('heroImage'),
+    ]);
+    res.render('admin/homepage', {
+      title: 'Homepage Settings',
+      settings: { heroLine1, heroLine2, heroSubtitle, heroDescription, heroImage },
+      limits: HERO_TEXT_LIMITS,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /admin/homepage
+ */
+exports.saveHomepageSettings = async (req, res, next) => {
+  try {
+    // Parse multipart (hero image upload)
+    await new Promise((resolve, reject) => heroUpload(req, res, (err) => (err ? reject(err) : resolve())));
+
+    // Validate text fields
+    const errors = [];
+    const fields = {};
+    for (const [key, limit] of Object.entries(HERO_TEXT_LIMITS)) {
+      const val = (req.body[key] || '').trim();
+      if (val.length > limit) {
+        errors.push({ msg: `${key} exceeds ${limit} character limit.` });
+      } else {
+        fields[key] = val;
+      }
+    }
+    if (errors.length) {
+      if (req.file) await fs.promises.unlink(req.file.path).catch(() => {});
+      req.flash('errors', errors);
+      return res.redirect('/admin/homepage');
+    }
+
+    // Verify image magic bytes if a file was uploaded
+    if (req.file) {
+      const type = await FileType.fromFile(req.file.path);
+      if (!type || !HERO_ALLOWED_MIMETYPES.includes(type.mime)) {
+        await fs.promises.unlink(req.file.path).catch(() => {});
+        req.flash('errors', { msg: 'Only .jpg, .jpeg, .png, or .webp images are allowed.' });
+        return res.redirect('/admin/homepage');
+      }
+    }
+
+    // Persist text settings
+    await Promise.all(
+      Object.entries(fields).map(([key, val]) => Settings.set(key, val || null))
+    );
+
+    // Handle image: upload → replace; checkbox → remove
+    const currentImage = await Settings.get('heroImage');
+    if (req.file) {
+      // New upload: delete the old custom image (if any) and save the new path
+      safeUnlinkHeroImage(currentImage);
+      await Settings.set('heroImage', `/uploads/${req.file.filename}`);
+    } else if (req.body.removeHeroImage === '1') {
+      safeUnlinkHeroImage(currentImage);
+      await Settings.set('heroImage', null);
+    }
+
+    logActivity(req.user.email, 'Updated homepage settings').catch(() => {});
+    req.flash('success', { msg: 'Homepage settings saved.' });
+    res.redirect('/admin/homepage');
+  } catch (err) {
+    if (req.file) fs.unlink(req.file.path, () => {});
     next(err);
   }
 };
