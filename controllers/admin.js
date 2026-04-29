@@ -799,8 +799,17 @@ exports.homepageSettings = async (req, res, next) => {
  */
 exports.saveHomepageSettings = async (req, res, next) => {
   try {
-    // Parse multipart (hero image upload)
-    await new Promise((resolve, reject) => heroUpload(req, res, (err) => (err ? reject(err) : resolve())));
+    // Parse multipart (hero image upload); convert user-facing errors to flash redirects
+    await new Promise((resolve, reject) => {
+      heroUpload(req, res, (err) => {
+        if (!err) return resolve();
+        const msg = err.code === 'LIMIT_FILE_SIZE'
+          ? 'Image exceeds the 3 MB size limit.'
+          : err.message || 'Invalid file.';
+        const flashErr = Object.assign(new Error(msg), { isUserError: true, msg });
+        reject(flashErr);
+      });
+    });
 
     // Verify CSRF token now that multer has populated req.body
     await new Promise((resolve, reject) => heroFormCsrf(req, res, (err) => (err ? reject(err) : resolve())));
@@ -853,6 +862,10 @@ exports.saveHomepageSettings = async (req, res, next) => {
     res.redirect('/admin/homepage');
   } catch (err) {
     if (req.file) fs.unlink(req.file.path, () => {});
+    if (err.isUserError) {
+      req.flash('errors', { msg: err.msg });
+      return res.redirect('/admin/homepage');
+    }
     next(err);
   }
 };

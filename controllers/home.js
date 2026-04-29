@@ -17,19 +17,32 @@ const HERO_DEFAULTS = {
 /**
  * Render admin-supplied Markdown description as safe HTML.
  * Allows inline elements and links; strips everything else.
- * Auto-adds hero-help-link class to any <a> tags.
+ * - Adds hero-help-link CSS class to all <a> tags.
+ * - External links get rel="noopener noreferrer" and target="_blank".
  */
 function renderHeroDescription(raw) {
   const html = sanitizeHtml(marked.parse(raw || ''), {
     allowedTags: ['p', 'strong', 'em', 'a', 'br'],
-    allowedAttributes: { 'a': ['href', 'title'] },
+    allowedAttributes: { 'a': ['href', 'title', 'class', 'rel', 'target'] },
+    allowedClasses: { 'a': ['hero-help-link'] },
     allowedSchemes: ['http', 'https'],
     transformTags: {
-      'a': sanitizeHtml.simpleTransform('a', { class: 'hero-help-link' }),
+      'a': (tagName, attribs) => {
+        const isExternal = /^https?:\/\//i.test(attribs.href || '');
+        return {
+          tagName: 'a',
+          attribs: {
+            ...attribs,
+            class: 'hero-help-link',
+            ...(isExternal ? { rel: 'noopener noreferrer', target: '_blank' } : {}),
+          },
+        };
+      },
     },
   });
   return html;
 }
+exports.renderHeroDescription = renderHeroDescription;
 
 /**
  * GET /
