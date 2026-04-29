@@ -12,8 +12,8 @@ block content
       form(method='POST', action='/admin/homepage', enctype='multipart/form-data')
         input(type='hidden', name='_csrf', value=_csrf)
 
-        //- ── Hero Text ──────────────────────────────────────────────
         .md-card.mb-4
+
           h3.section-label Hero Text
 
           .mb-4
@@ -64,16 +64,12 @@ block content
               placeholder='Every engineer suddenly got access to superpowers...')= (settings.heroDescription || '')
             .d-flex.justify-content-between.mt-1
               span.small.text-muted
-                | Markdown: <strong>**bold**</strong>, <em>*italic*</em>, <code>[text](url)</code> — embed the Get started link here, e.g. <code>[Get started -&gt;](/get-started)</code>
+                | Markdown: <strong>**bold**</strong>, <em>*italic*</em>, <code>[text](url)</code> — e.g. <code>[Get started -&gt;](/get-started)</code>
               span.small.text-muted
                 span#desc-char-count= (settings.heroDescription || '').length
                 |  / #{limits.heroDescription}
 
-          button.btn.btn-neon-cyan.mb-2(type='submit') Save Homepage Settings
-
-        //- ── Hero Image ──────────────────────────────────────────────
-        .md-card.mb-4
-          h3.section-label Hero Image
+          h3.section-label.mt-4 Hero Image
 
           .mb-3
             p.md-label Current image
@@ -108,16 +104,15 @@ block content
 
 block scripts
   script(nonce=cspNonce).
-    // Live char counters
     [
-      ['heroLine1',       document.querySelector('input[name="heroLine1"]'),    null],
-      ['heroLine2',       document.querySelector('input[name="heroLine2"]'),    null],
-      ['heroSubtitle',    document.querySelector('input[name="heroSubtitle"]'), null],
-      ['heroDescription', document.querySelector('#heroDescription'),           document.getElementById('desc-char-count')],
+      ['heroLine1',    document.querySelector('input[name="heroLine1"]'),    null],
+      ['heroLine2',    document.querySelector('input[name="heroLine2"]'),    null],
+      ['heroSubtitle', document.querySelector('input[name="heroSubtitle"]'), null],
+      [null,           document.querySelector('#heroDescription'),           document.getElementById('desc-char-count')],
     ].forEach(([, el, counter]) => {
       if (!el) return;
       const row = el.closest('.mb-4');
-      const span = counter || row.querySelector('span.small.text-muted:last-child span');
+      const span = counter || row.querySelector('.d-flex span.small.text-muted:last-child span');
       if (!span) return;
       el.addEventListener('input', () => { span.textContent = el.value.length; });
     });
