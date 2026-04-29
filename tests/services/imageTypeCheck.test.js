@@ -64,6 +64,14 @@ describe('verifyImageMagicBytes', () => {
     expect(fs.existsSync(p)).toBe(false);
   });
 
+  it('deletes the file and throws when fileTypeFromFile encounters an I/O error', async () => {
+    // Point at a path that does not exist so fileTypeFromFile throws ENOENT
+    const missing = path.join(os.tmpdir(), `nonexistent-${Date.now()}.jpg`);
+    await expect(verifyImageMagicBytes({ path: missing }, ALLOWED, ERR_MSG)).rejects.toThrow(ERR_MSG);
+    // File never existed, but unlink should not throw (swallowed)
+    expect(fs.existsSync(missing)).toBe(false);
+  });
+
   it('rejects a GIF when GIF is not in the allowedMimes list', async () => {
     // GIF89a header
     const gifHeader = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]);

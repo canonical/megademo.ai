@@ -18,7 +18,13 @@ async function verifyImageMagicBytes(file, allowedMimes, errorMsg) {
   // file-type is ESM-only from v17+; dynamic import is resolved and cached by
   // Node.js after the first call, so there is no per-request overhead.
   const { fileTypeFromFile } = await import('file-type');
-  const type = await fileTypeFromFile(file.path);
+  let type;
+  try {
+    type = await fileTypeFromFile(file.path);
+  } catch {
+    await fs.promises.unlink(file.path).catch(() => {});
+    throw new Error(errorMsg);
+  }
   if (!type || !allowedMimes.includes(type.mime)) {
     await fs.promises.unlink(file.path).catch(() => {});
     throw new Error(errorMsg);

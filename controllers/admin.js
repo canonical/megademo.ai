@@ -836,6 +836,7 @@ exports.saveHomepageSettings = async (req, res, next) => {
       try {
         await verifyImageMagicBytes(req.file, HERO_ALLOWED_MIMETYPES, 'Only .jpg, .jpeg, .png, or .webp images are allowed.');
       } catch (err) {
+        await fs.promises.unlink(req.file.path).catch(() => {});
         req.flash('errors', { msg: err.message });
         return res.redirect('/admin/homepage');
       }
