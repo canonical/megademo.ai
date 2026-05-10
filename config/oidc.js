@@ -21,7 +21,9 @@ async function initOidcClient() {
   if (process.env.AUTH_MODE !== 'oidc') return;
 
   const issuerUrl    = process.env.OIDC_ISSUER_URL;
-  if (!issuerUrl) return null;
+  if (!issuerUrl) {
+    throw new Error('AUTH_MODE=oidc but OIDC_ISSUER_URL is not set');
+  }
 
   const clientId     = process.env.OIDC_CLIENT_ID;
   const clientSecret = process.env.OIDC_CLIENT_SECRET;
