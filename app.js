@@ -83,6 +83,7 @@ const authLimiter = rateLimit({
  */
 const homeController    = require('./controllers/home');
 const authController    = require('./controllers/auth');
+const { resolveAuthMode, resolveLoginUrl } = require('./controllers/auth');
 const projectController = require('./controllers/project');
 
 /**
@@ -262,10 +263,7 @@ app.use((req, res, next) => {
   res.locals.user = req.user;
   res.locals.safeJson = safeJson;
   res.locals.assetVersion = ASSET_VERSION;
-  // Three-way login URL: dev → dev-login | prod+OIDC → /auth/oidc | prod → /auth/github
-  const isOidc = !!process.env.OIDC_ISSUER_URL;
-  const isDev  = process.env.NODE_ENV !== 'production';
-  res.locals.loginUrl = isDev ? '/auth/dev-login' : (isOidc ? '/auth/oidc' : '/auth/github');
+  res.locals.loginUrl = resolveLoginUrl();
   next();
 });
 
@@ -317,20 +315,19 @@ app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1d' }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
 /**
- * Global authentication gate — active only when OIDC_ISSUER_URL is set.
+ * Global authentication gate — active in production (both GitHub OAuth and OIDC).
  * Gates the entire site: every request (except /auth/*) requires
- * an authenticated session. Unauthenticated users are redirected to the OIDC
+ * an authenticated session. Unauthenticated users are redirected to the
  * login flow with their intended URL saved for post-login redirect.
  *
- * When OIDC_ISSUER_URL is NOT set (local dev / GitHub OAuth mode), individual
- * route guards (isAuthenticated) continue to handle access control as before.
+ * In local dev, individual route guards (isAuthenticated) handle access control.
  */
-if (process.env.OIDC_ISSUER_URL) {
+if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     if (req.path.startsWith('/auth/') || req.path === '/health') return next();
     if (!req.isAuthenticated()) {
       req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/oidc');
+      return res.redirect(resolveLoginUrl());
     }
     next();
   });
@@ -437,7 +434,7 @@ if (process.env.NODE_ENV === 'development') {
 
 if (require.main === module) {
   (async () => {
-    if (process.env.OIDC_ISSUER_URL) {
+    if (resolveAuthMode() === 'oidc') {
       await initOidcClient();
     }
     app.listen(app.get('port'), app.get('host'), () => {
