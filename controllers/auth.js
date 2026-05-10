@@ -84,7 +84,7 @@ exports.githubCallback = (req, res, next) => {
   passport.authenticate('github', (err, user) => {
     if (err) return next(err);
     if (!user) return res.redirect('/');
-    req.logIn(user, (loginErr) => {
+    req.logIn(user, { keepSessionInfo: true }, (loginErr) => {
       if (loginErr) return next(loginErr);
       logActivity(user.email, 'Logged in (GitHub)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
@@ -155,7 +155,7 @@ exports.testLogin = async (req, res, next) => {
     }
     await user.save();
 
-    req.logIn(user, (err) => {
+    req.logIn(user, { keepSessionInfo: true }, (err) => {
       if (err) return next(err);
       logActivity(user.email, 'Logged in (test)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
@@ -198,7 +198,7 @@ exports.devLogin = async (req, res, next) => {
       user.role = role;
       await user.save();
     }
-    req.logIn(user, (err) => {
+    req.logIn(user, { keepSessionInfo: true }, (err) => {
       if (err) return next(err);
       logActivity(user.email, 'Logged in (dev)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
@@ -284,7 +284,7 @@ exports.oidcCallback = async (req, res, next) => {
 
     await user.save();
 
-    req.logIn(user, (err) => {
+    req.logIn(user, { keepSessionInfo: true }, (err) => {
       if (err) return next(err);
       logActivity(user.email, 'Logged in (OIDC)').catch(() => {});
       const returnTo = safeReturnTo(req.session.returnTo);
