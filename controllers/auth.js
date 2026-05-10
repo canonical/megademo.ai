@@ -3,8 +3,8 @@
  *
  * Auth strategy selection:
  *   - dev (NODE_ENV !== 'production'):  /auth/dev-login  (bypasses OAuth entirely)
- *   - prod + OIDC_ISSUER_URL set:       /auth/oidc       (Canonical IdP via Hydra)
- *   - prod + no OIDC:                   /auth/github     (direct GitHub OAuth)
+ *   - prod + AUTH_MODE=oidc:            /auth/oidc       (Canonical IdP via Hydra)
+ *   - prod + anything else:             /auth/github     (direct GitHub OAuth)
  */
 const crypto = require('node:crypto');
 const passport = require('passport');
@@ -13,12 +13,23 @@ const { generators } = require('openid-client');
 const { getClient } = require('../config/oidc');
 const { logActivity } = require('../services/activityLog');
 
+/**
+ * Return the effective auth mode: 'oidc' or 'github' (default).
+ * AUTH_MODE=oidc activates Canonical IdP; everything else uses GitHub OAuth.
+ * OIDC_ISSUER_URL is ignored unless AUTH_MODE=oidc.
+ */
+function resolveAuthMode() {
+  return process.env.AUTH_MODE === 'oidc' ? 'oidc' : 'github';
+}
+exports.resolveAuthMode = resolveAuthMode;
+
 /** Resolve the appropriate login URL for the current environment. */
 function resolveLoginUrl() {
   if (process.env.NODE_ENV !== 'production') return '/auth/dev-login';
-  if (process.env.OIDC_ISSUER_URL)           return '/auth/oidc';
+  if (resolveAuthMode() === 'oidc')           return '/auth/oidc';
   return '/auth/github';
 }
+exports.resolveLoginUrl = resolveLoginUrl;
 
 /**
  * Validate a post-login return URL to prevent open redirect.
