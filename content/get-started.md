@@ -11,7 +11,7 @@ That's it. No separate registration.
 
 ## Browse projects
 
-**[Projects](/projects)** are public — no sign-in needed.
+**[Projects](/projects)** are accessible after signing in.
 Sort by newest or top-rated. Click any card to see full details, demo videos, and repo links.
 
 ---

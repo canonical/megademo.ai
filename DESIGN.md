@@ -78,26 +78,44 @@ tests/              Jest test suites (auth, home, projects, admin, voting)
 
 ## Authentication
 
-Two modes; selected by the presence of `OIDC_ISSUER_URL`:
+Three modes; selected by the `AUTH_MODE` environment variable and deployment context:
 
-### Mode A — OIDC via Canonical Identity Platform (recommended for production)
+### Mode 1 — GitHub OAuth (`AUTH_MODE=github` or default)
 
-When `OIDC_ISSUER_URL` is set:
-- The **entire site** is gated — all routes except `/auth/*` and `/kiosk*` redirect to OIDC login
-- Login flow: MegaDemo.ai → Hydra → Kratos → GitHub (upstream IdP) → back
-- `@canonical.com` domain filtering is handled by Kratos (configured by IS)
+When `AUTH_MODE=github` (or unset):
+- The **entire site** is gated — all routes except `/auth/*` and `/health` require authentication
+- Login uses GitHub OAuth 2.0; the OAuth App must be registered under the `canonical` GitHub org
+- Canonical membership verified via GitHub API: three verification methods (in order): org membership API → org list → `@canonical.com` email domain fallback
+- `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` required
+- `OIDC_*` variables are ignored
+
+### Mode 2 — OIDC via Canonical Identity Platform (`AUTH_MODE=oidc`)
+
+When `AUTH_MODE=oidc`:
+- The **entire site** is gated — all routes except `/auth/*` and `/health` redirect to OIDC login
+- Login flow: MegaDemo.ai → Canonical Identity Platform (Hydra) → Kratos → upstream IdP → back
 - Uses Authorization Code + PKCE flow
+- Requires `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` are not used
 
-Redirect URI to register with IS: `https://megademo.ai/auth/oidc/callback`
+Redirect URI to register: `https://megademo.ai/auth/oidc/callback`
 Scopes: `openid profile email`
 
-### Mode B — Direct GitHub OAuth (default until OIDC is ready)
+### Development Mode
 
-When `OIDC_ISSUER_URL` is absent:
-- Per-route `isAuthenticated` guards (existing behaviour)
-- Canonical membership verified via GitHub API on every login
-- Three verification methods (in order): org membership API → org list → `@canonical.com` email domain fallback
+When running in non-production environments (detected via `NODE_ENV !== 'production'`):
+- `AUTH_MODE` is ignored
+- A dev login bypass is available at `/auth/dev-login`
+- The global site gate is inactive, but per-route guards (`isAuthenticated`) remain active and redirect unauthenticated requests to `/auth/dev-login`
+- Developers must still log in via `/auth/dev-login` to access protected routes
+- Useful for testing without external OAuth/OIDC setup
+
+### Session Continuity Across Auth Modes
+
+Users authenticated in one mode can seamlessly switch to another:
+- User identity is matched by email address
+- When an OIDC user logs out and re-authenticates via GitHub OAuth, they are matched by email and their data (projects, votes, roles) is preserved
+- No user action required; session data persists across the switch
 
 ---
 

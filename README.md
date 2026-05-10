@@ -32,34 +32,39 @@ npm run dev
 
 - Node.js >= 20
 - MongoDB (local or Atlas)
-- GitHub OAuth App credentials **or** Canonical Identity Platform OIDC credentials
+- GitHub OAuth App credentials (always required)
+- `AUTH_MODE` environment variable: `github` (default) or `oidc`
+- For `AUTH_MODE=oidc`: also requires `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`
 
 ## Authentication
 
-Two modes are supported. Set `OIDC_ISSUER_URL` to activate OIDC; leave it unset to use GitHub OAuth.
+The `AUTH_MODE` environment variable selects which provider is used:
 
-### Option A — OIDC via Canonical Identity Platform (recommended for production)
+- **`AUTH_MODE=github` (default):** Direct GitHub OAuth. Requires `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. Users must be members of the `canonical` GitHub org or have a `@canonical.com` email.
+- **`AUTH_MODE=oidc`:** Canonical Identity Platform OIDC. Requires `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET`.
+- **Development (non-production only):** `AUTH_MODE` is ignored; use `/auth/dev-login` to bypass authentication.
 
-When `OIDC_ISSUER_URL` is set, the entire site is gated behind OIDC login. GitHub OAuth is bypassed.
-
-1. Ask IS to register MegaDemo.ai as a Hydra client:
-   - Redirect URI: `https://megademo.ai/auth/oidc/callback`
-   - Scopes: `openid profile email`
-   - Grant type: Authorization Code (PKCE)
-2. IS provides `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`
-3. Set `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` in your environment and redeploy
-
-### Option B — Direct GitHub OAuth (default until OIDC is ready)
+### Option A — GitHub OAuth (`AUTH_MODE=github` or default)
 
 1. Go to https://github.com/settings/developers and click **New OAuth App**
 2. Set **Authorization callback URL** to `https://megademo.ai/auth/github/callback`
    (and `http://localhost:8080/auth/github/callback` for local dev)
 3. Scopes required: `user:email`, `read:org`
 4. Copy **Client ID** and **Client Secret** to `.env` as `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
+5. Ensure the OAuth App is registered under or approved by the `canonical` GitHub org
 
 > **Note:** If the `canonical` org has OAuth App restrictions enabled, an org owner must approve
 > the app at `https://github.com/organizations/canonical/settings/oauth_application_policy`.
 > Or set `ALLOW_CANONICAL_EMAIL_FALLBACK=true` to verify via `@canonical.com` email domain instead.
+
+### Option B — OIDC via Canonical Identity Platform (`AUTH_MODE=oidc`)
+
+1. Ask IS to register MegaDemo.ai as a Hydra client:
+   - Redirect URI: `https://megademo.ai/auth/oidc/callback`
+   - Scopes: `openid profile email`
+   - Grant type: Authorization Code (PKCE)
+2. IS provides `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`
+3. Set `AUTH_MODE=oidc`, `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` in your environment and redeploy
 
 ## Deployment (Render.com)
 
