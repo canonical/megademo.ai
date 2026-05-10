@@ -18,6 +18,8 @@ let oidcClient = null;
  * Called once at app startup if OIDC_ISSUER_URL is set.
  */
 async function initOidcClient() {
+  if (process.env.AUTH_MODE !== 'oidc') return;
+
   const issuerUrl    = process.env.OIDC_ISSUER_URL;
   if (!issuerUrl) return null;
 
