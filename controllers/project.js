@@ -222,12 +222,14 @@ exports.list = async (req, res) => {
     votes.forEach((v) => { userVotes[v.project.toString()] = v.stars; });
   }
 
+  const teamList = await getTeamList();
+
   res.render('projects/list', {
     title: 'Browse Projects',
     projects,
     userVotes,
     CATEGORIES,
-    CANONICAL_TEAMS,
+    CANONICAL_TEAMS: teamList,
     filters: { category, team, sort },
   });
 };
