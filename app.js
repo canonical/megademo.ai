@@ -430,6 +430,18 @@ if (process.env.NODE_ENV === 'development') {
   app.use(errorHandler());
 } else {
   app.use((err, req, res, _next) => {
+    // CSRF token missing/invalid — session expired or stale tab
+    if (err.code === 'EBADCSRFTOKEN' || err.message === 'CSRF token missing' || err.message === 'Invalid CSRF token') {
+      const isJson = req.xhr || (req.headers.accept || '').includes('application/json');
+      if (isJson) {
+        return res.status(403).json({ errors: [{ msg: 'Your session has expired. Please refresh the page and try again.' }] });
+      }
+      return res.status(403).render('error', {
+        title: 'Session Expired',
+        message: 'Your session has expired. Please refresh the page and try again.',
+        user: req.user || null,
+      });
+    }
     console.error(err);
     res.status(500).render('error', {
       title: 'Server Error',
