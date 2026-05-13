@@ -207,10 +207,18 @@ block scripts
       form.querySelectorAll('input[type="datetime-local"]').forEach(function (input) {
         input.value = utcToLocalInput(input.dataset.utc || '');
       });
-      // Before submit: convert local browser time → UTC ISO so server always gets a fixed-offset value
+      // Before submit: for each datetime-local input, create a hidden field with the
+      // UTC ISO value and disable the visible input so only the hidden field is sent.
+      // (Setting input.value to a full ISO string like "2026-05-13T15:00:00.000Z" would
+      // be rejected by the browser — datetime-local only accepts "YYYY-MM-DDTHH:mm".)
       form.addEventListener('submit', function () {
         form.querySelectorAll('input[type="datetime-local"]').forEach(function (input) {
-          if (input.value) input.value = new Date(input.value).toISOString();
+          var hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = input.name;
+          hidden.value = input.value ? new Date(input.value).toISOString() : '';
+          form.appendChild(hidden);
+          input.disabled = true;
         });
       });
     })();
