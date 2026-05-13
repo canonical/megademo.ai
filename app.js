@@ -98,14 +98,14 @@ require('./config/passport');
 const { initOidcClient } = require('./config/oidc');
 
 /**
- * Mattermost daily summary cron — fires 3× per day at 08:00, 12:00, 17:00 UTC.
- * Override times via SUMMARY_CRON env var (standard cron expression).
+ * Mattermost summary cron — fires every hour on the hour.
+ * Override via SUMMARY_CRON env var (standard cron expression).
  * Set SUMMARY_CRON=disabled to turn it off entirely.
  */
 if (process.env.SUMMARY_CRON !== 'disabled') {
   const cron = require('node-cron');
   const { runSummary } = require('./scripts/daily-summary');
-  const cronExpr = process.env.SUMMARY_CRON || '0 8,12,17 * * *';
+  const cronExpr = process.env.SUMMARY_CRON || '0 * * * *';
   cron.schedule(cronExpr, () => {
     runSummary(process.env.BASE_URL || 'http://localhost:8080').catch((err) => {
       console.error('Daily summary cron failed:', err.message);
