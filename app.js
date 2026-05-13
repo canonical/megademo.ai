@@ -431,7 +431,7 @@ if (process.env.NODE_ENV === 'development') {
 } else {
   app.use((err, req, res, _next) => {
     // CSRF token missing/invalid — session expired or stale tab
-    if (err.code === 'EBADCSRFTOKEN' || err.message === 'CSRF token missing' || err.message === 'Invalid CSRF token') {
+    if (err.message === 'CSRF token missing' || err.message === 'CSRF token mismatch') {
       const isJson = req.xhr || (req.headers.accept || '').includes('application/json');
       if (isJson) {
         return res.status(403).json({ errors: [{ msg: 'Your session has expired. Please refresh the page and try again.' }] });
