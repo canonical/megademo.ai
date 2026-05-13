@@ -27,7 +27,7 @@ services:
         value: "500"
 
       - key: RATE_LIMIT_AUTH
-        value: "20"
+        value: "100"
 
       # Secrets
       - key: MONGODB_URI

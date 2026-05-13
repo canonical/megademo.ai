@@ -238,7 +238,13 @@ app.use((req, res, next) => {
   if (req.method === 'POST' && req.path === '/admin/homepage') return next();
   csrfMiddleware(req, res, next);
 });
-app.use(globalLimiter);
+// Global rate limiter — applied only to unauthenticated requests.
+// Authenticated users are verified Canonical employees; no abuse risk,
+// and shared office IPs would otherwise exhaust the per-IP bucket quickly.
+app.use((req, res, next) => {
+  if (req.isAuthenticated()) return next();
+  return globalLimiter(req, res, next);
+});
 
 /**
  * Asset version string for cache-busting CSS/JS URLs.
