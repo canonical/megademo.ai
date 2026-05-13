@@ -95,15 +95,24 @@ exports.githubCallback = (req, res, next) => {
 };
 
 /**
- * GET /logout
+ * POST /logout
  */
 exports.logout = (req, res, next) => {
   const email = req.user?.email;
   req.logout((err) => {
     if (err) return next(err);
     if (email) logActivity(email, 'Logged out').catch(() => {});
-    res.redirect('/');
+    // Redirect to a gate-exempt page so the auth gate doesn't immediately
+    // re-trigger GitHub OAuth and log the user back in silently.
+    res.redirect('/auth/signed-out');
   });
+};
+
+/**
+ * GET /auth/signed-out
+ */
+exports.signedOut = (req, res) => {
+  res.render('auth-signed-out', { title: 'Signed out' });
 };
 
 /**

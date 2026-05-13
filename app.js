@@ -344,6 +344,7 @@ app.get('/auth/github', authLimiter, authController.githubLogin);
 app.get('/auth/github/callback', authLimiter, authController.githubCallback);
 app.get('/auth/oidc', authLimiter, authController.oidcLogin);
 app.get('/auth/oidc/callback', authLimiter, authController.oidcCallback);
+app.get('/auth/signed-out', authController.signedOut);
 app.post('/logout', authController.logout);
 
 // Dev-only bypass login — disabled in production
