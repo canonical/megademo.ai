@@ -140,7 +140,7 @@ exports.testLogin = async (req, res, next) => {
       const a    = crypto.createHmac('sha256', key).update(req.query.token).digest();
       const b    = crypto.createHmac('sha256', key).update(configuredToken).digest();
       return !crypto.timingSafeEqual(a, b);
-    } catch (_err) { return true; }
+    } catch { return true; }
   })()) {
     return res.status(403).render('error', { title: 'Forbidden', message: 'Invalid test login token.', user: null });
   }

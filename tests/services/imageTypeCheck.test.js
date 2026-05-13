@@ -60,7 +60,7 @@ describe('verifyImageMagicBytes', () => {
 
   it('deletes the file when rejecting due to bad magic bytes', async () => {
     const p = writeTmp('test-delete.jpg', Buffer.from('not an image'));
-    try { await verifyImageMagicBytes({ path: p }, ALLOWED, ERR_MSG); } catch (_e) { /* expected */ }
+    try { await verifyImageMagicBytes({ path: p }, ALLOWED, ERR_MSG); } catch { /* expected */ }
     expect(fs.existsSync(p)).toBe(false);
   });
 
