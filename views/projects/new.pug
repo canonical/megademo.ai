@@ -232,7 +232,7 @@ block scripts
       try {
         const res = await fetch(this.getAttribute('action'), {
           method: 'POST',
-          headers: { 'x-csrf-token': getCsrfToken() },
+          headers: { 'x-csrf-token': getCsrfToken(), 'Accept': 'application/json' },
           body: fd,
         });
         if (res.ok) {
