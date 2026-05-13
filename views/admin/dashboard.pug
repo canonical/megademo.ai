@@ -36,17 +36,17 @@ block content
           .mb-3
             label.md-label Hackathon Start
             input.md-input(type='datetime-local', name='hackStart',
-              value=(settings.hackathonStart ? String(settings.hackathonStart).slice(0,16) : ''))
+              data-utc=(settings.hackathonStart || ''))
             p.text-muted.small.mt-1
               strong When set, project registration is disabled until this time.
           .mb-3
             label.md-label Submission Deadline
             input.md-input(type='datetime-local', name='subDeadline',
-              value=(settings.submissionDeadline ? String(settings.submissionDeadline).slice(0,16) : ''))
+              data-utc=(settings.submissionDeadline || ''))
           .mb-3
             label.md-label MegaDemo Date &amp; Time
             input.md-input(type='datetime-local', name='megaDatetime',
-              value=(settings.megademoDate ? String(settings.megademoDate).slice(0,16) : ''))
+              data-utc=(settings.megademoDate || ''))
           button.btn.btn-neon-cyan(type='submit') Save Dates
         #admin-countdown-status.mt-3.small.text-muted(
           data-hackathon-start=(settings.hackathonStart || ''),
@@ -189,6 +189,31 @@ block scripts
         });
       });
     });
+    // Dates form: convert stored UTC ISO values to local datetime-local on display,
+    // and convert back to UTC ISO on submit — avoids server/browser timezone mismatch.
+    (function () {
+      var sectionInput = document.querySelector('form input[name="section"][value="dates"]');
+      if (!sectionInput) return;
+      var form = sectionInput.closest('form');
+      // Convert a UTC ISO (or tz-naive) string to the local datetime-local value "YYYY-MM-DDTHH:mm"
+      function utcToLocalInput(utcStr) {
+        if (!utcStr) return '';
+        var d = new Date(utcStr);
+        if (isNaN(d.getTime())) return '';
+        var localMs = d.getTime() - d.getTimezoneOffset() * 60000;
+        return new Date(localMs).toISOString().slice(0, 16);
+      }
+      // Populate inputs from data-utc (handles both old tz-naive and new UTC ISO stored values)
+      form.querySelectorAll('input[type="datetime-local"]').forEach(function (input) {
+        input.value = utcToLocalInput(input.dataset.utc || '');
+      });
+      // Before submit: convert local browser time → UTC ISO so server always gets a fixed-offset value
+      form.addEventListener('submit', function () {
+        form.querySelectorAll('input[type="datetime-local"]').forEach(function (input) {
+          if (input.value) input.value = new Date(input.value).toISOString();
+        });
+      });
+    })();
     // Admin countdown status — live display in Event Dates card
     (function () {
       var el = document.getElementById('admin-countdown-status');
