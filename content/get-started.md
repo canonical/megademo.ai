@@ -4,7 +4,7 @@ Madrid Engineering Sprint AI hackathon. See the announcement on Discourse: [Init
 
 ## Sign in
 
-Click **Sign in** — you need a `@canonical.com` account.
+Click **Sign in** — you need a GitHub account and belong to the `canonical` org.
 That's it. No separate registration.
 
 ---
@@ -61,4 +61,4 @@ The second countdown then shows time until the live **MegaDemo** presentation.
 
 ## Questions?
 
-Reach out in the event Mattermost channel: [~MegaDemo.ai](https://chat.canonical.com/canonical/channels/megademoai).
+Reach out in the event Mattermost channel: [Madrid Sprint - Megademo Hackathon](https://chat.canonical.com/canonical/channels/madrid-sprint---megademo-hackathon).
