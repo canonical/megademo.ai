@@ -383,6 +383,10 @@ exports.detail = async (req, res) => {
     if (vote) userVote = vote.stars;
   }
 
+  // Voting is open until the megademo event starts (or always if no date set)
+  const megademoDate = await Settings.get('megademoDate');
+  const votingOpen = !megademoDate || Date.now() < new Date(megademoDate).getTime();
+
   const isOwner = req.user && project.owner._id.toString() === req.user._id.toString();
   const isMember = req.user && project.team.some((m) => m._id.toString() === req.user._id.toString());
 
@@ -395,6 +399,7 @@ exports.detail = async (req, res) => {
     title: project.title,
     project: project.toObject({ virtuals: true }),
     userVote,
+    votingOpen,
     isOwner,
     isMember,
   });
@@ -595,6 +600,12 @@ exports.vote = async (req, res) => {
     const stars = parseInt(req.body.stars, 10);
     if (!stars || stars < 1 || stars > 5) {
       return res.status(400).json({ error: 'Stars must be 1-5.' });
+    }
+
+    // Voting closes when the megademo event starts
+    const megademoDate = await Settings.get('megademoDate');
+    if (megademoDate && Date.now() >= new Date(megademoDate).getTime()) {
+      return res.status(403).json({ error: 'Voting has closed.' });
     }
 
     const project = await Project.findById(req.params.id);

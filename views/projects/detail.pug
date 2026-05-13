@@ -147,7 +147,7 @@ block content
 
       // Sidebar: voting
       .col-lg-4
-        if user
+        if user && votingOpen
           .vote-panel
             h3.section-label VOTE
             p.vote-question How awesome is this?
@@ -172,9 +172,12 @@ block content
               span.vote-avg= project.avgRating ? project.avgRating.toFixed(1) : '—'
               span  ★ avg
               span.vote-count-label  (#{project.voteCount} #{project.voteCount === 1 ? 'vote' : 'votes'})
-            p.text-muted.small.mt-2
-              a(href=loginUrl) Sign in
-              |  to cast your vote.
+            if !votingOpen
+              p.text-muted.small.mt-2 Voting has closed.
+            else if !user
+              p.text-muted.small.mt-2
+                a(href=loginUrl) Sign in
+                |  to cast your vote.
 
         if (project.techStack && project.techStack.length) || (project.aiTools && project.aiTools.length)
           .tech-stack-panel
