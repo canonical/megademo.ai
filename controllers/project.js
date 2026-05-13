@@ -334,12 +334,11 @@ exports.create = async (req, res) => {
   project.status = isDraft ? 'draft' : 'submitted';
   await project.save();
 
-  // Optional: add team members by email (best-effort; skip unrecognised or non-canonical)
+  // Optional: add team members by email (best-effort; skip unrecognised)
   if (teamEmails && teamEmails.trim()) {
     const emails = teamEmails.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
     for (const email of emails) {
-      if (!email.endsWith('@canonical.com')) continue;
-      const member = await User.findOne({ email });
+      const member = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
       if (member && !project.team.some((id) => id.toString() === member._id.toString())) {
         project.team.push(member._id);
       }
@@ -527,14 +526,20 @@ exports.update = async (req, res) => {
     project.videos.push({ url: videoUrl.trim(), title: videoTitle || '', type: detectVideoType(videoUrl) });
   }
 
-  // Handle new team members added by email (only @canonical.com addresses)
+  // Handle new team members added by email
+  const skippedEmails = [];
+  const alreadyInTeamEmails = [];
   if (teamEmails && teamEmails.trim()) {
     const emails = teamEmails.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
     for (const email of emails) {
-      if (!email.endsWith('@canonical.com')) continue;
-      const member = await User.findOne({ email });
-      if (member && !project.team.some((m) => (m._id || m).toString() === member._id.toString())) {
+      // Case-insensitive lookup — IdPs may store emails with mixed case
+      const member = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
+      if (!member) {
+        skippedEmails.push(email);
+      } else if (!project.team.some((m) => (m._id || m).toString() === member._id.toString())) {
         project.team.push(member._id);
+      } else {
+        alreadyInTeamEmails.push(email);
       }
     }
   }
@@ -548,6 +553,8 @@ exports.update = async (req, res) => {
     const detail = changes.length ? `: ${changes.join(', ')}` : '';
     logActivity(req.user.email, `Submitted project '${project.title}'${detail}`).catch(() => {});
     req.flash('success', { msg: 'Project submitted! Good luck!' });
+    if (skippedEmails.length) req.flash('errors', { msg: `These emails were not added (not registered on the site): ${skippedEmails.join(', ')}` });
+    if (alreadyInTeamEmails.length) req.flash('info', { msg: `Already in team: ${alreadyInTeamEmails.join(', ')}` });
     return res.json({ redirect: `/projects/${project.slug}` });
   }
   if (status === 'draft' && project.status === 'submitted' && req.user.role === 'admin') project.status = 'draft';
@@ -557,6 +564,8 @@ exports.update = async (req, res) => {
   const detail = changes.length ? `: ${changes.join(', ')}` : ' (no changes)';
   logActivity(req.user.email, `Updated project '${project.title}'${detail}`).catch(() => {});
   req.flash('success', { msg: 'Project updated.' });
+  if (skippedEmails.length) req.flash('errors', { msg: `These emails were not added (not registered on the site): ${skippedEmails.join(', ')}` });
+  if (alreadyInTeamEmails.length) req.flash('info', { msg: `Already in team: ${alreadyInTeamEmails.join(', ')}` });
   return res.json({ redirect: `/projects/${project.slug}` });
 };
 
@@ -699,10 +708,7 @@ exports.updateTeam = async (req, res) => {
 
   if (addEmail) {
     const email = addEmail.toLowerCase().trim();
-    if (!email.endsWith('@canonical.com')) {
-      return res.status(400).json({ error: 'Only @canonical.com members can be added.' });
-    }
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
     if (!user) return res.status(404).json({ error: `No account found for ${email}. They must log in first.` });
     if (!project.team.some((id) => id.toString() === user._id.toString())) {
       project.team.push(user._id);

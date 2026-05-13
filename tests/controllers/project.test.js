@@ -114,12 +114,12 @@ describe('vote()', () => {
 // ─── updateTeam ───────────────────────────────────────────────────────────
 
 describe('updateTeam()', () => {
-  it('rejects a non-canonical email', async () => {
+  it('returns 404 for an unregistered email', async () => {
     const req = makeReq({ params: { id: project._id.toString() }, body: { addEmail: 'hacker@gmail.com' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.updateTeam(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringContaining('canonical.com') }));
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringContaining('No account found') }));
   });
 
   it('returns 404 when the added user has no account', async () => {
