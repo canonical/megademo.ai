@@ -3,7 +3,7 @@ const { marked } = require('marked');
 const sanitizeHtml = require('sanitize-html');
 
 const SANITIZE_OPTIONS = {
-  allowedTags: sanitizeHtml.defaults.allowedTags,
+  allowedTags: sanitizeHtml.defaults.allowedTags.filter((tag) => tag !== 'img'),
   allowedAttributes: { ...sanitizeHtml.defaults.allowedAttributes, '*': ['class'] },
 };
 

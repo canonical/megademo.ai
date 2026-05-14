@@ -24226,6 +24226,46 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   min-width: 160px;
 }
 
+.pagination-nav {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.pagination {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.page-item.active .page-link {
+  background: #00d4ff;
+  color: #05050f;
+  border-color: #00d4ff;
+}
+
+.page-link {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+  color: #c8e6ff;
+  text-decoration: none;
+  background: #0d0d2b;
+  transition: background 0.15s, border-color 0.15s;
+}
+.page-link:hover {
+  border-color: #00d4ff;
+  color: #00d4ff;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));

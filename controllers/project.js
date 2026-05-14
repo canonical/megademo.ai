@@ -220,8 +220,16 @@ exports.list = async (req, res) => {
     votes:   { voteCount: -1 },
   };
 
+  const PER_PAGE = 24;
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const totalProjects = await Project.countDocuments(filter);
+  const totalPages = Math.max(1, Math.ceil(totalProjects / PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+
   const projects = await Project.find(filter)
     .sort(sortMap[sort] || sortMap.newest)
+    .skip((safePage - 1) * PER_PAGE)
+    .limit(PER_PAGE)
     .populate('owner', 'profile.name profile.picture')
     .lean();
 
@@ -243,6 +251,7 @@ exports.list = async (req, res) => {
     CATEGORIES,
     CANONICAL_TEAMS: teamList,
     filters: { category, team, sort },
+    pagination: { page: safePage, totalPages, totalProjects },
   });
 };
 

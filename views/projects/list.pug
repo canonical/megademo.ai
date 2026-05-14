@@ -3,7 +3,7 @@ extends ../layout
 block content
   .page-header
     h1.pixel-text PROJECTS
-    p.lead Browse all #{projects.length} submitted AI experiments
+    p.lead Browse all #{pagination.totalProjects} submitted AI experiments
 
   // Filters
   form.filters-bar(method='GET', action='/projects')
@@ -25,6 +25,32 @@ block content
     .projects-grid-full
       each project in projects
         include ../partials/project-card
+
+    if pagination.totalPages > 1
+      nav.pagination-nav(aria-label='Project pages')
+        ul.pagination.justify-content-center
+          li.page-item(class=(pagination.page <= 1 ? 'disabled' : ''))
+            - var prevParams = new URLSearchParams()
+            - if (filters.category) prevParams.set('category', filters.category)
+            - if (filters.team) prevParams.set('team', filters.team)
+            - if (filters.sort && filters.sort !== 'newest') prevParams.set('sort', filters.sort)
+            - prevParams.set('page', pagination.page - 1)
+            a.page-link(href=`/projects?${prevParams}`, aria-label='Previous') &laquo; Prev
+          - for (var i = 1; i <= pagination.totalPages; i++)
+            li.page-item(class=(i === pagination.page ? 'active' : ''))
+              - var pgParams = new URLSearchParams()
+              - if (filters.category) pgParams.set('category', filters.category)
+              - if (filters.team) pgParams.set('team', filters.team)
+              - if (filters.sort && filters.sort !== 'newest') pgParams.set('sort', filters.sort)
+              - pgParams.set('page', i)
+              a.page-link(href=`/projects?${pgParams}`)= i
+          li.page-item(class=(pagination.page >= pagination.totalPages ? 'disabled' : ''))
+            - var nextParams = new URLSearchParams()
+            - if (filters.category) nextParams.set('category', filters.category)
+            - if (filters.team) nextParams.set('team', filters.team)
+            - if (filters.sort && filters.sort !== 'newest') nextParams.set('sort', filters.sort)
+            - nextParams.set('page', pagination.page + 1)
+            a.page-link(href=`/projects?${nextParams}`, aria-label='Next') Next &raquo;
   else
     .empty-state.text-center.py-5
       p.text-muted No projects match your filters.

@@ -1046,6 +1046,39 @@ $caret-url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width=
   .md-select { width: auto; min-width: 160px; }
 }
 
+.pagination-nav {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $color-border;
+}
+.pagination {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 0.25rem;
+}
+.page-item {
+  &.disabled .page-link { opacity: 0.4; pointer-events: none; }
+  &.active .page-link {
+    background: $color-primary;
+    color: $color-bg;
+    border-color: $color-primary;
+  }
+}
+.page-link {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  color: $color-text;
+  text-decoration: none;
+  background: $color-surface;
+  transition: background 0.15s, border-color 0.15s;
+  &:hover { border-color: $color-primary; color: $color-primary; }
+}
+
 // -- Admin ---------------------------------------------------
 .stats-grid {
   display: grid;
