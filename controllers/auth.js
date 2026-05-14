@@ -73,9 +73,24 @@ exports.isAdmin = (req, res, next) => {
 };
 
 /**
+ * Regenerate the session to prevent session fixation, preserving key data.
+ * Must be called before req.logIn() in every authentication callback.
+ */
+function regenerateSession(req, cb) {
+  const returnTo = req.session.returnTo;
+  const csrfSecret = req.session._csrfSecret;
+  req.session.regenerate((err) => {
+    if (err) return cb(err);
+    if (returnTo) req.session.returnTo = returnTo;
+    if (csrfSecret) req.session._csrfSecret = csrfSecret;
+    cb(null);
+  });
+}
+
+/**
  * GET /auth/github
  */
-exports.githubLogin = passport.authenticate('github', { scope: ['user:email', 'read:org'] });
+exports.githubLogin = passport.authenticate('github', { scope: ['user:email', 'read:org'], state: true });
 
 /**
  * GET /auth/github/callback
@@ -84,12 +99,15 @@ exports.githubCallback = (req, res, next) => {
   passport.authenticate('github', (err, user) => {
     if (err) return next(err);
     if (!user) return res.redirect('/');
-    req.logIn(user, { keepSessionInfo: true }, (loginErr) => {
-      if (loginErr) return next(loginErr);
-      logActivity(user.email, 'Logged in (GitHub)').catch(() => {});
-      const returnTo = safeReturnTo(req.session.returnTo);
-      delete req.session.returnTo;
-      res.redirect(returnTo);
+    regenerateSession(req, (regenErr) => {
+      if (regenErr) return next(regenErr);
+      req.logIn(user, (loginErr) => {
+        if (loginErr) return next(loginErr);
+        logActivity(user.email, 'Logged in (GitHub)').catch(() => {});
+        const returnTo = safeReturnTo(req.session.returnTo);
+        delete req.session.returnTo;
+        res.redirect(returnTo);
+      });
     });
   })(req, res, next);
 };
@@ -123,21 +141,20 @@ exports.devLoginForm = (req, res) => {
 };
 
 /**
- * GET /auth/test-login — token-gated test user login for production testing.
+ * POST /auth/test-login — token-gated test user login for production testing.
  * Enabled only when TEST_LOGIN_TOKEN env var is set.
- * Usage: /auth/test-login?token=SECRET[&role=participant|admin]
+ * Usage: POST /auth/test-login { token: "SECRET", role: "participant"|"admin" }
  */
 exports.testLogin = async (req, res, next) => {
   const configuredToken = process.env.TEST_LOGIN_TOKEN;
   if (!configuredToken) {
     return res.status(404).render('error', { title: 'Not Found', message: 'Page not found.', user: null });
   }
-  if (!req.query.token || (() => {
+  const submittedToken = req.body?.token || req.query?.token;
+  if (!submittedToken || (() => {
     try {
-      // HMAC both sides with a derived key so timingSafeEqual always
-      // compares equal-length digests — avoids leaking token length.
       const key  = crypto.createHash('sha256').update(configuredToken).digest();
-      const a    = crypto.createHmac('sha256', key).update(req.query.token).digest();
+      const a    = crypto.createHmac('sha256', key).update(submittedToken).digest();
       const b    = crypto.createHmac('sha256', key).update(configuredToken).digest();
       return !crypto.timingSafeEqual(a, b);
     } catch { return true; }
@@ -146,7 +163,7 @@ exports.testLogin = async (req, res, next) => {
   }
 
   const ALLOWED_ROLES = ['participant', 'admin'];
-  const role = ALLOWED_ROLES.includes(req.query.role) ? req.query.role : 'participant';
+  const role = ALLOWED_ROLES.includes(req.body?.role || req.query?.role) ? (req.body?.role || req.query?.role) : 'participant';
   const email = `test-${role}@megademo-test.local`;
 
   try {
@@ -164,12 +181,15 @@ exports.testLogin = async (req, res, next) => {
     }
     await user.save();
 
-    req.logIn(user, { keepSessionInfo: true }, (err) => {
-      if (err) return next(err);
-      logActivity(user.email, 'Logged in (test)').catch(() => {});
-      const returnTo = safeReturnTo(req.session.returnTo);
-      delete req.session.returnTo;
-      res.redirect(returnTo);
+    regenerateSession(req, (regenErr) => {
+      if (regenErr) return next(regenErr);
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        logActivity(user.email, 'Logged in (test)').catch(() => {});
+        const returnTo = safeReturnTo(req.session.returnTo);
+        delete req.session.returnTo;
+        res.redirect(returnTo);
+      });
     });
   } catch (err) { next(err); }
 };
@@ -207,12 +227,15 @@ exports.devLogin = async (req, res, next) => {
       user.role = role;
       await user.save();
     }
-    req.logIn(user, { keepSessionInfo: true }, (err) => {
-      if (err) return next(err);
-      logActivity(user.email, 'Logged in (dev)').catch(() => {});
-      const returnTo = safeReturnTo(req.session.returnTo);
-      delete req.session.returnTo;
-      res.redirect(returnTo);
+    regenerateSession(req, (regenErr) => {
+      if (regenErr) return next(regenErr);
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        logActivity(user.email, 'Logged in (dev)').catch(() => {});
+        const returnTo = safeReturnTo(req.session.returnTo);
+        delete req.session.returnTo;
+        res.redirect(returnTo);
+      });
     });
   } catch (err) { next(err); }
 };
@@ -293,12 +316,15 @@ exports.oidcCallback = async (req, res, next) => {
 
     await user.save();
 
-    req.logIn(user, { keepSessionInfo: true }, (err) => {
-      if (err) return next(err);
-      logActivity(user.email, 'Logged in (OIDC)').catch(() => {});
-      const returnTo = safeReturnTo(req.session.returnTo);
-      delete req.session.returnTo;
-      res.redirect(returnTo);
+    regenerateSession(req, (regenErr) => {
+      if (regenErr) return next(regenErr);
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        logActivity(user.email, 'Logged in (OIDC)').catch(() => {});
+        const returnTo = safeReturnTo(req.session.returnTo);
+        delete req.session.returnTo;
+        res.redirect(returnTo);
+      });
     });
   } catch (err) {
     console.error('OIDC callback error:', err.message);

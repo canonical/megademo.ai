@@ -6,9 +6,22 @@ const { Project } = require('../models/Project');
 
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-function extractRepoPath(url) {
-  const match = url.match(/github\.com\/([^/]+\/[^/?#]+?)(?:\.git)?(?:[/?#].*)?$/);
-  return match ? match[1] : null;
+/**
+ * Strictly extract owner/repo from a GitHub URL.
+ * Uses URL parser (not regex) to prevent SSRF via lookalike hostnames.
+ */
+function extractRepoPath(urlStr) {
+  try {
+    const parsed = new URL(urlStr);
+    if (parsed.hostname !== 'github.com' && parsed.hostname !== 'www.github.com') return null;
+    const segments = parsed.pathname.replace(/\.git$/, '').split('/').filter(Boolean);
+    if (segments.length < 2) return null;
+    const [owner, repo] = segments;
+    if (!/^[a-zA-Z0-9._-]+$/.test(owner) || !/^[a-zA-Z0-9._-]+$/.test(repo)) return null;
+    return `${owner}/${repo}`;
+  } catch {
+    return null;
+  }
 }
 
 function parseVideoId(url) {

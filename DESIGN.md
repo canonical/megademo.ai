@@ -15,12 +15,12 @@ Source: [canonical/megademo.ai](https://github.com/canonical/megademo.ai) · Lic
 | Templates | Pug + Bootstrap 5 + custom SCSS |
 | Auth | Passport.js — **OIDC** (Canonical Identity Platform / Ory Hydra, drop-in ready) **or** GitHub OAuth 2.0 (org-restricted to `canonical`) |
 | Sessions | express-session stored in MongoDB (connect-mongo; `touchAfter: 3600`) |
-| Security | Helmet (CSP with per-request nonces + SRI), lusca (CSRF), express-rate-limit, sanitize-html, URL-scheme allowlist |
+| Security | Helmet (CSP with per-request nonces + SRI), lusca (CSRF), express-rate-limit (global + per-endpoint), sanitize-html, URL-scheme allowlist, session regeneration, optimistic concurrency |
 | File uploads | multer (project logos / asciinema casts) — stored on a Render persistent disk (`/data/uploads`, 1 GB), served at `/uploads` |
 | Notifications | Mattermost webhook + daily summary cron (node-cron) |
 | Deployment | Render.com Starter (render.yaml); persistent disk for uploads (`/data/uploads`, 1 GB) |
 | Tests | Jest + Supertest + mongodb-memory-server |
-| CI/CD | GitHub Actions (lint-check + Jest); husky pre-commit hook mirrors CI locally |
+| CI/CD | GitHub Actions (npm audit + lint-check + Jest); husky pre-commit hook mirrors CI locally |
 | Load testing | Artillery (`scripts/load-test.yml`) |
 
 ---
@@ -191,3 +191,27 @@ Upgrade thresholds (run `npm run load-test` to measure):
 - p95 > 500ms / CPU saturation → Render Standard ($25/mo)
 - p99 > 2s or MongoDB errors → Atlas M2 ($9/mo)
 
+---
+
+## Security hardening
+
+Applied via [security audit remediation](https://github.com/lengau/megademo-security-audit):
+
+- **Session fixation**: All auth callbacks regenerate the session before `req.logIn()`, preserving CSRF and returnTo
+- **OAuth state**: GitHub OAuth uses `state: true` (Passport-managed CSRF token)
+- **Test login**: POST-only to keep token out of URL/logs
+- **SSRF**: `extractRepoPath()` uses strict `new URL()` parsing (hostname must be `github.com`)
+- **Submission deadline**: Server-side enforcement on create/submit; admins bypass
+- **Draft voting blocked**: Vote handler rejects votes on draft-status projects
+- **Uploads auth**: `/uploads` served after production auth gate
+- **Markdown**: `<img>` removed from `sanitize-html` allowedTags (prevents external beacons)
+- **Mattermost injection**: User content escaped in webhook messages
+- **ObjectId validation**: `app.param('id')` rejects malformed IDs with 400
+- **Vote rate limiting**: Dedicated per-user limiter (10/min) on vote endpoint
+- **Creation limits**: Max 5 projects/user, max 10 team members/project
+- **Milestone dedup**: Atomic `$addToSet` on `milestonesFired` field
+- **Optimistic concurrency**: `optimisticConcurrency: true` on Project schema
+- **Cache-Control**: `no-store, private` on authenticated dynamic pages
+- **Orphan cleanup**: Old logo files deleted on replacement/project deletion
+- **Static before session**: Public assets served before session middleware
+- **CI audit**: `npm audit --audit-level=high` in CI pipeline

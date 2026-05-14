@@ -78,6 +78,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const voteLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+  message: { error: 'Too many votes — please slow down.' },
+});
+
 /**
  * Controllers
  */
@@ -193,10 +202,13 @@ app.use(helmet({
   hsts: secureTransfer ? { maxAge: 31536000, includeSubDomains: true } : false,
 }));
 if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('dev'));
+  app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static assets BEFORE session middleware — CSS/JS/images don't need sessions
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
 // Render.com places 2 proxies in front of the app (edge + internal LB).
 // Setting trust proxy to 2 ensures express-rate-limit reads the real
@@ -317,9 +329,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1d' }));
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
-
 /**
  * Global authentication gate — active in production (both GitHub OAuth and OIDC).
  * Gates the entire site: every request (except /auth/*) requires
@@ -339,9 +348,30 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Uploaded assets served after auth gate — requires login in production
+app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1d' }));
+
+// Anti-caching for authenticated dynamic pages — prevent shared caches from serving stale HTML
+app.use((req, res, next) => {
+  if (req.isAuthenticated()) {
+    res.set('Cache-Control', 'no-store, private');
+  }
+  next();
+});
+
 /**
  * Routes
  */
+// Validate :id param on project routes — reject malformed ObjectIds early (400 instead of 500)
+app.param('id', (req, res, next, id) => {
+  const mongoose = require('mongoose');
+  if (!mongoose.isValidObjectId(id)) {
+    const isJson = req.xhr || (req.headers.accept || '').includes('application/json');
+    if (isJson) return res.status(400).json({ error: 'Invalid ID.' });
+    return res.status(400).render('error', { title: 'Bad Request', message: 'Invalid project ID.', user: req.user || null });
+  }
+  next();
+});
 // Health check — must be before auth gate, no rate limiting, no session needed
 app.get('/health', (req, res) => res.sendStatus(200));
 
@@ -359,8 +389,8 @@ if (process.env.NODE_ENV !== 'production') {
   app.post('/auth/dev-login', authController.devLogin);
 }
 
-// Token-gated test login — active on prod when TEST_LOGIN_TOKEN is set
-app.get('/auth/test-login', authLimiter, authController.testLogin);
+// Token-gated test login — active on prod when TEST_LOGIN_TOKEN is set (POST only)
+app.post('/auth/test-login', authLimiter, authController.testLogin);
 
 // Home
 app.get('/', homeController.index);
@@ -380,7 +410,7 @@ app.get('/projects/:slug', projectController.detail);
 app.get('/projects/:id/edit', authController.isAuthenticated, projectController.editForm);
 app.post('/projects/:id', authController.isAuthenticated, projectController.update);
 app.delete('/projects/:id', authController.isAuthenticated, projectController.remove);
-app.post('/projects/:id/vote', authController.isAuthenticated, projectController.vote);
+app.post('/projects/:id/vote', authController.isAuthenticated, voteLimiter, projectController.vote);
 app.post('/projects/:id/media', authController.isAuthenticated, projectController.addMedia);
 app.post('/projects/:id/team', authController.isAuthenticated, projectController.updateTeam);
 app.post('/projects/:id/join', authController.isAuthenticated, projectController.joinProject);

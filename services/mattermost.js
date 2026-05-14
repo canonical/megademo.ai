@@ -4,6 +4,11 @@
 const axios = require('axios');
 const Settings = require('../models/Settings');
 
+/** Escape markdown special chars in user-supplied content for Mattermost webhooks */
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/[*_~`[\]|>#]/g, '\\$&');
+}
 const CATEGORY_ICON = {
   'Coding Assistant':      ':computer:',
   'CI/CD Automation':      ':rocket:',
@@ -42,9 +47,9 @@ async function notifyProjectSubmitted(project, baseUrl) {
     : '';
 
   await post([
-    `## ${icon} New project submitted: **[${project.title}](${url})**`,
-    `**Category:** ${project.category}   |   **Team:** ${project.canonicalTeam}`,
-    `**AI tools:** ${project.aiTools?.join(', ') || 'Not specified'}`,
+    `## ${icon} New project submitted: **[${esc(project.title)}](${url})**`,
+    `**Category:** ${project.category}   |   **Team:** ${esc(project.canonicalTeam)}`,
+    `**AI tools:** ${project.aiTools?.map(esc).join(', ') || 'Not specified'}`,
     desc,
   ].filter(Boolean).join('\n'));
 }
@@ -58,8 +63,8 @@ async function notifyFinalistPromoted(project, baseUrl) {
   const rating = project.avgRating != null ? `⭐ ${Number(project.avgRating).toFixed(1)}/5` : 'No votes yet';
 
   await post([
-    `## 🏆 Finalist announced: **[${project.title}](${url})**`,
-    `${icon} **Category:** ${project.category}   |   **Team:** ${project.canonicalTeam}`,
+    `## 🏆 Finalist announced: **[${esc(project.title)}](${url})**`,
+    `${icon} **Category:** ${project.category}   |   **Team:** ${esc(project.canonicalTeam)}`,
     `**Rating:** ${rating} (${project.voteCount || 0} votes)`,
     `Congratulations to the team! 🎉`,
   ].join('\n'));
@@ -75,7 +80,7 @@ const _pendingMilestones = [];
 function recordVotingMilestone(project, milestone, baseUrl) {
   const url = `${baseUrl}/projects/${project.slug}`;
   _pendingMilestones.push({
-    title:     project.title,
+    title:     esc(project.title),
     url,
     milestone,
     avgRating: project.avgRating,
@@ -91,7 +96,7 @@ async function postHourlySummary({ finalists, teams, votes, topProjects }) {
   const medal = ['🥇', '🥈', '🥉'];
   const topLines = topProjects.length
     ? topProjects.map((p, i) =>
-        `${medal[i] || `${i + 1}.`} **[${p.title}](${p.url})** — ⭐ ${p.avgRating != null ? Number(p.avgRating).toFixed(1) : '—'} (${p.voteCount ?? 0} votes)`
+        `${medal[i] || `${i + 1}.`} **[${esc(p.title)}](${p.url})** — ⭐ ${p.avgRating != null ? Number(p.avgRating).toFixed(1) : '—'} (${p.voteCount ?? 0} votes)`
       ).join('\n')
     : '_No votes yet — be the first!_';
 

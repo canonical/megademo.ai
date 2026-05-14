@@ -3,6 +3,7 @@
  */
 const multer = require('multer');
 const path = require('node:path');
+const fs = require('node:fs');
 const { verifyImageMagicBytes } = require('../services/imageTypeCheck');
 const { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness } = require('../models/Project');
 
@@ -29,7 +30,10 @@ function isSafeUrl(url) {
 function parseCastId(input) {
   const s = (input || '').trim();
   const m = s.match(/(?:asciinema\.org\/a\/)([A-Za-z0-9]+)/);
-  return m ? m[1] : s;
+  if (m) return m[1];
+  // Bare ID — must be alphanumeric only
+  if (/^[A-Za-z0-9]+$/.test(s)) return s;
+  return null;
 }
 const Vote = require('../models/Vote');
 const User = require('../models/User');
@@ -52,6 +56,13 @@ async function getAiToolsList() {
 async function getTechStackList() {
   const custom = await Settings.get('customTechStack');
   return (Array.isArray(custom) && custom.length) ? custom : [...TECH_STACK_DEFAULTS];
+}
+
+/** Check if project submissions are past deadline. Admins bypass. */
+async function isPastSubmissionDeadline(user) {
+  if (user?.role === 'admin') return false;
+  const deadline = await Settings.get('submissionDeadline');
+  return deadline && Date.now() > new Date(deadline).getTime();
 }
 
 /** Returns true if user may edit the project (owner, team member, or admin). */
@@ -268,6 +279,18 @@ exports.create = async (req, res) => {
     return res.redirect('/');
   }
 
+  if (await isPastSubmissionDeadline(req.user)) {
+    return res.status(403).json({ errors: [{ msg: 'The submission deadline has passed. Projects can no longer be created.' }] });
+  }
+
+  // Per-user project limit (admins exempt)
+  if (req.user.role !== 'admin') {
+    const userProjectCount = await Project.countDocuments({ owner: req.user._id });
+    if (userProjectCount >= 5) {
+      return res.status(400).json({ errors: [{ msg: 'You can create a maximum of 5 projects.' }] });
+    }
+  }
+
   // Parse multipart body (handles logo file upload); must run before reading req.body
   try {
     await new Promise((resolve, reject) => upload(req, res, (err) => (err ? reject(err) : resolve())));
@@ -325,7 +348,10 @@ exports.create = async (req, res) => {
 
   // Optional: add asciinema cast from registration form
   if (asciinemaId && asciinemaId.trim()) {
-    project.asciinema.push({ castId: parseCastId(asciinemaId), title: (asciinemaTitle || '').trim() });
+    const castIdParsed = parseCastId(asciinemaId);
+    if (castIdParsed) {
+      project.asciinema.push({ castId: castIdParsed, title: (asciinemaTitle || '').trim() });
+    }
   }
 
   // Optional: add video from registration form
@@ -507,8 +533,12 @@ exports.update = async (req, res) => {
   project.demoUrl = demoUrl !== undefined ? demoUrl : project.demoUrl;
   project.slidesUrl = slidesUrl !== undefined ? slidesUrl : project.slidesUrl;
 
-  // Handle logo upload
+  // Handle logo upload — remove old file to prevent orphans
   if (req.file) {
+    if (project.logo) {
+      const oldPath = path.join(__dirname, '..', 'public', project.logo);
+      fs.unlink(oldPath, () => {}); // best-effort cleanup
+    }
     project.logo = `/uploads/${req.file.filename}`;
   }
 
@@ -518,7 +548,12 @@ exports.update = async (req, res) => {
       req.flash('errors', { msg: 'Maximum 3 asciinema recordings allowed. Remove one before adding another.' });
       return res.redirect(`/projects/${project._id}/edit`);
     }
-    project.asciinema.push({ castId: parseCastId(castId), title: castTitle || '' });
+    const castIdParsed = parseCastId(castId);
+    if (!castIdParsed) {
+      req.flash('errors', { msg: 'Invalid asciinema cast ID.' });
+      return res.redirect(`/projects/${project._id}/edit`);
+    }
+    project.asciinema.push({ castId: castIdParsed, title: castTitle || '' });
   }
 
   // Handle new video
@@ -554,6 +589,9 @@ exports.update = async (req, res) => {
 
   // Only change status to submitted (not finalist — that's admin-only)
   if (status === 'submitted' && project.status === 'draft') {
+    if (await isPastSubmissionDeadline(req.user)) {
+      return res.status(403).json({ errors: [{ msg: 'The submission deadline has passed. Projects can no longer be submitted.' }] });
+    }
     project.status = 'submitted';
     await project.save();
     notifyProjectSubmitted(project, process.env.BASE_URL || 'http://localhost:8080').catch(() => {});
@@ -589,6 +627,11 @@ exports.remove = async (req, res) => {
   if (project.status === 'submitted' || project.status === 'finalist') {
     return res.status(400).json({ error: 'Cannot delete a submitted project. Ask an admin.' });
   }
+  // Clean up logo file before deleting project record
+  if (project.logo) {
+    const logoPath = path.join(__dirname, '..', 'public', project.logo);
+    fs.unlink(logoPath, () => {});
+  }
   await Project.deleteOne({ _id: project._id });
   await Vote.deleteMany({ project: project._id });
   logActivity(req.user.email, `Deleted project '${project.title}'`).catch(() => {});
@@ -614,6 +657,10 @@ exports.vote = async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found.' });
 
+    if (project.status === 'draft') {
+      return res.status(403).json({ error: 'Cannot vote on draft projects.' });
+    }
+
     const prevCount = project.voteCount;
 
     await Vote.findOneAndUpdate(
@@ -638,7 +685,14 @@ exports.vote = async (req, res) => {
     const MILESTONES = [5, 10, 25, 50];
     const hit = MILESTONES.find((m) => prevCount < m && project.voteCount >= m);
     if (hit) {
-      recordVotingMilestone(project, hit, process.env.BASE_URL || 'http://localhost:8080');
+      // Atomic dedup — only record if milestone wasn't already fired
+      const updated = await Project.findOneAndUpdate(
+        { _id: project._id, milestonesFired: { $ne: hit } },
+        { $addToSet: { milestonesFired: hit } },
+      );
+      if (updated) {
+        recordVotingMilestone(project, hit, process.env.BASE_URL || 'http://localhost:8080');
+      }
     }
 
     res.json({ avgRating: project.avgRating, voteCount: project.voteCount, totalStars: project.totalStars, userStars: stars });
@@ -687,7 +741,12 @@ exports.addMedia = async (req, res, _next) => {
         req.flash('errors', { msg: 'Maximum 3 asciinema recordings allowed. Remove one before adding another.' });
         return res.redirect(`/projects/${req.params.id}/edit`);
       }
-      project.asciinema.push({ castId: parseCastId(castId), title: castTitle || '' });
+      const castIdParsed = parseCastId(castId);
+      if (!castIdParsed) {
+        req.flash('errors', { msg: 'Invalid asciinema cast ID.' });
+        return res.redirect(`/projects/${req.params.id}/edit`);
+      }
+      project.asciinema.push({ castId: castIdParsed, title: castTitle || '' });
     }
     if (videoUrl && videoUrl.trim()) {
       if (project.videos.length >= 3) {
@@ -747,7 +806,7 @@ exports.updateTeam = async (req, res) => {
  */
 exports.searchUsers = async (req, res) => {
   const q = (req.query.q || '').trim();
-  if (q.length < 2) return res.json([]);
+  if (q.length < 2 || q.length > 50) return res.json([]);
   const re = new RegExp(escapeRegex(q), 'i');
   const users = await User.find({
     $or: [{ email: re }, { 'profile.name': re }],
@@ -782,6 +841,9 @@ exports.joinProject = async (req, res) => {
 
     const userId = req.user._id.toString();
     if (!project.team.some((id) => id.toString() === userId)) {
+      if (project.team.length >= 10) {
+        return res.status(400).json({ error: 'This project has reached the maximum team size (10 members).' });
+      }
       project.team.push(req.user._id);
       await project.save();
     }
@@ -806,7 +868,12 @@ exports.leaveProject = async (req, res) => {
       return res.status(400).json({ error: 'Project owner cannot leave. Delete the project instead.' });
     }
 
-    project.team = project.team.filter((id) => id.toString() !== req.user._id.toString());
+    const userId = req.user._id.toString();
+    if (!project.team.some((id) => id.toString() === userId)) {
+      return res.status(400).json({ error: 'You are not a member of this project.' });
+    }
+
+    project.team = project.team.filter((id) => id.toString() !== userId);
     await project.save();
     res.json({ success: true, memberCount: project.team.length });
   } catch (err) {

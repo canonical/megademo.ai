@@ -56,6 +56,12 @@ beforeEach(async () => {
 // ─── vote ─────────────────────────────────────────────────────────────────
 
 describe('vote()', () => {
+  beforeEach(async () => {
+    // Vote tests need a submitted project (draft voting is now blocked)
+    project.status = 'submitted';
+    await project.save();
+  });
+
   it('returns 400 for stars = 0', async () => {
     const req = makeReq({ params: { id: project._id.toString() }, body: { stars: '0' }, user: { _id: stranger._id } });
     const res = makeRes();

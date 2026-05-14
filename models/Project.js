@@ -3,7 +3,7 @@ const { marked } = require('marked');
 const sanitizeHtml = require('sanitize-html');
 
 const SANITIZE_OPTIONS = {
-  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+  allowedTags: sanitizeHtml.defaults.allowedTags,
   allowedAttributes: { ...sanitizeHtml.defaults.allowedAttributes, '*': ['class'] },
 };
 
@@ -77,6 +77,7 @@ const projectSchema = new mongoose.Schema(
     avgRating:  { type: Number, default: 0 },
     voteCount:  { type: Number, default: 0 },
     totalStars: { type: Number, default: 0 },
+    milestonesFired: [Number],
 
     // GitHub stats cache
     githubStats: [{
@@ -87,7 +88,7 @@ const projectSchema = new mongoose.Schema(
       fetchedAt: Date,
     }],
   },
-  { timestamps: true },
+  { timestamps: true, optimisticConcurrency: true },
 );
 
 // Auto-generate slug from title
