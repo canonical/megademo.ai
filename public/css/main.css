@@ -24801,37 +24801,49 @@ input[type=file]::file-selector-button:hover {
 
 .viz-granularity-nav {
   margin-bottom: 1rem;
-  font-size: 12px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.72rem;
   color: #7a8baa;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4em;
 }
 
 .viz-granularity-label {
   text-transform: uppercase;
-  margin-right: 0.3em;
+  margin-right: 0.2em;
 }
 
 .viz-pill {
   display: inline-block;
-  padding: 0.3em 0.85em;
-  margin: 0 0.25em;
-  border: 1px solid rgba(0, 212, 255, 0.25);
-  border-radius: 999px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.72rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 212, 255, 0.35);
   text-decoration: none;
   color: #7a8baa;
-  font-size: 12px;
   letter-spacing: 1px;
   text-transform: lowercase;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+  line-height: 1;
 }
 .viz-pill:hover {
   color: #00d4ff;
   border-color: #00d4ff;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+  text-decoration: none;
 }
 .viz-pill.active {
   background: #ff4da6;
   color: #05050f;
   border-color: #ff4da6;
-  box-shadow: 0 0 12px rgba(255, 77, 166, 0.4);
+  box-shadow: 0 0 14px rgba(255, 77, 166, 0.45);
+  text-decoration: none;
 }
 
 .viz-meta {

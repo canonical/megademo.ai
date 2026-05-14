@@ -65,14 +65,14 @@ block content
           button.btn.btn-neon-cyan(type='submit') Save Webhook
         form.mt-2(method='POST', action='/admin/mattermost/send')
           input(type='hidden', name='_csrf', value=_csrf)
-          button.btn.btn-outline-light(type='submit') Send Summary Now
+          button.btn.btn-neon-outline(type='submit') Send Summary Now
 
       .md-card.mt-3
         h3.section-label Visualization Sync
         p.small.text-muted Fetch latest project cluster visualization from GitHub.
         form(method='POST', action='/admin/visualize/sync')
           input(type='hidden', name='_csrf', value=_csrf)
-          button.btn.btn-outline-light(type='submit') Sync Now
+          button.btn.btn-neon-outline(type='submit') Sync Now
 
   .md-card.mt-4
     h3.section-label Announcement Banner

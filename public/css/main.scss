@@ -1456,41 +1456,53 @@ input[type='file'] {
   }
 }
 
-// Granularity nav pills
+// Granularity nav pills — pixel-themed to match site buttons
 .viz-granularity-nav {
   margin-bottom: 1rem;
-  font-size: 12px;
+  font-family: $btn-px-font;
+  font-size: $btn-px-size;
   color: $color-muted;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4em;
 }
 
 .viz-granularity-label {
   text-transform: uppercase;
-  margin-right: 0.3em;
+  margin-right: 0.2em;
 }
 
 .viz-pill {
   display: inline-block;
-  padding: 0.3em 0.85em;
-  margin: 0 0.25em;
-  border: 1px solid rgba($color-primary, 0.25);
-  border-radius: 999px;
+  font-family: $btn-px-font;
+  font-size: $btn-px-size;
+  padding: $btn-px-pad;
+  border-radius: $btn-px-radius;
+  border: 1px solid rgba($color-primary, 0.35);
   text-decoration: none;
   color: $color-muted;
-  font-size: 12px;
   letter-spacing: 1px;
   text-transform: lowercase;
+  background: transparent;
+  cursor: pointer;
+  transition: $btn-px-trans;
+  line-height: 1;
 
   &:hover {
     color: $color-primary;
     border-color: $color-primary;
+    box-shadow: 0 0 12px rgba($color-primary, 0.4);
+    text-decoration: none;
   }
 
   &.active {
     background: $color-secondary;
     color: $color-bg;
     border-color: $color-secondary;
-    box-shadow: 0 0 12px rgba($color-secondary, 0.4);
+    box-shadow: 0 0 14px rgba($color-secondary, 0.45);
+    text-decoration: none;
   }
 }
 
