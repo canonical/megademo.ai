@@ -30,6 +30,16 @@ A **husky pre-commit hook** (`.husky/pre-commit`) enforces this locally. It runs
 - Do not push as part of routine task completion, even after all CI checks pass.
 - When the user says "push" (or equivalent), push all pending commits at that point.
 
+## Git Worktree Policy
+
+**ALWAYS use git worktrees for new features and modifications.**
+
+- Before starting any feature or code change, create a git worktree (e.g. `git worktree add ../megademo.ai-<branch> -b <branch>`)
+- Work entirely inside the worktree directory; do not modify the main working tree
+- This prevents mid-flight conflicts when multiple parallel changes are in progress
+- Merge or rebase back to `main` only when the work is complete and verified
+- Clean up worktrees after merging (`git worktree remove`)
+
 ## Documentation Maintenance
 
 **Keep `DESIGN.md` and `README.md` current with every material change.**
@@ -48,6 +58,14 @@ Update `README.md` when:
 - Admin or operational procedures change
 
 Both docs are committed in the same commit as the code change that prompted them. Do not defer doc updates to a separate commit.
+
+## UI Content Policy
+
+**No emojis in the UI unless the user explicitly requests or approves them.**
+
+- Do not add emoji characters to buttons, labels, headings, or any user-facing text
+- Mattermost webhook messages and other machine-generated notifications are exempt (they already use emojis by convention)
+- If in doubt, ask before adding emojis
 
 ## CSS / Styling
 
