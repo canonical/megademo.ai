@@ -17,6 +17,7 @@ block content
         option(value=team, selected=(filters.team === team)) #{team}
     select.md-select.js-autosubmit(name='sort')
       option(value='newest', selected=(filters.sort === 'newest')) Newest First
+      option(value='stars', selected=(filters.sort === 'stars')) Most Stars
       option(value='rating', selected=(filters.sort === 'rating')) Top Rated
       option(value='votes', selected=(filters.sort === 'votes')) Most Voted
 
