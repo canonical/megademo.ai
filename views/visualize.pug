@@ -26,3 +26,69 @@ block content
 
     .viz-meta
       small.text-muted Last synced: #{syncedAt ? syncedAt.toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : 'unknown'}
+
+  //- Upgrade bare <select> elements inside the viz content to themed custom dropdowns
+  //- (same pattern as main.js md-custom-select, scoped to .viz-page controls)
+  script(nonce=cspNonce).
+    (function () {
+      var selects = document.querySelectorAll('.viz-page .controls select');
+      if (!selects.length || !window.bootstrap) return;
+
+      selects.forEach(function (select) {
+        var label = select.closest('label.field');
+        var parent = label || select.parentNode;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'md-custom-select dropdown';
+        wrapper.style.display = 'inline-block';
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'md-custom-select-btn';
+        btn.setAttribute('data-bs-toggle', 'dropdown');
+        btn.setAttribute('aria-expanded', 'false');
+
+        var menu = document.createElement('ul');
+        menu.className = 'dropdown-menu md-custom-select-menu';
+
+        function syncBtn() {
+          var opt = select.options[select.selectedIndex];
+          btn.textContent = opt ? opt.text : '';
+        }
+
+        function buildMenu() {
+          menu.innerHTML = '';
+          Array.from(select.options).forEach(function (opt) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.className = 'dropdown-item' + (opt.selected ? ' active' : '');
+            a.href = '#';
+            a.dataset.value = opt.value;
+            a.textContent = opt.text;
+            a.addEventListener('click', function (e) {
+              e.preventDefault();
+              select.value = opt.value;
+              select.dispatchEvent(new Event('change', { bubbles: true }));
+              menu.querySelectorAll('.active').forEach(function (el) { el.classList.remove('active'); });
+              a.classList.add('active');
+              syncBtn();
+            });
+            li.appendChild(a);
+            menu.appendChild(li);
+          });
+        }
+
+        buildMenu();
+        syncBtn();
+
+        parent.insertBefore(wrapper, select);
+        wrapper.appendChild(btn);
+        wrapper.appendChild(menu);
+        wrapper.appendChild(select);
+        btn.style.minWidth = select.offsetWidth + 'px';
+        select.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;';
+
+        select.addEventListener('change', function () { syncBtn(); buildMenu(); });
+        new window.bootstrap.Dropdown(btn);
+      });
+    })();
