@@ -434,6 +434,7 @@ app.get('/admin/activity-log', authController.isAdmin, adminController.activityL
 app.get('/admin/homepage', authController.isAdmin, adminController.homepageSettings);
 app.post('/admin/homepage', authController.isAdmin, adminController.saveHomepageSettings);
 app.post('/admin/settings', authController.isAdmin, adminController.saveSettings);
+app.post('/admin/mattermost/send', authController.isAdmin, adminController.sendMattermostSummary);
 app.get('/admin/teams', authController.isAdmin, adminController.teamsPage);
 app.post('/admin/teams', authController.isAdmin, adminController.saveTeams);
 app.post('/admin/teams/add', authController.isAdmin, adminController.addTeam);

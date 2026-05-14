@@ -826,6 +826,18 @@ exports.homepageSettings = async (req, res, next) => {
 /**
  * POST /admin/homepage
  */
+exports.sendMattermostSummary = async (req, res, next) => {
+  try {
+    const { runSummary } = require('../scripts/daily-summary');
+    await runSummary(process.env.BASE_URL || 'http://localhost:8080');
+    logActivity(req.user.email, 'Manually triggered Mattermost summary').catch(() => {});
+    req.flash('success', 'Mattermost summary sent.');
+    res.redirect('/admin');
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.saveHomepageSettings = async (req, res, next) => {
   try {
     // Parse multipart (hero image upload); convert user-facing errors to flash redirects
