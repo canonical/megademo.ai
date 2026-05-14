@@ -911,3 +911,24 @@ exports.saveHomepageSettings = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * POST /admin/visualize/sync — manually trigger visualization sync
+ */
+exports.syncVisualization = async (req, res, next) => {
+  try {
+    const { syncVizContent } = require('../services/viz-sync');
+    const results = await syncVizContent();
+    logActivity(req.user.email, 'Manually triggered visualization sync').catch(() => {});
+    const synced = results.synced.length;
+    const failed = results.failed.length;
+    if (failed > 0) {
+      req.flash('errors', { msg: `Viz sync: ${synced} updated, ${failed} failed.` });
+    } else {
+      req.flash('success', `Visualization synced (${synced} granularities updated).`);
+    }
+    res.redirect('/admin');
+  } catch (err) {
+    next(err);
+  }
+};

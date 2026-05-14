@@ -8,6 +8,8 @@ Internal Canonical AI Hackathon showcase platform — register projects, vote, a
 
 Sign in with your `@canonical.com` GitHub account, register your project, and let the world judge it.
 
+Browse the **[Topic Map](/visualize)** to explore ML-generated project clusters by topic similarity — filter, toggle 2D/3D, and click any dot to open the project.
+
 **[→ Get started guide](content/get-started.md)**
 
 > Live site: **[megademo.ai](https://megademo.ai)**

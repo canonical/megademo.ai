@@ -1285,3 +1285,217 @@ input[type='file'] {
   color: $color-accent;
   word-break: break-all;
 }
+
+// -- Visualization page (/visualize) -------------------------
+.viz-page {
+  // Map upstream CSS custom properties to our theme
+  --bg: transparent;
+  --bg-deep: #{$color-bg};
+  --panel: #{$color-surface};
+  --panel-border: #{$color-border};
+  --cyan: #{$color-primary};
+  --pink: #{$color-secondary};
+  --purple: #{$color-accent};
+  --text: #{$color-text};
+  --muted: #{$color-muted};
+
+  // Upstream uses max-width: 1280px on body; we inherit our container width
+  h2 {
+    font-family: $font-pixel;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: $color-primary;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .sub {
+    color: $color-muted;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    b { color: $color-primary; }
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8em;
+    margin-bottom: 1.2em;
+    padding: 0.8em 1em;
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: 6px;
+  }
+
+  .controls input#filter {
+    flex: 1 1 300px;
+    padding: 0.5em 0.8em;
+    font: inherit;
+    font-size: 13px;
+    color: $color-text;
+    background: color.adjust($color-surface, $lightness: -3%);
+    border: 1px solid $color-border;
+    border-radius: 4px;
+    outline: none;
+
+    &:focus {
+      border-color: $color-primary;
+      box-shadow: 0 0 8px rgba($color-primary, 0.3);
+    }
+
+    &::placeholder {
+      color: $color-muted;
+      opacity: 0.6;
+    }
+  }
+
+  .toggle {
+    display: flex;
+    gap: 0;
+
+    button {
+      padding: 0.35em 0.8em;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: $color-muted;
+      background: transparent;
+      border: 1px solid rgba($color-primary, 0.3);
+      cursor: pointer;
+
+      &:first-child { border-radius: 4px 0 0 4px; }
+      &:last-child  { border-radius: 0 4px 4px 0; border-left: none; }
+
+      &.active {
+        background: $color-primary;
+        color: $color-bg;
+        border-color: $color-primary;
+      }
+
+      &:hover:not(.active) {
+        color: $color-primary;
+        border-color: $color-primary;
+      }
+    }
+  }
+
+  .cb-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 12px;
+    color: $color-muted;
+    user-select: none;
+    cursor: pointer;
+
+    &:hover { color: $color-primary; }
+    input { accent-color: $color-primary; cursor: pointer; }
+  }
+
+  #match-count {
+    font-size: 12px;
+    color: $color-muted;
+    margin-left: auto;
+  }
+
+  .plot-wrap {
+    margin-bottom: 1em;
+    [hidden] { display: none; }
+  }
+
+  // Plotly modebar tweak for dark background
+  .modebar { filter: invert(0.85) hue-rotate(180deg); }
+  .hovertext path { stroke: $color-primary !important; }
+
+  // Cluster list
+  ul {
+    padding-left: 0;
+    list-style: none;
+    margin: 0;
+  }
+
+  li {
+    margin-bottom: 0.8em;
+    padding: 0.6em 0.9em;
+    background: $color-surface;
+    border-left: 2px solid $color-accent;
+    border-radius: 0 5px 5px 0;
+
+    b { color: $color-secondary; font-weight: 600; }
+  }
+
+  .muted {
+    color: $color-muted;
+    font-weight: normal;
+    font-size: 0.9em;
+  }
+
+  .summary {
+    color: $color-text;
+    font-size: 0.92em;
+    opacity: 0.85;
+  }
+
+  nav a {
+    display: inline-block;
+    padding: 0.3em 0.7em;
+    margin-bottom: 0.3em;
+    text-decoration: none;
+    color: $color-primary;
+    font-size: 12px;
+    background: rgba($color-bg, 0.5);
+    border: 1px solid rgba($color-primary, 0.2);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba($color-primary, 0.08);
+      border-color: $color-primary;
+    }
+  }
+}
+
+// Granularity nav pills
+.viz-granularity-nav {
+  margin-bottom: 1rem;
+  font-size: 12px;
+  color: $color-muted;
+  letter-spacing: 0.5px;
+}
+
+.viz-granularity-label {
+  text-transform: uppercase;
+  margin-right: 0.3em;
+}
+
+.viz-pill {
+  display: inline-block;
+  padding: 0.3em 0.85em;
+  margin: 0 0.25em;
+  border: 1px solid rgba($color-primary, 0.25);
+  border-radius: 999px;
+  text-decoration: none;
+  color: $color-muted;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+
+  &:hover {
+    color: $color-primary;
+    border-color: $color-primary;
+  }
+
+  &.active {
+    background: $color-secondary;
+    color: $color-bg;
+    border-color: $color-secondary;
+    box-shadow: 0 0 12px rgba($color-secondary, 0.4);
+  }
+}
+
+.viz-meta {
+  margin-top: 1.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid $color-border;
+}

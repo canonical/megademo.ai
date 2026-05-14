@@ -1,0 +1,28 @@
+extends layout
+
+block title
+  title Topic Map — MegaDemo.ai
+
+block head
+  //- Plotly must load before the viz content which contains inline Plotly.newPlot() calls
+  script(src='/js/vendor/plotly-2.35.2.min.js', nonce=cspNonce)
+
+block content
+  .viz-page
+    .page-header
+      h1.pixel-text TOPIC MAP
+      p.lead ML-generated project clusters by topic similarity
+
+    .viz-granularity-nav
+      span.viz-granularity-label Granularity:
+      each g in granularities
+        a.viz-pill(
+          href=`/visualize/${g}`,
+          class=(g === granularity ? 'active' : ''),
+          title=`${g} clustering`
+        )= g
+
+    .viz-content!= vizContent
+
+    .viz-meta
+      small.text-muted Last synced: #{syncedAt ? syncedAt.toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : 'unknown'}

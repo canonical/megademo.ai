@@ -67,6 +67,13 @@ block content
           input(type='hidden', name='_csrf', value=_csrf)
           button.btn.btn-outline-light(type='submit') Send Summary Now
 
+      .md-card.mt-3
+        h3.section-label Visualization Sync
+        p.small.text-muted Fetch latest project cluster visualization from GitHub.
+        form(method='POST', action='/admin/visualize/sync')
+          input(type='hidden', name='_csrf', value=_csrf)
+          button.btn.btn-outline-light(type='submit') Sync Now
+
   .md-card.mt-4
     h3.section-label Announcement Banner
     form(method='POST', action='/admin/settings')

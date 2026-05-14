@@ -24635,3 +24635,207 @@ input[type=file]::file-selector-button:hover {
   color: #b366ff;
   word-break: break-all;
 }
+
+.viz-page {
+  --bg: transparent;
+  --bg-deep: #05050f;
+  --panel: #0d0d2b;
+  --panel-border: rgba(0, 212, 255, 0.2);
+  --cyan: #00d4ff;
+  --pink: #ff4da6;
+  --purple: #b366ff;
+  --text: #c8e6ff;
+  --muted: #7a8baa;
+}
+.viz-page h2, .viz-page .h2 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #00d4ff;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+.viz-page .sub {
+  color: #7a8baa;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.viz-page .sub b {
+  color: #00d4ff;
+}
+.viz-page .controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8em;
+  margin-bottom: 1.2em;
+  padding: 0.8em 1em;
+  background: #0d0d2b;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+}
+.viz-page .controls input#filter {
+  flex: 1 1 300px;
+  padding: 0.5em 0.8em;
+  font: inherit;
+  font-size: 13px;
+  color: #c8e6ff;
+  background: rgb(9.4482142857, 9.4482142857, 31.2517857143);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+  outline: none;
+}
+.viz-page .controls input#filter:focus {
+  border-color: #00d4ff;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+}
+.viz-page .controls input#filter::placeholder {
+  color: #7a8baa;
+  opacity: 0.6;
+}
+.viz-page .toggle {
+  display: flex;
+  gap: 0;
+}
+.viz-page .toggle button {
+  padding: 0.35em 0.8em;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #7a8baa;
+  background: transparent;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  cursor: pointer;
+}
+.viz-page .toggle button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+.viz-page .toggle button:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+.viz-page .toggle button.active {
+  background: #00d4ff;
+  color: #05050f;
+  border-color: #00d4ff;
+}
+.viz-page .toggle button:hover:not(.active) {
+  color: #00d4ff;
+  border-color: #00d4ff;
+}
+.viz-page .cb-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 12px;
+  color: #7a8baa;
+  user-select: none;
+  cursor: pointer;
+}
+.viz-page .cb-wrap:hover {
+  color: #00d4ff;
+}
+.viz-page .cb-wrap input {
+  accent-color: #00d4ff;
+  cursor: pointer;
+}
+.viz-page #match-count {
+  font-size: 12px;
+  color: #7a8baa;
+  margin-left: auto;
+}
+.viz-page .plot-wrap {
+  margin-bottom: 1em;
+}
+.viz-page .plot-wrap [hidden] {
+  display: none;
+}
+.viz-page .modebar {
+  filter: invert(0.85) hue-rotate(180deg);
+}
+.viz-page .hovertext path {
+  stroke: #00d4ff !important;
+}
+.viz-page ul {
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+}
+.viz-page li {
+  margin-bottom: 0.8em;
+  padding: 0.6em 0.9em;
+  background: #0d0d2b;
+  border-left: 2px solid #b366ff;
+  border-radius: 0 5px 5px 0;
+}
+.viz-page li b {
+  color: #ff4da6;
+  font-weight: 600;
+}
+.viz-page .muted {
+  color: #7a8baa;
+  font-weight: normal;
+  font-size: 0.9em;
+}
+.viz-page .summary {
+  color: #c8e6ff;
+  font-size: 0.92em;
+  opacity: 0.85;
+}
+.viz-page nav a {
+  display: inline-block;
+  padding: 0.3em 0.7em;
+  margin-bottom: 0.3em;
+  text-decoration: none;
+  color: #00d4ff;
+  font-size: 12px;
+  background: rgba(5, 5, 15, 0.5);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+}
+.viz-page nav a:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: #00d4ff;
+}
+
+.viz-granularity-nav {
+  margin-bottom: 1rem;
+  font-size: 12px;
+  color: #7a8baa;
+  letter-spacing: 0.5px;
+}
+
+.viz-granularity-label {
+  text-transform: uppercase;
+  margin-right: 0.3em;
+}
+
+.viz-pill {
+  display: inline-block;
+  padding: 0.3em 0.85em;
+  margin: 0 0.25em;
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 999px;
+  text-decoration: none;
+  color: #7a8baa;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+}
+.viz-pill:hover {
+  color: #00d4ff;
+  border-color: #00d4ff;
+}
+.viz-pill.active {
+  background: #ff4da6;
+  color: #05050f;
+  border-color: #ff4da6;
+  box-shadow: 0 0 12px rgba(255, 77, 166, 0.4);
+}
+
+.viz-meta {
+  margin-top: 1.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(0, 212, 255, 0.2);
+}

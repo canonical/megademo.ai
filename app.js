@@ -94,6 +94,7 @@ const homeController    = require('./controllers/home');
 const authController    = require('./controllers/auth');
 const { resolveAuthMode, resolveLoginUrl } = require('./controllers/auth');
 const projectController = require('./controllers/project');
+const visualizeController = require('./controllers/visualize');
 
 /**
  * Passport config
@@ -121,6 +122,27 @@ if (process.env.SUMMARY_CRON !== 'disabled') {
     });
   });
   console.log(`Daily summary scheduled: ${cronExpr} (UTC)`);
+}
+
+/**
+ * Visualization sync cron — fetches project cluster HTML from GitHub.
+ * Override via VIZ_SYNC_CRON env var (standard cron expression).
+ * Set VIZ_SYNC_CRON=disabled to turn it off entirely.
+ */
+const { syncVizContent } = require('./services/viz-sync');
+// Initial sync at startup
+syncVizContent().catch((err) => {
+  console.error('Initial viz sync failed:', err.message);
+});
+if (process.env.VIZ_SYNC_CRON !== 'disabled') {
+  const vizCron = require('node-cron');
+  const vizCronExpr = process.env.VIZ_SYNC_CRON || '5 * * * *';
+  vizCron.schedule(vizCronExpr, () => {
+    syncVizContent().catch((err) => {
+      console.error('Viz sync cron failed:', err.message);
+    });
+  });
+  console.log(`Viz sync scheduled: ${vizCronExpr} (UTC)`);
 }
 
 const app = express();
@@ -416,6 +438,10 @@ app.post('/projects/:id/team', authController.isAuthenticated, projectController
 app.post('/projects/:id/join', authController.isAuthenticated, projectController.joinProject);
 app.post('/projects/:id/leave', authController.isAuthenticated, projectController.leaveProject);
 
+// Visualization (public)
+app.get('/visualize', visualizeController.show);
+app.get('/visualize/:granularity', visualizeController.show);
+
 // Admin
 const adminController = require('./controllers/admin');
 app.get('/admin', authController.isAdmin, adminController.dashboard);
@@ -448,6 +474,7 @@ app.post('/admin/tags/tech-stack', authController.isAdmin, adminController.addTe
 app.post('/admin/tags/tech-stack/rename', authController.isAdmin, adminController.renameTechStack);
 app.post('/admin/tags/tech-stack/delete', authController.isAdmin, adminController.deleteTechStack);
 app.post('/admin/reset', authController.isAdmin, adminController.resetAll);
+app.post('/admin/visualize/sync', authController.isAdmin, adminController.syncVisualization);
 
 // Kiosk
 const kioskController = require('./controllers/kiosk');
