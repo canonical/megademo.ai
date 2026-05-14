@@ -52,8 +52,8 @@ function extractBodyContent(html) {
   // Strip the bottom nav with links to standalone HTML/MD/CSV files (not applicable)
   content = content.replace(/<nav style="margin-top: 1\.5em;">[\s\S]*?<\/nav>\n?/, '');
 
-  // Inject CSP nonce placeholder into all <script> tags (both bare and those with attributes)
-  content = content.replace(/<script(?=[>\s])/g, '<script nonce="{{VIZ_NONCE}}"');
+  // Inject CSP nonce placeholder into <script> tags that don't already have one
+  content = content.replace(/<script(?![^>]*\snonce=)(?=[>\s])/g, '<script nonce="{{VIZ_NONCE}}"');
 
   return content;
 }
