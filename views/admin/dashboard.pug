@@ -91,7 +91,7 @@ block content
       .d-flex.flex-column.gap-2
         a.btn.btn-neon-outline(href='/admin/homepage') Homepage Settings
         a.btn.btn-neon-outline(href='/admin/activity-log') Activity Log
-        a.btn.btn-neon-outline(href='/admin/export') Export CSV
+        button.btn.btn-neon-outline(type='button', data-bs-toggle='modal', data-bs-target='#exportModal') Export CSV
 
   .md-card.mt-4
     h3.section-label Recent Projects
@@ -166,6 +166,108 @@ block content
             input#resetConfirmHidden(type='hidden', name='confirm', value='')
             button.btn.btn-neon-outline(type='button', data-bs-dismiss='modal') Cancel
             button#resetSubmitBtn.btn.btn-danger-outline(type='submit', disabled) Confirm Reset
+
+  // Export CSV modal
+  #exportModal.modal.fade(tabindex='-1', aria-labelledby='exportModalLabel', aria-hidden='true')
+    .modal-dialog.modal-dialog-centered.modal-dialog-scrollable
+      .modal-content.md-modal
+        .modal-header
+          h5.modal-title#exportModalLabel Export Projects to CSV
+          button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+        .modal-body
+          .export-global-toggle
+            label.checkbox-item
+              input#exportSelectAll(type='checkbox', checked)
+              span Select All
+          //- Basic Info
+          .export-group-header
+            span Basic Info
+            button.group-toggle(type='button', data-group='basic') Deselect
+          .checkbox-grid
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='title', data-group='basic', checked)
+              span Title
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='slug', data-group='basic', checked)
+              span Slug
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='description', data-group='basic', checked)
+              span Description
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='category', data-group='basic', checked)
+              span Category
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='status', data-group='basic', checked)
+              span Status
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='completionStage', data-group='basic', checked)
+              span Completion Stage
+          //- People & Teams
+          .export-group-header
+            span People &amp; Teams
+            button.group-toggle(type='button', data-group='people') Deselect
+          .checkbox-grid
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='ownerName', data-group='people', checked)
+              span Owner Name
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='ownerEmail', data-group='people', checked)
+              span Owner Email
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='team', data-group='people', checked)
+              span Team Members
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='canonicalTeam', data-group='people', checked)
+              span Canonical Team
+          //- Media & Links
+          .export-group-header
+            span Media &amp; Links
+            button.group-toggle(type='button', data-group='media') Deselect
+          .checkbox-grid
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='logo', data-group='media', checked)
+              span Logo
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='repoLinks', data-group='media', checked)
+              span Repo Links
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='demoUrl', data-group='media', checked)
+              span Demo URL
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='slidesUrl', data-group='media', checked)
+              span Slides URL
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='externalLinks', data-group='media', checked)
+              span External Links
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='asciinema', data-group='media', checked)
+              span Asciinema Casts
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='videos', data-group='media', checked)
+              span Videos
+          //- Stats & Dates
+          .export-group-header
+            span Stats &amp; Dates
+            button.group-toggle(type='button', data-group='stats') Deselect
+          .checkbox-grid
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='avgRating', data-group='stats', checked)
+              span Avg Rating
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='voteCount', data-group='stats', checked)
+              span Vote Count
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='totalStars', data-group='stats', checked)
+              span Total Stars
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='createdAt', data-group='stats', checked)
+              span Created At
+            label.checkbox-item
+              input.export-field(type='checkbox', data-key='updatedAt', data-group='stats', checked)
+              span Updated At
+        .modal-footer
+          button.btn.btn-neon-outline(type='button', data-bs-dismiss='modal') Cancel
+          button#exportSubmitBtn.btn.btn-neon-cyan(type='button') Export
 
 block scripts
   script(nonce=cspNonce).
@@ -281,4 +383,69 @@ block scripts
       var counter = document.getElementById('banner-char-count');
       if (!ta || !counter) return;
       ta.addEventListener('input', function () { counter.textContent = ta.value.length; });
+    })();
+
+    // ── Export CSV modal logic ─────────────────────────────────────────────
+    (function () {
+      var selectAll = document.getElementById('exportSelectAll');
+      var exportBtn = document.getElementById('exportSubmitBtn');
+      var allFields = document.querySelectorAll('.export-field');
+      var groupToggles = document.querySelectorAll('.group-toggle');
+
+      function updateGroupToggle(group) {
+        var fields = document.querySelectorAll('.export-field[data-group="' + group + '"]');
+        var btn = document.querySelector('.group-toggle[data-group="' + group + '"]');
+        if (!btn) return;
+        var checked = 0;
+        fields.forEach(function (f) { if (f.checked) checked++; });
+        btn.textContent = checked === fields.length ? 'Deselect' : 'Select';
+      }
+
+      function updateSelectAll() {
+        var checked = 0;
+        allFields.forEach(function (f) { if (f.checked) checked++; });
+        selectAll.checked = checked === allFields.length;
+        selectAll.indeterminate = checked > 0 && checked < allFields.length;
+      }
+
+      selectAll.addEventListener('change', function () {
+        var state = selectAll.checked;
+        allFields.forEach(function (f) { f.checked = state; });
+        groupToggles.forEach(function (btn) {
+          btn.textContent = state ? 'Deselect' : 'Select';
+        });
+      });
+
+      groupToggles.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var group = btn.dataset.group;
+          var fields = document.querySelectorAll('.export-field[data-group="' + group + '"]');
+          var allChecked = true;
+          fields.forEach(function (f) { if (!f.checked) allChecked = false; });
+          var newState = !allChecked;
+          fields.forEach(function (f) { f.checked = newState; });
+          btn.textContent = newState ? 'Deselect' : 'Select';
+          updateSelectAll();
+        });
+      });
+
+      allFields.forEach(function (f) {
+        f.addEventListener('change', function () {
+          updateGroupToggle(f.dataset.group);
+          updateSelectAll();
+        });
+      });
+
+      exportBtn.addEventListener('click', function () {
+        var keys = [];
+        allFields.forEach(function (f) { if (f.checked) keys.push(f.dataset.key); });
+        if (keys.length === 0) {
+          alert('Select at least one field to export.');
+          return;
+        }
+        var url = keys.length === allFields.length
+          ? '/admin/export'
+          : '/admin/export?fields=' + keys.join(',');
+        window.location = url;
+      });
     })();
