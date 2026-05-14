@@ -38,7 +38,7 @@ controllers/
   auth.js           Login/logout, OIDC callback, dev bypass, token-gated test login
   home.js           Homepage: newest projects, leaderboard, category chart
   project.js        CRUD, voting, media, team join/leave; isSafeUrl() URL validation
-  admin.js          Settings, user roles, tag/team management, CSV export, activity log, reset
+  admin.js          Settings, user roles, tag/team management, CSV export (modal with field selection), activity log, reset
   kiosk.js          Read-only kiosk display (no auth)
 models/
   User.js           GitHub/OIDC identity, role (participant | admin)
@@ -134,6 +134,8 @@ Users authenticated in one mode can seamlessly switch to another:
 **Activity log.** All DB-mutating actions (login/logout, project create/update/delete/vote, admin status/role changes) are written to the `ActivityLog` collection via a fire-and-forget `logActivity()` helper that never throws. Project update entries include a granular diff (title, category, team, AI tools, tech stack, media, status). The log is accessible at `/admin/activity-log` with Refresh and plain-text Download. Entries auto-expire after 180 days via a MongoDB TTL index.
 
 **Seed data from YAML.** `config/defaults.yml` holds canonical teams, AI tools, and tech-stack tags. Seeds on first startup (idempotent). Admins can override via dashboard.
+
+**CSV export with field selection.** `GET /admin/export` uses a `CSV_FIELD_REGISTRY` array to define all 21 exportable project fields. Each entry has a key, header, group, and extraction function. An optional `?fields=` query parameter (comma-separated keys) controls which columns appear — omitting it exports everything. The admin dashboard presents a modal with themed checkboxes grouped into four sections (Basic Info, People & Teams, Media & Links, Stats & Dates), all pre-checked, with per-group and global Select All/Deselect All toggles. Cells are double-quoted with `"` escaping, newlines replaced by literal `\n`, and formula-starting characters prefixed with `'` to prevent CSV injection. Raw Markdown descriptions are exported as-is.
 
 **Countdown state machine.** Homepage JS covers five states: pre-start (hackathon not yet begun) → submissions open → submissions closed → megademo countdown → megademo live. All deadlines stored as `"YYYY-MM-DDTHH:mm"` strings (no timezone conversion) to avoid UTC drift. The `hackathonStart` setting gates project registration: when set and in the future, all add-project buttons are disabled and `/projects/new` redirects with a flash message.
 

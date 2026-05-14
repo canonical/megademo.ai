@@ -20,6 +20,48 @@ const ActivityLog = require('../models/ActivityLog');
 const { notifyFinalistPromoted } = require('../services/mattermost');
 const { logActivity } = require('../services/activityLog');
 
+/**
+ * CSV field registry — defines every exportable column.
+ * Each entry: { key, header, group, extract(project) → cell value }
+ */
+const CSV_FIELD_REGISTRY = [
+  // Basic Info
+  { key: 'title', header: 'Title', group: 'Basic Info', extract: (p) => p.title || '' },
+  { key: 'slug', header: 'Slug', group: 'Basic Info', extract: (p) => p.slug || '' },
+  { key: 'description', header: 'Description', group: 'Basic Info', extract: (p) => p.description || '' },
+  { key: 'category', header: 'Category', group: 'Basic Info', extract: (p) => p.category || '' },
+  { key: 'status', header: 'Status', group: 'Basic Info', extract: (p) => p.status || '' },
+  { key: 'completionStage', header: 'Completion Stage', group: 'Basic Info', extract: (p) => p.completionStage || '' },
+  // People & Teams
+  { key: 'ownerName', header: 'Owner Name', group: 'People & Teams', extract: (p) => p.owner?.profile?.name || '' },
+  { key: 'ownerEmail', header: 'Owner Email', group: 'People & Teams', extract: (p) => p.owner?.email || '' },
+  { key: 'team', header: 'Team', group: 'People & Teams', extract: (p) => p.team?.map((u) => u.email).join('; ') || '' },
+  { key: 'canonicalTeam', header: 'Canonical Team', group: 'People & Teams', extract: (p) => p.canonicalTeam || '' },
+  // Media & Links
+  { key: 'logo', header: 'Logo', group: 'Media & Links', extract: (p) => p.logo || '' },
+  { key: 'repoLinks', header: 'Repo Links', group: 'Media & Links', extract: (p) => p.repoLinks?.join('; ') || '' },
+  { key: 'demoUrl', header: 'Demo URL', group: 'Media & Links', extract: (p) => p.demoUrl || '' },
+  { key: 'slidesUrl', header: 'Slides URL', group: 'Media & Links', extract: (p) => p.slidesUrl || '' },
+  { key: 'externalLinks', header: 'External Links', group: 'Media & Links', extract: (p) => p.externalLinks?.map((l) => `${l.label}: ${l.url}`).join('; ') || '' },
+  { key: 'asciinema', header: 'Asciinema Casts', group: 'Media & Links', extract: (p) => p.asciinema?.map((a) => `${a.title}: ${a.castId}`).join('; ') || '' },
+  { key: 'videos', header: 'Videos', group: 'Media & Links', extract: (p) => p.videos?.map((v) => `${v.title} (${v.type}): ${v.url}`).join('; ') || '' },
+  // Stats & Dates
+  { key: 'avgRating', header: 'Avg Rating', group: 'Stats & Dates', extract: (p) => Number.isFinite(p.avgRating) ? p.avgRating.toFixed(2) : '0' },
+  { key: 'voteCount', header: 'Vote Count', group: 'Stats & Dates', extract: (p) => p.voteCount ?? 0 },
+  { key: 'totalStars', header: 'Total Stars', group: 'Stats & Dates', extract: (p) => p.totalStars ?? 0 },
+  { key: 'createdAt', header: 'Created At', group: 'Stats & Dates', extract: (p) => p.createdAt?.toISOString() || '' },
+  { key: 'updatedAt', header: 'Updated At', group: 'Stats & Dates', extract: (p) => p.updatedAt?.toISOString() || '' },
+];
+exports.CSV_FIELD_REGISTRY = CSV_FIELD_REGISTRY;
+
+/** Sanitize a single CSV cell: quote-wrap, escape quotes/newlines, prevent formula injection. */
+function sanitizeCsvCell(c) {
+  const s = String(c).replace(/"/g, '""').replace(/[\r\n]/g, '\\n');
+  const safe = /^[=+\-@\t]/.test(s) ? `'${s}` : s;
+  return `"${safe}"`;
+}
+exports.sanitizeCsvCell = sanitizeCsvCell;
+
 function safeUnlinkLogo(logoRelPath) {
   if (!logoRelPath || !logoRelPath.startsWith(UPLOADS_URL_PREFIX)) return;
   const filename = logoRelPath.slice(UPLOADS_URL_PREFIX.length);
@@ -266,6 +308,8 @@ exports.setRole = async (req, res, next) => {
 
 /**
  * GET /admin/export
+ * Optional query: ?fields=title,category,... (comma-separated field keys).
+ * When omitted, all fields are exported (backward compatible).
  */
 exports.exportCsv = async (req, res, next) => {
   try {
@@ -274,35 +318,20 @@ exports.exportCsv = async (req, res, next) => {
       .populate('team', 'email profile.name')
       .lean();
 
-    const rows = [
-      ['Title', 'Category', 'Status', 'Owner', 'Team', 'CanonicalTeam', 'AvgRating', 'VoteCount', 'RepoLinks', 'DemoUrl', 'AITools', 'TechStack', 'CompletionStage', 'CreatedAt'],
-    ];
+    const validKeys = CSV_FIELD_REGISTRY.map((f) => f.key);
+    const requestedKeys = req.query.fields
+      ? req.query.fields.split(',').filter((k) => validKeys.includes(k))
+      : null;
+    const fields = requestedKeys && requestedKeys.length
+      ? CSV_FIELD_REGISTRY.filter((f) => requestedKeys.includes(f.key))
+      : CSV_FIELD_REGISTRY;
 
+    const rows = [fields.map((f) => f.header)];
     for (const p of projects) {
-      rows.push([
-        p.title,
-        p.category,
-        p.status,
-        p.owner?.email || '',
-        p.team?.map((u) => u.email).join('; ') || '',
-        p.canonicalTeam,
-        Number.isFinite(p.avgRating) ? p.avgRating.toFixed(2) : '0',
-        p.voteCount ?? 0,
-        p.repoLinks?.join('; ') || '',
-        p.demoUrl || '',
-        p.aiTools?.join('; ') || '',
-        p.techStack?.join('; ') || '',
-        p.completionStage || '',
-        p.createdAt?.toISOString() || '',
-      ]);
+      rows.push(fields.map((f) => f.extract(p)));
     }
 
-    const csv = rows.map((r) => r.map((c) => {
-      const s = String(c).replace(/"/g, '""').replace(/[\r\n]/g, '\\n');
-      // Prefix formula-starting chars to prevent CSV injection in spreadsheet apps
-      const safe = /^[=+\-@\t]/.test(s) ? `'${s}` : s;
-      return `"${safe}"`;
-    }).join(',')).join('\n');
+    const csv = rows.map((r) => r.map(sanitizeCsvCell).join(',')).join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="megademo-projects.csv"');

@@ -24352,6 +24352,38 @@ a.btn:not(.btn-link), a.btn:not(.btn-link):hover {
   filter: invert(0.8) brightness(1.5);
 }
 
+.export-group-header {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #7a8baa;
+  margin: 0.75rem 0 0.35rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.export-group-header .group-toggle {
+  font-size: 0.65rem;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  color: #00d4ff;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.export-group-header .group-toggle:hover {
+  text-decoration: underline;
+}
+
+.export-global-toggle {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+
 .md-table {
   width: 100%;
   border-collapse: collapse;
