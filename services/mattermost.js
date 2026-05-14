@@ -90,15 +90,21 @@ function recordVotingMilestone(project, milestone, baseUrl) {
 /**
  * Hourly stats summary — called every hour on the hour by the cron scheduler.
  * Includes any voting milestones accumulated since the last summary.
- * @param {object} stats - { finalists, teams, votes, topProjects }
+ * @param {object} stats - { finalists, teams, votes, topProjects, perfectFives }
  */
-async function postHourlySummary({ finalists, teams, votes, topProjects }) {
+async function postHourlySummary({ finalists, teams, votes, topProjects, perfectFives = [] }) {
   const medal = ['🥇', '🥈', '🥉'];
   const topLines = topProjects.length
     ? topProjects.map((p, i) =>
-        `${medal[i] || `${i + 1}.`} **[${esc(p.title)}](${p.url})** — ⭐ ${p.avgRating != null ? Number(p.avgRating).toFixed(1) : '—'} (${p.voteCount ?? 0} votes)`
+        `${medal[i] || `${i + 1}.`} **[${esc(p.title)}](${p.url})** — ${p.totalStars ?? 0} stars (${p.voteCount ?? 0} votes, ⭐ ${p.avgRating != null ? Number(p.avgRating).toFixed(1) : '—'} avg)`
       ).join('\n')
     : '_No votes yet — be the first!_';
+
+  const fiveStarLines = perfectFives.length
+    ? perfectFives.map((p, i) =>
+        `${medal[i] || `${i + 1}.`} **[${esc(p.title)}](${p.url})** — ${p.voteCount ?? 0} votes (all ⭐ 5/5)`
+      ).join('\n')
+    : '';
 
   // Drain pending milestones
   const milestones = _pendingMilestones.splice(0);
@@ -113,6 +119,10 @@ async function postHourlySummary({ finalists, teams, votes, topProjects }) {
       ]
     : [];
 
+  const fiveStarSection = fiveStarLines
+    ? [``, `**🌟 Most loved (5-star only):**`, fiveStarLines]
+    : [];
+
   await post([
     `## 📊 MegaDemo.ai — Hourly Update`,
     `| | |`,
@@ -122,8 +132,9 @@ async function postHourlySummary({ finalists, teams, votes, topProjects }) {
     `| 🏆 Finalists | **${finalists}** |`,
     ...milestoneLines,
     ``,
-    `**Top projects right now:**`,
+    `**Top projects by total stars:**`,
     topLines,
+    ...fiveStarSection,
   ].join('\n'));
 }
 

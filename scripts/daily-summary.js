@@ -14,6 +14,7 @@ async function runSummary(baseUrl) {
     totalVotes,
     teamAgg,
     topProjects,
+    perfectFives,
   ] = await Promise.all([
     Project.countDocuments({ status: 'finalist' }),
     Vote.countDocuments(),
@@ -23,23 +24,31 @@ async function runSummary(baseUrl) {
       { $count: 'total' },
     ]),
     Project.find({ status: { $in: ['submitted', 'finalist'] }, voteCount: { $gt: 0 } })
-      .sort({ avgRating: -1, voteCount: -1 })
+      .sort({ totalStars: -1 })
+      .limit(3)
+      .lean(),
+    Project.find({ status: { $in: ['submitted', 'finalist'] }, avgRating: 5, voteCount: { $gt: 0 } })
+      .sort({ voteCount: -1 })
       .limit(3)
       .lean(),
   ]);
 
   const url = (baseUrl || process.env.BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
 
+  const mapProject = (p) => ({
+    title:      p.title,
+    url:        `${url}/projects/${p.slug}`,
+    avgRating:  p.avgRating,
+    voteCount:  p.voteCount,
+    totalStars: p.totalStars,
+  });
+
   await postHourlySummary({
     finalists,
-    teams:       teamAgg[0]?.total ?? 0,
-    votes:       totalVotes,
-    topProjects: topProjects.filter((p) => p.slug).map((p) => ({
-      title:     p.title,
-      url:       `${url}/projects/${p.slug}`,
-      avgRating: p.avgRating,
-      voteCount: p.voteCount,
-    })),
+    teams:        teamAgg[0]?.total ?? 0,
+    votes:        totalVotes,
+    topProjects:  topProjects.filter((p) => p.slug).map(mapProject),
+    perfectFives: perfectFives.filter((p) => p.slug).map(mapProject),
   });
 }
 
