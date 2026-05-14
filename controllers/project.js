@@ -535,8 +535,9 @@ exports.update = async (req, res) => {
 
   // Handle logo upload — remove old file to prevent orphans
   if (req.file) {
-    if (project.logo && project.logo.startsWith('/uploads/') && !path.normalize(project.logo).includes('..')) {
-      const oldPath = path.join(__dirname, '..', 'public', project.logo);
+    const normalizedOld = project.logo ? path.normalize(project.logo) : '';
+    if (normalizedOld.startsWith('/uploads/')) {
+      const oldPath = path.join(__dirname, '..', 'public', normalizedOld);
       fs.unlink(oldPath, () => {});
     }
     project.logo = `/uploads/${req.file.filename}`;
@@ -628,8 +629,9 @@ exports.remove = async (req, res) => {
     return res.status(400).json({ error: 'Cannot delete a submitted project. Ask an admin.' });
   }
   // Clean up logo file before deleting project record
-  if (project.logo && project.logo.startsWith('/uploads/') && !path.normalize(project.logo).includes('..')) {
-    const logoPath = path.join(__dirname, '..', 'public', project.logo);
+  const normalizedLogo = project.logo ? path.normalize(project.logo) : '';
+  if (normalizedLogo.startsWith('/uploads/')) {
+    const logoPath = path.join(__dirname, '..', 'public', normalizedLogo);
     fs.unlink(logoPath, () => {});
   }
   await Project.deleteOne({ _id: project._id });

@@ -116,19 +116,25 @@ block content
   // Test Login
   if testLoginToken
     .md-card.mt-4
-      h3.section-label Test Login URLs
+      h3.section-label Test Login
       p.text-muted.mb-3
-        | Use these URLs to log in as a synthetic test user without GitHub OAuth.
+        | Log in as a synthetic test user without GitHub OAuth (POST only).
         | Revoke access by removing the <code>TEST_LOGIN_TOKEN</code> environment variable.
       .d-flex.flex-column.gap-2
         .d-flex.align-items-center.gap-2
-          code.test-login-url= baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=participant'
-          button.btn.btn-xs.btn-neon-outline.copy-btn(type='button', data-url=baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=participant') Copy
-          span.text-muted.small participant
+          form(method='POST', action='/auth/test-login', style='display:inline')
+            input(type='hidden', name='token', value=testLoginToken)
+            input(type='hidden', name='role', value='participant')
+            input(type='hidden', name='_csrf', value=_csrf)
+            button.btn.btn-sm.btn-neon-outline(type='submit') Login as participant
+          button.btn.btn-xs.btn-neon-outline.copy-btn(type='button', data-url='curl -X POST ' + baseUrl + '/auth/test-login -d "token=' + testLoginToken + '&role=participant"') Copy curl
         .d-flex.align-items-center.gap-2
-          code.test-login-url= baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=admin'
-          button.btn.btn-xs.btn-neon-outline.copy-btn(type='button', data-url=baseUrl + '/auth/test-login?token=' + testLoginToken + '&role=admin') Copy
-          span.text-muted.small admin
+          form(method='POST', action='/auth/test-login', style='display:inline')
+            input(type='hidden', name='token', value=testLoginToken)
+            input(type='hidden', name='role', value='admin')
+            input(type='hidden', name='_csrf', value=_csrf)
+            button.btn.btn-sm.btn-neon-outline(type='submit') Login as admin
+          button.btn.btn-xs.btn-neon-outline.copy-btn(type='button', data-url='curl -X POST ' + baseUrl + '/auth/test-login -d "token=' + testLoginToken + '&role=admin"') Copy curl
 
   // Danger Zone
   .md-card.mt-4.danger-zone-card
