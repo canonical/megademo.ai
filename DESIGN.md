@@ -125,7 +125,7 @@ Users authenticated in one mode can seamlessly switch to another:
 
 **Flat role model.** Two roles: `participant` (default) and `admin`. Admins are promoted via CLI or the admin UI; they can promote/demote others.
 
-**totalStars voting.** Leaderboard sorts by `totalStars` (sum of all stars cast) with `avgRating` as tiebreaker. This rewards both quality *and* engagement: 2×4★ (8 pts) beats 1×5★ (5 pts).
+**Dual-sort voting.** The `stars` sort ranks by `totalStars` (sum of all stars cast) with `avgRating` as tiebreaker — rewarding both quality *and* engagement (2×4★ = 8 pts beats 1×5★ = 5 pts). The `rating` sort ranks purely by `avgRating` with `voteCount` as tiebreaker. The home-page leaderboard and "Full board" link use the `rating` sort, so "new" high rated projects also have a chance to show at top.
 
 **Settings as key-value.** `hackathonStart`, `submissionDeadline`, `megademoDate`, Mattermost webhook URL, custom lists are stored in the `Settings` collection — not in code or env vars — so admins can change them live.
 

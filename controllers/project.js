@@ -194,7 +194,7 @@ const CATEGORY_TEMPLATES = {
  */
 exports.list = async (req, res) => {
   // Allowlist category and team to prevent NoSQL operator injection via qs
-  const ALLOWED_SORTS = ['newest', 'rating', 'votes'];
+  const ALLOWED_SORTS = ['newest', 'stars', 'rating', 'votes'];
   const sort     = ALLOWED_SORTS.includes(req.query.sort) ? req.query.sort : 'newest';
   const category = CATEGORIES.includes(req.query.category) ? req.query.category : undefined;
   const team     = typeof req.query.team === 'string' && req.query.team.trim() ? req.query.team.trim() : undefined;
@@ -204,7 +204,8 @@ exports.list = async (req, res) => {
 
   const sortMap = {
     newest:  { createdAt: -1 },
-    rating:  { totalStars: -1, avgRating: -1 },
+    rating:  { avgRating: -1, voteCount: -1 },
+    stars:   { totalStars: -1, avgRating: -1 },
     votes:   { voteCount: -1 },
   };
 
