@@ -7,7 +7,7 @@ const Settings = require('../models/Settings');
 /** Escape markdown special chars in user-supplied content for Mattermost webhooks */
 function esc(str) {
   if (!str) return '';
-  return String(str).replace(/[*_~`[\]|>#]/g, '\\$&');
+  return String(str).replace(/\\/g, '\\\\').replace(/[*_~`[\]|>#]/g, '\\$&');
 }
 const CATEGORY_ICON = {
   'Coding Assistant':      ':computer:',
