@@ -36,14 +36,25 @@ block content
             - if (filters.sort && filters.sort !== 'newest') prevParams.set('sort', filters.sort)
             - prevParams.set('page', pagination.page - 1)
             a.page-link(href=`/projects?${prevParams}`, aria-label='Previous') &laquo; Prev
+          //- Windowed pagination: 1 ... [neighbors] ... last
+          - var WINDOW = 2
+          - var pages = []
           - for (var i = 1; i <= pagination.totalPages; i++)
-            li.page-item(class=(i === pagination.page ? 'active' : ''))
+            - if (i === 1 || i === pagination.totalPages || (i >= pagination.page - WINDOW && i <= pagination.page + WINDOW))
+              - pages.push(i)
+          - var prev = 0
+          each pg in pages
+            - if (pg - prev > 1)
+              li.page-item.disabled
+                span.page-link &hellip;
+            li.page-item(class=(pg === pagination.page ? 'active' : ''))
               - var pgParams = new URLSearchParams()
               - if (filters.category) pgParams.set('category', filters.category)
               - if (filters.team) pgParams.set('team', filters.team)
               - if (filters.sort && filters.sort !== 'newest') pgParams.set('sort', filters.sort)
-              - pgParams.set('page', i)
-              a.page-link(href=`/projects?${pgParams}`)= i
+              - pgParams.set('page', pg)
+              a.page-link(href=`/projects?${pgParams}`)= pg
+            - prev = pg
           li.page-item(class=(pagination.page >= pagination.totalPages ? 'disabled' : ''))
             - var nextParams = new URLSearchParams()
             - if (filters.category) nextParams.set('category', filters.category)
