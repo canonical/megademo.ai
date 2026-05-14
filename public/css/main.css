@@ -24678,35 +24678,75 @@ input[type=file]::file-selector-button:hover {
 .viz-page .controls input#filter {
   flex: 1 1 300px;
   padding: 0.5em 0.8em;
-  font: inherit;
-  font-size: 13px;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 0.85rem;
   color: #c8e6ff;
-  background: rgb(9.4482142857, 9.4482142857, 31.2517857143);
+  background: #12123a;
   border: 1px solid rgba(0, 212, 255, 0.2);
-  border-radius: 4px;
+  border-radius: 2px;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .viz-page .controls input#filter:focus {
   border-color: #00d4ff;
   box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+  background: rgba(18, 18, 58, 0.9);
 }
 .viz-page .controls input#filter::placeholder {
   color: #7a8baa;
   opacity: 0.6;
+}
+.viz-page label.field {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 0.8rem;
+  color: #7a8baa;
+  white-space: nowrap;
+}
+.viz-page label.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color-scheme: dark;
+  background: #12123a;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  color: #c8e6ff;
+  border-radius: 2px;
+  padding: 0.45rem 2.25rem 0.45rem 0.65rem;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300d4ff' stroke-width='1.5' fill='none' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+}
+.viz-page label.field select:focus {
+  outline: none;
+  border-color: #00d4ff;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+}
+.viz-page label.field select option {
+  background: #12123a;
+  color: #c8e6ff;
 }
 .viz-page .toggle {
   display: flex;
   gap: 0;
 }
 .viz-page .toggle button {
-  padding: 0.35em 0.8em;
-  font: inherit;
-  font-size: 12px;
+  padding: 0.55rem 1.1rem;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.72rem;
+  line-height: 1;
   letter-spacing: 1px;
   color: #7a8baa;
   background: transparent;
   border: 1px solid rgba(0, 212, 255, 0.3);
   cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
 }
 .viz-page .toggle button:first-child {
   border-radius: 4px 0 0 4px;
