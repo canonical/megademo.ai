@@ -69,7 +69,11 @@ async function syncVizContent() {
     'User-Agent': 'megademo-ai-viz-sync',
   };
   if (token) {
-    headers.Authorization = `token ${token}`;
+    // Fine-grained PATs (github_pat_*) need Bearer; classic tokens (ghp_*) accept both
+    const prefix = token.startsWith('github_pat_') ? 'Bearer' : 'token';
+    headers.Authorization = `${prefix} ${token}`;
+  } else {
+    console.warn('Viz sync: GITHUB_TOKEN not set — will get 404 for private/org repos');
   }
 
   const results = { synced: [], failed: [] };
@@ -88,7 +92,11 @@ async function syncVizContent() {
       cache.set(g, { html: bodyHtml, syncedAt: new Date() });
       results.synced.push(g);
     } catch (err) {
-      results.failed.push({ granularity: g, error: err.message });
+      const status = err.response ? err.response.status : 'network';
+      const detail = err.response && err.response.data
+        ? (typeof err.response.data === 'string' ? err.response.data.slice(0, 200) : JSON.stringify(err.response.data).slice(0, 200))
+        : err.message;
+      results.failed.push({ granularity: g, status, error: detail });
     }
   }
 
