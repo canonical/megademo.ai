@@ -129,10 +129,12 @@ if (process.env.SUMMARY_CRON !== 'disabled') {
  * Override via VIZ_SYNC_CRON env var (standard cron expression).
  * Set VIZ_SYNC_CRON=disabled to turn it off entirely.
  */
-const { syncVizContent } = require('./services/viz-sync');
-// Initial sync at startup
-syncVizContent().catch((err) => {
-  console.error('Initial viz sync failed:', err.message);
+const { syncVizContent, checkTokenAccess } = require('./services/viz-sync');
+// Verify token access, then do initial sync
+checkTokenAccess().then((ok) => {
+  if (ok) syncVizContent().catch((err) => {
+    console.error('Initial viz sync failed:', err.message);
+  });
 });
 if (process.env.VIZ_SYNC_CRON !== 'disabled') {
   const vizCron = require('node-cron');

@@ -15,6 +15,54 @@ const cache = new Map();
 let lastSyncError = null;
 
 /**
+ * Build auth headers for GitHub API requests.
+ */
+function buildAuthHeaders(token) {
+  const headers = {
+    Accept: 'application/vnd.github.raw',
+    'User-Agent': 'megademo-ai-viz-sync',
+  };
+  if (token) {
+    const prefix = token.startsWith('github_pat_') ? 'Bearer' : 'token';
+    headers.Authorization = `${prefix} ${token}`;
+  }
+  return headers;
+}
+
+/**
+ * Test whether the GITHUB_TOKEN can access the viz source repo.
+ * Logs a clear diagnostic at startup.
+ */
+async function checkTokenAccess() {
+  const token = process.env.GITHUB_TOKEN;
+  const tokenHint = token
+    ? `${token.slice(0, 6)}...${token.slice(-4)} (${token.startsWith('github_pat_') ? 'fine-grained' : 'classic'})`
+    : '(not set)';
+
+  if (!token) {
+    console.error(`Viz sync: GITHUB_TOKEN is not set. Cannot access private repo ${REPO_OWNER}/${REPO_NAME}.`);
+    return false;
+  }
+
+  try {
+    // Light check: just get repo metadata (no file download)
+    await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
+      headers: buildAuthHeaders(token),
+      timeout: 10000,
+    });
+    console.log(`Viz sync: token ${tokenHint} has access to ${REPO_OWNER}/${REPO_NAME}`);
+    return true;
+  } catch (err) {
+    const status = err.response ? err.response.status : 'network error';
+    console.error(
+      `Viz sync: token ${tokenHint} CANNOT access ${REPO_OWNER}/${REPO_NAME} (HTTP ${status}). ` +
+      'Ensure the token has "repo" scope and belongs to a user with access to the canonical org.'
+    );
+    return false;
+  }
+}
+
+/**
  * Build the raw-content URL for a given granularity HTML file.
  * Uses the GitHub Contents API with the raw media type so we get the
  * file content directly (requires auth for private/org repos).
@@ -64,17 +112,11 @@ function extractBodyContent(html) {
  */
 async function syncVizContent() {
   const token = process.env.GITHUB_TOKEN;
-  const headers = {
-    Accept: 'application/vnd.github.raw',
-    'User-Agent': 'megademo-ai-viz-sync',
-  };
-  if (token) {
-    // Fine-grained PATs (github_pat_*) need Bearer; classic tokens (ghp_*) accept both
-    const prefix = token.startsWith('github_pat_') ? 'Bearer' : 'token';
-    headers.Authorization = `${prefix} ${token}`;
-  } else {
-    console.warn('Viz sync: GITHUB_TOKEN not set — will get 404 for private/org repos');
+  if (!token) {
+    console.warn('Viz sync: GITHUB_TOKEN not set — skipping');
+    return { synced: [], failed: GRANULARITIES.map((g) => ({ granularity: g, status: 'no-token', error: 'GITHUB_TOKEN not set' })) };
   }
+  const headers = buildAuthHeaders(token);
 
   const results = { synced: [], failed: [] };
 
@@ -146,5 +188,6 @@ module.exports = {
   syncVizContent,
   getVizFragment,
   getSyncStatus,
+  checkTokenAccess,
   GRANULARITIES,
 };
