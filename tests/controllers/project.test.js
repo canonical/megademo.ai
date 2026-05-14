@@ -261,28 +261,28 @@ describe('create()', () => {
   });
 
   it('accepts a valid YouTube watch URL', async () => {
-    const req = makeReq({ body: { title: 'YT Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'YT Project', description: 'A valid project description', category: 'Other', canonicalTeam: 'Other', customTeam: 'Test Team', submitAction: 'draft', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
     expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
   });
 
   it('accepts a YouTube embed URL', async () => {
-    const req = makeReq({ body: { title: 'YT Embed Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'YT Embed Project', description: 'A valid project description', category: 'Other', canonicalTeam: 'Other', customTeam: 'Test Team', submitAction: 'draft', videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
     expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
   });
 
   it('accepts a Google Drive video URL', async () => {
-    const req = makeReq({ body: { title: 'Drive Project', category: 'Other', submitAction: 'draft', videoUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Drive Project', description: 'A valid project description', category: 'Other', canonicalTeam: 'Other', customTeam: 'Test Team', submitAction: 'draft', videoUrl: 'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
     expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
   });
 
   it('redirects to /projects/mine when action=draft', async () => {
-    const req = makeReq({ body: { title: 'Draft Project', category: 'Other', submitAction: 'draft' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Draft Project', description: 'A valid project description', category: 'Other', canonicalTeam: 'Other', customTeam: 'Test Team', submitAction: 'draft' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
     expect(res.json).toHaveBeenCalledWith({ redirect: '/projects/mine' });
@@ -291,7 +291,7 @@ describe('create()', () => {
   });
 
   it('sets status=submitted and redirects to project view when action=continue', async () => {
-    const req = makeReq({ body: { title: 'Continue Project', category: 'Other', submitAction: 'continue' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Continue Project', description: 'A valid project description', category: 'Other', canonicalTeam: 'Other', customTeam: 'Test Team', submitAction: 'continue' }, user: { _id: owner._id, role: 'participant' } });
     const res = makeRes();
     await ctrl.create(req, res);
     expect(res.json).toHaveBeenCalledWith({ redirect: expect.stringMatching(/\/projects\/[^/]+$/) });
@@ -300,7 +300,7 @@ describe('create()', () => {
   });
 
   it('stores the owner as a team member', async () => {
-    const req = makeReq({ body: { title: 'Owned Project', category: 'Other', submitAction: 'draft' }, user: { _id: owner._id, role: 'participant' } });
+    const req = makeReq({ body: { title: 'Owned Project', description: 'A valid project description', category: 'Other', canonicalTeam: 'Other', customTeam: 'Test Team', submitAction: 'draft' }, user: { _id: owner._id, role: 'participant' } });
     await ctrl.create(req, makeRes());
     const p = await Project.findOne({ title: 'Owned Project' });
     expect(p.team.some((id) => id.toString() === owner._id.toString())).toBe(true);

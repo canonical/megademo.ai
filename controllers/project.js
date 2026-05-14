@@ -309,10 +309,18 @@ exports.create = async (req, res) => {
   }
 
   const { title, description, category, canonicalTeam, customTeam, aiTools, aiToolOther, techStack, completionStage, repoLinks, demoUrl, slidesUrl, teamEmails, asciinemaId, asciinemaTitle, videoUrl, videoTitle } = req.body;
+  const teamList = await getTeamList();
   const errors = [];
 
   if (!title || title.trim().length < 3) errors.push({ msg: 'Title must be at least 3 characters.' });
+  if (!description || description.trim().length < 10) errors.push({ msg: 'Description must be at least 10 characters.' });
   if (!category || !CATEGORIES.includes(category)) errors.push({ msg: 'Please select a valid category.' });
+  if (!canonicalTeam || (!teamList.includes(canonicalTeam) && canonicalTeam !== 'Other')) {
+    errors.push({ msg: 'Please select a valid Canonical team.' });
+  }
+  if (canonicalTeam === 'Other' && (!customTeam || !customTeam.trim())) {
+    errors.push({ msg: 'Please enter your team name when selecting "Other".' });
+  }
   if (videoUrl && videoUrl.trim() && !isValidVideoUrl(videoUrl)) {
     errors.push({ msg: 'Invalid video URL. Please use a YouTube, Vimeo, or Google Drive link.' });
   }
