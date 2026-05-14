@@ -2,7 +2,7 @@
  * Unit tests for controllers/project.js
  * Uses in-memory MongoDB; mocks Express req/res and external services.
  */
-jest.mock('../../services/mattermost', () => ({ notifyProjectSubmitted: jest.fn() }));
+jest.mock('../../services/mattermost', () => ({ notifyProjectSubmitted: jest.fn(), recordVotingMilestone: jest.fn() }));
 jest.mock('../../services/github',     () => ({ refreshProjectStats: jest.fn() }));
 
 const mongoose = require('mongoose');

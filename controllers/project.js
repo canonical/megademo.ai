@@ -34,7 +34,7 @@ function parseCastId(input) {
 const Vote = require('../models/Vote');
 const User = require('../models/User');
 const Settings = require('../models/Settings');
-const { notifyProjectSubmitted, notifyVotingMilestone } = require('../services/mattermost');
+const { notifyProjectSubmitted, recordVotingMilestone } = require('../services/mattermost');
 const { refreshProjectStats } = require('../services/github');
 const { logActivity } = require('../services/activityLog');
 
@@ -636,7 +636,7 @@ exports.vote = async (req, res) => {
     const MILESTONES = [5, 10, 25, 50];
     const hit = MILESTONES.find((m) => prevCount < m && project.voteCount >= m);
     if (hit) {
-      notifyVotingMilestone(project, hit, process.env.BASE_URL || 'http://localhost:8080').catch(() => {});
+      recordVotingMilestone(project, hit, process.env.BASE_URL || 'http://localhost:8080');
     }
 
     res.json({ avgRating: project.avgRating, voteCount: project.voteCount, totalStars: project.totalStars, userStars: stars });

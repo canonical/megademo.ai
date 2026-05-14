@@ -65,24 +65,29 @@ async function notifyFinalistPromoted(project, baseUrl) {
   ].join('\n'));
 }
 
-/**
- * Fired when a project crosses a vote-count milestone (5, 10, 25, 50 …).
- */
-async function notifyVotingMilestone(project, milestone, baseUrl) {
-  const url    = `${baseUrl}/projects/${project.slug}`;
-  const rating = project.avgRating != null ? Number(project.avgRating).toFixed(1) : '—';
+// In-memory accumulator for voting milestones — flushed each hourly summary.
+const _pendingMilestones = [];
 
-  await post([
-    `## ⭐ Voting milestone: **[${project.title}](${url})** just hit **${milestone} votes!**`,
-    `Current rating: ⭐ ${rating}/5 — go vote if you haven't!`,
-  ].join('\n'));
+/**
+ * Record a voting milestone to be included in the next hourly summary.
+ * Replaces the old real-time notification.
+ */
+function recordVotingMilestone(project, milestone, baseUrl) {
+  const url = `${baseUrl}/projects/${project.slug}`;
+  _pendingMilestones.push({
+    title:     project.title,
+    url,
+    milestone,
+    avgRating: project.avgRating,
+  });
 }
 
 /**
- * Daily stats summary — called 3× per day by the cron scheduler.
- * @param {object} stats - { projects, submitted, finalists, teams, votes, topProjects }
+ * Hourly stats summary — called every hour on the hour by the cron scheduler.
+ * Includes any voting milestones accumulated since the last summary.
+ * @param {object} stats - { finalists, teams, votes, topProjects }
  */
-async function postDailySummary({ projects, submitted, finalists, teams, votes, topProjects }) {
+async function postHourlySummary({ finalists, teams, votes, topProjects }) {
   const medal = ['🥇', '🥈', '🥉'];
   const topLines = topProjects.length
     ? topProjects.map((p, i) =>
@@ -90,15 +95,27 @@ async function postDailySummary({ projects, submitted, finalists, teams, votes, 
       ).join('\n')
     : '_No votes yet — be the first!_';
 
+  // Drain pending milestones
+  const milestones = _pendingMilestones.splice(0);
+  const milestoneLines = milestones.length
+    ? [
+        ``,
+        `**🎯 Voting milestones since last update:**`,
+        ...milestones.map((m) => {
+          const rating = m.avgRating != null ? Number(m.avgRating).toFixed(1) : '—';
+          return `⭐ **[${m.title}](${m.url})** hit **${m.milestone} votes** (⭐ ${rating}/5)`;
+        }),
+      ]
+    : [];
+
   await post([
-    `## 📊 MegaDemo.ai — Daily Snapshot`,
+    `## 📊 MegaDemo.ai — Hourly Update`,
     `| | |`,
     `|---|---|`,
     `| 🏢 Teams represented | **${teams}** |`,
-    `| 📁 Projects registered | **${projects}** |`,
-    `| ✅ Submitted | **${submitted}** |`,
-    `| 🏆 Finalists | **${finalists}** |`,
     `| ⭐ Total votes cast | **${votes}** |`,
+    `| 🏆 Finalists | **${finalists}** |`,
+    ...milestoneLines,
     ``,
     `**Top projects right now:**`,
     topLines,
@@ -108,6 +125,6 @@ async function postDailySummary({ projects, submitted, finalists, teams, votes, 
 module.exports = {
   notifyProjectSubmitted,
   notifyFinalistPromoted,
-  notifyVotingMilestone,
-  postDailySummary,
+  recordVotingMilestone,
+  postHourlySummary,
 };

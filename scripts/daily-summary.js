@@ -6,19 +6,15 @@
 const mongoose = require('mongoose');
 const { Project } = require('../models/Project');
 const Vote = require('../models/Vote');
-const { postDailySummary } = require('../services/mattermost');
+const { postHourlySummary } = require('../services/mattermost');
 
 async function runSummary(baseUrl) {
   const [
-    totalProjects,
-    activeProjects,
     finalists,
     totalVotes,
     teamAgg,
     topProjects,
   ] = await Promise.all([
-    Project.countDocuments(),
-    Project.countDocuments({ status: { $in: ['submitted', 'finalist'] } }),
     Project.countDocuments({ status: 'finalist' }),
     Vote.countDocuments(),
     Project.aggregate([
@@ -34,9 +30,7 @@ async function runSummary(baseUrl) {
 
   const url = (baseUrl || process.env.BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
 
-  await postDailySummary({
-    projects:    totalProjects,
-    submitted:   activeProjects,
+  await postHourlySummary({
     finalists,
     teams:       teamAgg[0]?.total ?? 0,
     votes:       totalVotes,
