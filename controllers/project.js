@@ -627,7 +627,8 @@ exports.vote = async (req, res) => {
       { $group: { _id: null, avg: { $avg: '$stars' }, count: { $sum: 1 }, total: { $sum: '$stars' } } },
     ]);
 
-    project.avgRating  = agg[0]?.avg   || 0;
+    // pin the rating to exactly 1 decimal place
+    project.avgRating  = Math.round((agg[0]?.avg || 0) * 10) / 10;
     project.voteCount  = agg[0]?.count || 0;
     project.totalStars = agg[0]?.total || 0;
     await project.save();
