@@ -451,6 +451,7 @@ app.get('/admin', authController.isAdmin, adminController.dashboard);
 app.get('/admin/guide', authController.isAdmin, (req, res) => {
   res.render('admin/guide', { title: 'Admin Guide', content: adminGuideHtml });
 });
+app.get('/admin/projects/search', authController.isAdmin, adminController.searchProjects);
 app.get('/admin/projects', authController.isAdmin, adminController.projects);
 app.post('/admin/projects/:id/status', authController.isAdmin, adminController.setStatus);
 app.post('/admin/projects/:id/delete', authController.isAdmin, adminController.deleteProject);

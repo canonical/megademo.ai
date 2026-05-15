@@ -13,6 +13,10 @@ const UPLOADS_URL_PREFIX = '/uploads/';
 const ALLOWED_STATUSES = ['draft', 'submitted', 'finalist'];
 exports.ALLOWED_STATUSES = ALLOWED_STATUSES;
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 const Vote = require('../models/Vote');
 const User = require('../models/User');
 const Settings = require('../models/Settings');
@@ -195,6 +199,33 @@ exports.projects = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+/**
+ * GET /admin/projects/search?q=<term>
+ * Returns up to 50 projects matching title or description (admin — all statuses).
+ */
+exports.searchProjects = async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.json({ projects: [] });
+
+  const status   = ALLOWED_STATUSES.includes(req.query.status) ? req.query.status : undefined;
+  const category = CATEGORIES.includes(req.query.category) ? req.query.category : undefined;
+
+  const re = new RegExp(escapeRegex(q), 'i');
+  const filter = { $or: [{ title: re }, { description: re }] };
+  if (status)   filter.status   = status;
+  if (category) filter.category = category;
+
+  const projects = await Project.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .populate('owner', 'profile.name')
+    .lean();
+
+  projects.forEach((p) => { p.liveliness = computeLiveliness(p); });
+
+  res.json({ projects });
 };
 
 /**

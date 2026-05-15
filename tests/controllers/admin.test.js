@@ -2,6 +2,9 @@
  * Tests for admin controller business logic.
  * Focuses on the CSV cell sanitisation function and Settings helpers.
  */
+jest.mock('../../services/mattermost', () => ({ notifyFinalistPromoted: jest.fn() }));
+
+const mongoose = require('mongoose');
 const db = require('../setup/db');
 // eslint-disable-next-line no-unused-vars -- imported to initialise models used by db.js
 const { Project } = require('../../models/Project');
@@ -398,5 +401,79 @@ describe('seedDefaults', () => {
     expect(d).toHaveProperty('teams');
     expect(d).toHaveProperty('ai_tools');
     expect(d).toHaveProperty('tech_stack');
+  });
+});
+
+// ─── admin searchProjects ─────────────────────────────────────────────────
+
+describe('admin searchProjects()', () => {
+  const adminCtrl = require('../../controllers/admin');
+
+  function makeReq(overrides = {}) {
+    return { user: { _id: new mongoose.Types.ObjectId(), role: 'admin' }, params: {}, body: {}, query: {}, headers: {}, flash: jest.fn(), ...overrides };
+  }
+  function makeRes() {
+    const res = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json   = jest.fn().mockReturnValue(res);
+    return res;
+  }
+
+  beforeAll(() => db.connect());
+  afterAll(() => db.disconnect());
+
+  beforeEach(async () => {
+    await db.clearAll();
+    const owner = await User.create({ email: 'admin@canonical.com', github: 'admin-gh' });
+    await Project.create({ title: 'Alpha Bot', description: 'Robot assistant', category: 'Other', owner: owner._id, team: [owner._id], status: 'submitted' });
+    await Project.create({ title: 'Beta Tool', description: 'Dev tooling', category: 'Developer Tooling', owner: owner._id, team: [owner._id], status: 'draft' });
+  });
+
+  it('returns matching projects by title', async () => {
+    const req = makeReq({ query: { q: 'Alpha' } });
+    const res = makeRes();
+    await adminCtrl.searchProjects(req, res);
+    const { projects } = res.json.mock.calls[0][0];
+    expect(projects).toHaveLength(1);
+    expect(projects[0].title).toBe('Alpha Bot');
+  });
+
+  it('includes draft projects (admin can see all)', async () => {
+    const req = makeReq({ query: { q: 'Beta' } });
+    const res = makeRes();
+    await adminCtrl.searchProjects(req, res);
+    const { projects } = res.json.mock.calls[0][0];
+    expect(projects).toHaveLength(1);
+    expect(projects[0].status).toBe('draft');
+  });
+
+  it('respects status filter', async () => {
+    const req = makeReq({ query: { q: 'Bot', status: 'draft' } });
+    const res = makeRes();
+    await adminCtrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith({ projects: [] });
+  });
+
+  it('returns empty array when q is missing', async () => {
+    const req = makeReq({ query: {} });
+    const res = makeRes();
+    await adminCtrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith({ projects: [] });
+  });
+
+  it('populates owner profile name', async () => {
+    const req = makeReq({ query: { q: 'Alpha' } });
+    const res = makeRes();
+    await adminCtrl.searchProjects(req, res);
+    const { projects } = res.json.mock.calls[0][0];
+    expect(projects[0]).toHaveProperty('owner');
+  });
+
+  it('includes liveliness in results', async () => {
+    const req = makeReq({ query: { q: 'Alpha' } });
+    const res = makeRes();
+    await adminCtrl.searchProjects(req, res);
+    const { projects } = res.json.mock.calls[0][0];
+    expect(projects[0]).toHaveProperty('liveliness');
   });
 });
