@@ -7,7 +7,8 @@ block content
     a.btn.btn-neon-outline.btn-sm.mt-2(href='/visualize') Topic Map
 
   // Filters
-  form.filters-bar(method='GET', action='/projects')
+  form#filters-form.filters-bar(method='GET', action='/projects')
+    input#project-search.md-input(type='search', placeholder='Search projects\u2026', autocomplete='off', style='flex:1;min-width:200px')
     select.md-select.js-autosubmit(name='category')
       option(value='') All Categories
       each cat in CATEGORIES
@@ -23,54 +24,162 @@ block content
       option(value='rating', selected=(filters.sort === 'rating')) Top Rated
       option(value='votes', selected=(filters.sort === 'votes')) Most Voted
 
-  if projects.length
-    .projects-grid-full
-      each project in projects
-        include ../partials/project-card
+  #original-content
+    if projects.length
+      .projects-grid-full
+        each project in projects
+          include ../partials/project-card
 
-    if pagination.totalPages > 1
-      nav.pagination-nav(aria-label='Project pages')
-        ul.pagination.justify-content-center
-          li.page-item(class=(pagination.page <= 1 ? 'disabled' : ''))
-            - var prevParams = new URLSearchParams()
-            - if (filters.category) prevParams.set('category', filters.category)
-            - if (filters.team) prevParams.set('team', filters.team)
-            - if (filters.sort && filters.sort !== 'random') prevParams.set('sort', filters.sort)
-            - prevParams.set('page', pagination.page - 1)
-            a.page-link(href=`/projects?${prevParams}`, aria-label='Previous') &laquo; Prev
-          //- Windowed pagination: 1 ... [neighbors] ... last
-          - var WINDOW = 2
-          - var pages = []
-          - for (var i = 1; i <= pagination.totalPages; i++)
-            - if (i === 1 || i === pagination.totalPages || (i >= pagination.page - WINDOW && i <= pagination.page + WINDOW))
-              - pages.push(i)
-          - var prev = 0
-          each pg in pages
-            - if (pg - prev > 1)
-              li.page-item.disabled
-                span.page-link &hellip;
-            li.page-item(class=(pg === pagination.page ? 'active' : ''))
-              - var pgParams = new URLSearchParams()
-              - if (filters.category) pgParams.set('category', filters.category)
-              - if (filters.team) pgParams.set('team', filters.team)
-              - if (filters.sort && filters.sort !== 'random') pgParams.set('sort', filters.sort)
-              - pgParams.set('page', pg)
-              a.page-link(href=`/projects?${pgParams}`)= pg
-            - prev = pg
-          li.page-item(class=(pagination.page >= pagination.totalPages ? 'disabled' : ''))
-            - var nextParams = new URLSearchParams()
-            - if (filters.category) nextParams.set('category', filters.category)
-            - if (filters.team) nextParams.set('team', filters.team)
-            - if (filters.sort && filters.sort !== 'random') nextParams.set('sort', filters.sort)
-            - nextParams.set('page', pagination.page + 1)
-            a.page-link(href=`/projects?${nextParams}`, aria-label='Next') Next &raquo;
-  else
-    .empty-state.text-center.py-5
-      p.text-muted No projects match your filters.
-      a.btn.btn-neon-outline(href='/projects') Clear Filters
+      if pagination.totalPages > 1
+        nav.pagination-nav(aria-label='Project pages')
+          ul.pagination.justify-content-center
+            li.page-item(class=(pagination.page <= 1 ? 'disabled' : ''))
+              - var prevParams = new URLSearchParams()
+              - if (filters.category) prevParams.set('category', filters.category)
+              - if (filters.team) prevParams.set('team', filters.team)
+              - if (filters.sort && filters.sort !== 'random') prevParams.set('sort', filters.sort)
+              - prevParams.set('page', pagination.page - 1)
+              a.page-link(href=`/projects?${prevParams}`, aria-label='Previous') &laquo; Prev
+            //- Windowed pagination: 1 ... [neighbors] ... last
+            - var WINDOW = 2
+            - var pages = []
+            - for (var i = 1; i <= pagination.totalPages; i++)
+              - if (i === 1 || i === pagination.totalPages || (i >= pagination.page - WINDOW && i <= pagination.page + WINDOW))
+                - pages.push(i)
+            - var prev = 0
+            each pg in pages
+              - if (pg - prev > 1)
+                li.page-item.disabled
+                  span.page-link &hellip;
+              li.page-item(class=(pg === pagination.page ? 'active' : ''))
+                - var pgParams = new URLSearchParams()
+                - if (filters.category) pgParams.set('category', filters.category)
+                - if (filters.team) pgParams.set('team', filters.team)
+                - if (filters.sort && filters.sort !== 'random') pgParams.set('sort', filters.sort)
+                - pgParams.set('page', pg)
+                a.page-link(href=`/projects?${pgParams}`)= pg
+              - prev = pg
+            li.page-item(class=(pagination.page >= pagination.totalPages ? 'disabled' : ''))
+              - var nextParams = new URLSearchParams()
+              - if (filters.category) nextParams.set('category', filters.category)
+              - if (filters.team) nextParams.set('team', filters.team)
+              - if (filters.sort && filters.sort !== 'random') nextParams.set('sort', filters.sort)
+              - nextParams.set('page', pagination.page + 1)
+              a.page-link(href=`/projects?${nextParams}`, aria-label='Next') Next &raquo;
+    else
+      .empty-state.text-center.py-5
+        p.text-muted No projects match your filters.
+        a.btn.btn-neon-outline(href='/projects') Clear Filters
+
+  #search-results(style='display:none')
+    .projects-grid-full#search-grid
+    #search-empty.empty-state.text-center.py-5(style='display:none')
+      p.text-muted No projects match your search.
 
 block scripts
   script(nonce=cspNonce).
-    document.querySelectorAll('.js-autosubmit').forEach(function(sel) {
-      sel.addEventListener('change', function() { sel.form.submit(); });
-    });
+    (function () {
+      var searchInput   = document.getElementById('project-search');
+      var form          = document.getElementById('filters-form');
+      var originalBlock = document.getElementById('original-content');
+      var searchBlock   = document.getElementById('search-results');
+      var searchGrid    = document.getElementById('search-grid');
+      var searchEmpty   = document.getElementById('search-empty');
+
+      function esc(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function renderCard(p) {
+        var cls = p.status === 'finalist' ? 'project-card finalist' : 'project-card';
+        var lv = p.liveliness || 0;
+        var html = '<div class="' + cls + '" style="--liveliness: ' + lv + '">';
+        if (p.status === 'finalist') html += '<div class="finalist-badge">FINALIST</div>';
+        html += '<div class="card-inner"><div class="card-header-row">';
+        if (p.logo) html += '<img class="project-logo" src="' + esc(p.logo) + '" alt="' + esc(p.title) + ' logo">';
+        html += '<div class="card-titles">';
+        html += '<a class="project-title" href="/projects/' + esc(p.slug) + '">' + esc(p.title) + '</a>';
+        html += '<div class="project-meta">';
+        html += '<span class="category-tag">' + esc(p.category) + '</span>';
+        html += '<span class="team-tag">' + esc(p.canonicalTeam) + '</span>';
+        html += '</div></div></div>';
+        html += '<div class="card-rating">';
+        var avg = (typeof p.avgRating === 'number' && isFinite(p.avgRating)) ? p.avgRating.toFixed(1) : '\u2014';
+        var vc = p.voteCount || 0;
+        html += '<span class="avg-rating">' + avg + '</span>';
+        html += '<span class="star-icon">\u2605</span>';
+        html += '<span class="vote-count">(' + vc + ' ' + (vc === 1 ? 'vote' : 'votes') + ')</span>';
+        html += '</div>';
+        if (p.aiTools && p.aiTools.length) {
+          html += '<div class="ai-tools-row">';
+          p.aiTools.slice(0, 3).forEach(function (tool) {
+            html += '<span class="ai-tool-tag">' + esc(tool) + '</span>';
+          });
+          html += '</div>';
+        }
+        html += '</div></div>';
+        return html;
+      }
+
+      function doSearch() {
+        var q = searchInput.value.trim();
+        if (!q) {
+          searchBlock.style.display = 'none';
+          originalBlock.style.display = '';
+          return;
+        }
+        var params = new URLSearchParams();
+        params.set('q', q);
+        var cat = form.querySelector('[name="category"]').value;
+        var team = form.querySelector('[name="team"]').value;
+        var sort = form.querySelector('[name="sort"]').value;
+        if (cat) params.set('category', cat);
+        if (team) params.set('team', team);
+        if (sort && sort !== 'random') params.set('sort', sort);
+
+        fetch('/api/projects/search?' + params)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            originalBlock.style.display = 'none';
+            searchBlock.style.display = '';
+            if (data.projects && data.projects.length) {
+              searchGrid.innerHTML = data.projects.map(renderCard).join('');
+              searchGrid.style.display = '';
+              searchEmpty.style.display = 'none';
+            } else {
+              searchGrid.style.display = 'none';
+              searchEmpty.style.display = '';
+            }
+          })
+          .catch(function () {
+            searchGrid.innerHTML = '';
+            searchGrid.style.display = 'none';
+            searchEmpty.style.display = '';
+          });
+      }
+
+      // Debounced search on input
+      var timer;
+      searchInput.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(doSearch, 250);
+      });
+
+      // Prevent form submission when pressing Enter in search box
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+
+      // When dropdowns change: if search is active, re-search instead of form submit
+      document.querySelectorAll('.js-autosubmit').forEach(function (sel) {
+        sel.addEventListener('change', function (e) {
+          if (searchInput.value.trim()) {
+            e.preventDefault();
+            e.stopPropagation();
+            doSearch();
+          } else {
+            sel.form.submit();
+          }
+        });
+      });
+    })();
