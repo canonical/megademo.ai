@@ -17,6 +17,7 @@ block content
       each team in CANONICAL_TEAMS
         option(value=team, selected=(filters.team === team)) #{team}
     select.md-select.js-autosubmit(name='sort')
+      option(value='random', selected=(filters.sort === 'random')) Random
       option(value='newest', selected=(filters.sort === 'newest')) Newest First
       option(value='stars', selected=(filters.sort === 'stars')) Most Stars
       option(value='rating', selected=(filters.sort === 'rating')) Top Rated
@@ -34,7 +35,7 @@ block content
             - var prevParams = new URLSearchParams()
             - if (filters.category) prevParams.set('category', filters.category)
             - if (filters.team) prevParams.set('team', filters.team)
-            - if (filters.sort && filters.sort !== 'newest') prevParams.set('sort', filters.sort)
+            - if (filters.sort && filters.sort !== 'random') prevParams.set('sort', filters.sort)
             - prevParams.set('page', pagination.page - 1)
             a.page-link(href=`/projects?${prevParams}`, aria-label='Previous') &laquo; Prev
           //- Windowed pagination: 1 ... [neighbors] ... last
@@ -52,7 +53,7 @@ block content
               - var pgParams = new URLSearchParams()
               - if (filters.category) pgParams.set('category', filters.category)
               - if (filters.team) pgParams.set('team', filters.team)
-              - if (filters.sort && filters.sort !== 'newest') pgParams.set('sort', filters.sort)
+              - if (filters.sort && filters.sort !== 'random') pgParams.set('sort', filters.sort)
               - pgParams.set('page', pg)
               a.page-link(href=`/projects?${pgParams}`)= pg
             - prev = pg
@@ -60,7 +61,7 @@ block content
             - var nextParams = new URLSearchParams()
             - if (filters.category) nextParams.set('category', filters.category)
             - if (filters.team) nextParams.set('team', filters.team)
-            - if (filters.sort && filters.sort !== 'newest') nextParams.set('sort', filters.sort)
+            - if (filters.sort && filters.sort !== 'random') nextParams.set('sort', filters.sort)
             - nextParams.set('page', pagination.page + 1)
             a.page-link(href=`/projects?${nextParams}`, aria-label='Next') Next &raquo;
   else

@@ -13,6 +13,27 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Deterministic shuffle using a string seed (Fisher-Yates + simple LCG PRNG).
+ * Same seed always produces the same permutation.
+ */
+function seededShuffle(array, seed) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const random = () => {
+    hash = (hash * 1103515245 + 12345) & 0x7fffffff;
+    return hash / 0x7fffffff;
+  };
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 /** Reject javascript:, data:, vbscript: etc. — only http/https are safe in user-facing links. */
 function isSafeUrl(url) {
   if (!url || !url.trim()) return true;
@@ -205,8 +226,8 @@ const CATEGORY_TEMPLATES = {
  */
 exports.list = async (req, res) => {
   // Allowlist category and team to prevent NoSQL operator injection via qs
-  const ALLOWED_SORTS = ['newest', 'stars', 'rating', 'votes'];
-  const sort     = ALLOWED_SORTS.includes(req.query.sort) ? req.query.sort : 'newest';
+  const ALLOWED_SORTS = ['random', 'newest', 'stars', 'rating', 'votes'];
+  const sort     = ALLOWED_SORTS.includes(req.query.sort) ? req.query.sort : 'random';
   const category = CATEGORIES.includes(req.query.category) ? req.query.category : undefined;
   const team     = typeof req.query.team === 'string' && req.query.team.trim() ? req.query.team.trim() : undefined;
   const filter = { status: { $in: ['submitted', 'finalist'] } };
@@ -226,12 +247,23 @@ exports.list = async (req, res) => {
   const totalPages = Math.max(1, Math.ceil(totalProjects / PER_PAGE));
   const safePage = Math.min(page, totalPages);
 
-  const projects = await Project.find(filter)
-    .sort(sortMap[sort] || sortMap.newest)
-    .skip((safePage - 1) * PER_PAGE)
-    .limit(PER_PAGE)
-    .populate('owner', 'profile.name profile.picture')
-    .lean();
+  let projects;
+  if (sort === 'random') {
+    // Fetch all matching projects, shuffle with a daily seed for stable pagination
+    const dailySeed = new Date().toISOString().slice(0, 10);
+    const all = await Project.find(filter)
+      .populate('owner', 'profile.name profile.picture')
+      .lean();
+    seededShuffle(all, dailySeed);
+    projects = all.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
+  } else {
+    projects = await Project.find(filter)
+      .sort(sortMap[sort] || sortMap.newest)
+      .skip((safePage - 1) * PER_PAGE)
+      .limit(PER_PAGE)
+      .populate('owner', 'profile.name profile.picture')
+      .lean();
+  }
 
   projects.forEach((p) => { p.liveliness = computeLiveliness(p); });
 
