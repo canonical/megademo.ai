@@ -334,3 +334,88 @@ describe('update()', () => {
     expect(res.json).toHaveBeenCalledWith({ redirect: expect.stringMatching(/\/projects\/[^/]+$/) });
   });
 });
+
+// ─── searchProjects ───────────────────────────────────────────────────────
+
+describe('searchProjects()', () => {
+  beforeEach(async () => {
+    project.status = 'submitted';
+    project.description = 'An AI helper for automated testing';
+    await project.save();
+  });
+
+  it('returns matching projects by title substring', async () => {
+    const req = makeReq({ query: { q: 'Test' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projects: expect.arrayContaining([
+          expect.objectContaining({ title: 'Test Project' }),
+        ]),
+      }),
+    );
+  });
+
+  it('returns matching projects by description substring', async () => {
+    const req = makeReq({ query: { q: 'automated testing' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projects: expect.arrayContaining([
+          expect.objectContaining({ title: 'Test Project' }),
+        ]),
+      }),
+    );
+  });
+
+  it('is case-insensitive', async () => {
+    const req = makeReq({ query: { q: 'test project' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projects: [expect.objectContaining({ title: 'Test Project' })],
+      }),
+    );
+  });
+
+  it('excludes draft projects', async () => {
+    project.status = 'draft';
+    await project.save();
+    const req = makeReq({ query: { q: 'Test' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith({ projects: [] });
+  });
+
+  it('returns empty array when q is missing', async () => {
+    const req = makeReq({ query: {} });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith({ projects: [] });
+  });
+
+  it('returns empty array when q is empty string', async () => {
+    const req = makeReq({ query: { q: '' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith({ projects: [] });
+  });
+
+  it('respects category filter', async () => {
+    const req = makeReq({ query: { q: 'Test', category: 'Coding Assistant' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    expect(res.json).toHaveBeenCalledWith({ projects: [] });
+  });
+
+  it('includes liveliness in results', async () => {
+    const req = makeReq({ query: { q: 'Test' } });
+    const res = makeRes();
+    await ctrl.searchProjects(req, res);
+    const { projects } = res.json.mock.calls[0][0];
+    expect(projects[0]).toHaveProperty('liveliness');
+  });
+});

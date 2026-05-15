@@ -288,6 +288,45 @@ exports.list = async (req, res) => {
 };
 
 /**
+ * GET /api/projects/search?q=<term>
+ * Returns up to 50 submitted/finalist projects matching title or description.
+ */
+exports.searchProjects = async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.json({ projects: [] });
+
+  const ALLOWED_SORTS = ['newest', 'stars', 'rating', 'votes'];
+  const sort     = ALLOWED_SORTS.includes(req.query.sort) ? req.query.sort : 'newest';
+  const category = CATEGORIES.includes(req.query.category) ? req.query.category : undefined;
+  const team     = typeof req.query.team === 'string' && req.query.team.trim() ? req.query.team.trim() : undefined;
+
+  const re = new RegExp(escapeRegex(q), 'i');
+  const filter = {
+    status: { $in: ['submitted', 'finalist'] },
+    $or: [{ title: re }, { description: re }],
+  };
+  if (category) filter.category = category;
+  if (team) filter.canonicalTeam = team;
+
+  const sortMap = {
+    newest: { createdAt: -1 },
+    rating: { avgRating: -1, voteCount: -1 },
+    stars:  { totalStars: -1, avgRating: -1 },
+    votes:  { voteCount: -1 },
+  };
+
+  const projects = await Project.find(filter)
+    .sort(sortMap[sort] || sortMap.newest)
+    .limit(50)
+    .select('title slug category canonicalTeam avgRating voteCount status logo aiTools githubStats updatedAt')
+    .lean();
+
+  projects.forEach((p) => { p.liveliness = computeLiveliness(p); });
+
+  res.json({ projects });
+};
+
+/**
  * GET /projects/new
  */
 exports.newForm = async (req, res) => {
