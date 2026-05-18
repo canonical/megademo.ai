@@ -92,7 +92,7 @@ block scripts
 
       function renderCard(p) {
         var cls = p.status === 'finalist' ? 'project-card finalist' : 'project-card';
-        var lv = p.liveliness || 0;
+        var lv = Number(p.liveliness) || 0;
         var html = '<div class="' + cls + '" style="--liveliness: ' + lv + '">';
         if (p.status === 'finalist') html += '<div class="finalist-badge">FINALIST</div>';
         html += '<div class="card-inner"><div class="card-header-row">';

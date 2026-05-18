@@ -71,7 +71,7 @@ block scripts
 
       function renderRow(p) {
         var owner = (p.owner && p.owner.profile) ? esc(p.owner.profile.name) : '\u2014';
-        var rating = p.avgRating ? p.avgRating.toFixed(1) : '\u2014';
+        var rating = (typeof p.avgRating === 'number' && isFinite(p.avgRating)) ? p.avgRating.toFixed(1) : '\u2014';
         var vc = p.voteCount || 0;
         var id = esc(String(p._id));
         var title = esc(p.title);
