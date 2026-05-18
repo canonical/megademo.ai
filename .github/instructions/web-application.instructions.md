@@ -34,11 +34,14 @@ A **husky pre-commit hook** (`.husky/pre-commit`) enforces this locally. It runs
 
 **ALWAYS use git worktrees for new features and modifications.**
 
-- Before starting any feature or code change, create a git worktree (e.g. `git worktree add ../megademo.ai-<branch> -b <branch>`)
-- Work entirely inside the worktree directory; do not modify the main working tree
-- This prevents mid-flight conflicts when multiple parallel changes are in progress
-- Merge or rebase back to `main` only when the work is complete and verified
-- Clean up worktrees after merging (`git worktree remove`)
+- If available, use the `using-git-worktrees` skill to satisfy the 'Git Worktree Policy'.
+
+- If the `using-git-worktrees` skill isn't available, follow these instructions:
+  - Before starting any feature or code change, create a git worktree (e.g. `git worktree add ../megademo.ai-<branch> -b <branch>`)
+  - Work entirely inside the worktree directory; do not modify the main working tree
+  - This prevents mid-flight conflicts when multiple parallel changes are in progress
+  - Merge or rebase back to `main` only when the work is complete and verified
+  - Clean up worktrees after merging (`git worktree remove`)
 
 ## Documentation Maintenance
 
