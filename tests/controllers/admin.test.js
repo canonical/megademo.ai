@@ -6,9 +6,7 @@ jest.mock('../../services/mattermost', () => ({ notifyFinalistPromoted: jest.fn(
 
 const mongoose = require('mongoose');
 const db = require('../setup/db');
-// eslint-disable-next-line no-unused-vars -- imported to initialise models used by db.js
 const { Project } = require('../../models/Project');
-// eslint-disable-next-line no-unused-vars -- imported to initialise models used by db.js
 const User = require('../../models/User');
 
 // Re-implement the CSV cell sanitizer identical to controllers/admin.js line 153
