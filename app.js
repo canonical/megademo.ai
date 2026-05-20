@@ -23,6 +23,22 @@ fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // Pre-parse get-started guide once at startup (reloaded on each deploy)
 const { marked } = require('marked');
+const sanitizeHtml = require('sanitize-html');
+
+const BANNER_SANITIZE_OPTIONS = {
+  allowedTags: ['p', 'strong', 'em', 'a', 'br', 'ul', 'ol', 'li', 'code'],
+  allowedAttributes: { a: ['href', 'title', 'rel', 'target'] },
+  allowedSchemes: ['http', 'https'],
+  transformTags: {
+    a: (tagName, attribs) => ({
+      tagName: 'a',
+      attribs: {
+        ...attribs,
+        ...((/^https?:\/\//i).test(attribs.href || '') ? { rel: 'noopener noreferrer', target: '_blank' } : {}),
+      },
+    }),
+  },
+};
 let getStartedHtml = (() => {
   try {
     return marked.parse(fs.readFileSync(path.join(__dirname, 'content', 'get-started.md'), 'utf8'));
@@ -343,7 +359,7 @@ app.use(async (req, res, next) => {
     if (now >= _bannerCache.expiresAt) {
       const Settings = require('./models/Settings');
       const text = await Settings.get('announcementBanner');
-      _bannerCache.html      = text ? marked.parse(String(text)) : null;
+      _bannerCache.html      = text ? sanitizeHtml(marked.parse(String(text)), BANNER_SANITIZE_OPTIONS) : null;
       _bannerCache.expiresAt = now + 10_000;
     }
     res.locals.announcementBannerHtml = _bannerCache.html;
