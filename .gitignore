@@ -6,3 +6,4 @@ tmp/
 *.log
 .DS_Store
 hacking.txt
+.worktrees/
