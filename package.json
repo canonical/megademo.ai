@@ -39,7 +39,7 @@
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "pug": "^3.0.4",
-    "sanitize-html": "^2.17.3",
+    "sanitize-html": "^2.17.4",
     "sass": "^1.99.0",
     "validator": "^13.15.35"
   },
