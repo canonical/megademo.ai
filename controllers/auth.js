@@ -300,10 +300,10 @@ export const oidcCallback = async (req, res, next) => {
 
   try {
 
-    // Build the current URL from the request (needed by authorizationCodeGrant)
+    // Build the current URL from BASE_URL (proxy-safe) + the request path
     const currentUrl = new URL(
-      req.url,
-      `${req.protocol}://${req.get('host')}`
+      req.originalUrl,
+      process.env.BASE_URL || `${req.protocol}://${req.get('host')}`,
     );
 
     const tokenSet = await authorizationCodeGrant(config, currentUrl, {

@@ -9,7 +9,7 @@
  *   OIDC_CLIENT_ID      — Client ID issued by Hydra for this app
  *   OIDC_CLIENT_SECRET  — Client secret issued by Hydra for this app
  */
-import { discovery } from 'openid-client';
+import { discovery, ClientSecretBasic } from 'openid-client';
 
 let oidcConfig = null;
 
@@ -37,7 +37,7 @@ async function initOidcClient() {
   }
 
   try {
-    oidcConfig = await discovery(new URL(issuerUrl), clientId, clientSecret);
+    oidcConfig = await discovery(new URL(issuerUrl), clientId, undefined, ClientSecretBasic(clientSecret));
   } catch (err) {
     throw new Error(`OIDC discovery failed for ${issuerUrl}: ${err.message}`, { cause: err });
   }
