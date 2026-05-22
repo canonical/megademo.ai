@@ -1,7 +1,7 @@
 /**
  * Unit tests for auth helpers: resolveAuthMode and resolveLoginUrl.
  */
-const { resolveAuthMode, resolveLoginUrl } = require('../../controllers/auth');
+import { resolveAuthMode, resolveLoginUrl } from '../../controllers/auth.js';
 
 describe('resolveAuthMode', () => {
   let savedAuthMode;

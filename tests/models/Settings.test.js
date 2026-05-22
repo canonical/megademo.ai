@@ -1,5 +1,5 @@
-const db = require('../setup/db');
-const Settings = require('../../models/Settings');
+import * as db from '../setup/db.js';
+import Settings from '../../models/Settings.js';
 
 beforeAll(() => db.connect());
 afterAll(() => db.disconnect());

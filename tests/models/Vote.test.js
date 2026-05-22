@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const db = require('../setup/db');
-const Vote = require('../../models/Vote');
+import mongoose from 'mongoose';
+import * as db from '../setup/db.js';
+import Vote from '../../models/Vote.js';
 
 const uid1 = new mongoose.Types.ObjectId();
 const pid1 = new mongoose.Types.ObjectId();

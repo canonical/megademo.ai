@@ -1,4 +1,4 @@
-const { initOidcClient } = require('../../config/oidc');
+import { initOidcClient } from '../../config/oidc.js';
 
 describe('initOidcClient misconfiguration', () => {
   let savedAuthMode, savedIssuerUrl;

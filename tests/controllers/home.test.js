@@ -3,7 +3,7 @@
  * renderHeroDescription is the XSS gatekeeper for all user-facing hero HTML,
  * so its correctness is continuously verified here.
  */
-const { renderHeroDescription } = require('../../controllers/home');
+import { renderHeroDescription } from '../../controllers/home.js';
 
 describe('renderHeroDescription', () => {
   it('renders plain text wrapped in a paragraph', () => {

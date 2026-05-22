@@ -4,10 +4,10 @@
  * Tests the magic-bytes verification that guards image uploads in both
  * controllers/project.js and controllers/admin.js. No DB or Express needed.
  */
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const { verifyImageMagicBytes } = require('../../services/imageTypeCheck');
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { verifyImageMagicBytes } from '../../services/imageTypeCheck.js';
 
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
 const ERR_MSG = 'Only image files are allowed.';
