@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const settingsSchema = new mongoose.Schema(
   {
@@ -55,4 +55,4 @@ settingsSchema.statics.arrayRename = async function (key, oldItem, newItem) {
 };
 
 const Settings = mongoose.model('Settings', settingsSchema);
-module.exports = Settings;
+export default Settings;

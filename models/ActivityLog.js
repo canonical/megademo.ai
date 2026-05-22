@@ -1,7 +1,7 @@
 /**
  * ActivityLog model — records all DB-mutating user actions.
  */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const activityLogSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now },
@@ -13,4 +13,4 @@ const activityLogSchema = new mongoose.Schema({
 activityLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 180 });
 
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
-module.exports = ActivityLog;
+export default ActivityLog;
