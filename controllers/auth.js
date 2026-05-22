@@ -292,7 +292,7 @@ export const oidcCallback = async (req, res, next) => {
 
   const oidcParams = req.session.oidcParams;
   delete req.session.oidcParams;
-  if (!oidcParams?.state || !oidcParams?.codeVerifier) {
+  if (!oidcParams?.state || !oidcParams?.codeVerifier || !oidcParams?.nonce) {
     req.flash('errors', { msg: 'Login session expired or invalid. Please try again.' });
     return res.redirect(resolveLoginUrl());
   }

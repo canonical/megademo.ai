@@ -78,6 +78,15 @@ function buildUrl(granularity) {
  *
  * Also replaces bare <script> tags with <script nonce="{{VIZ_NONCE}}">
  * so the controller can inject the real CSP nonce at render time.
+ *
+ * TRUST BOUNDARY: This HTML comes from the canonical/megademo-projects private
+ * org repository (fetched via GITHUB_TOKEN). It is NOT sanitized with
+ * sanitize-html because Plotly's generated output contains complex attributes
+ * and inline data that sanitization would break. Script injection is mitigated
+ * by the CSP nonce requirement (scriptSrc in app.js uses per-request nonces;
+ * 'unsafe-inline' is NOT present). Inline event-handler attributes (onclick,
+ * onerror, etc.) are blocked by the same CSP. Changes to this trust model
+ * require re-evaluating the unsanitized rendering in visualize.pug.
  */
 function extractBodyContent(html) {
   // Find <body> tag — content starts right after it
