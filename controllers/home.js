@@ -1,10 +1,10 @@
 /**
  * Home controller
  */
-const { Project, computeLiveliness } = require('../models/Project');
-const Settings = require('../models/Settings');
-const { marked } = require('marked');
-const sanitizeHtml = require('sanitize-html');
+import { Project, computeLiveliness } from '../models/Project.js';
+import Settings from '../models/Settings.js';
+import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
 
 const HERO_DEFAULTS = {
   heroLine1:       'SURF THE WAVE.',
@@ -42,12 +42,11 @@ function renderHeroDescription(raw) {
   });
   return html;
 }
-exports.renderHeroDescription = renderHeroDescription;
 
 /**
  * GET /
  */
-exports.index = async (req, res) => {
+export async function index(req, res) {
   try {
     const [newest, leaderboard, submissionDeadline, megademoDate, hackathonStart, rawCategoryStats, heroLine1, heroLine2, heroSubtitle, heroDescription, heroImage] = await Promise.all([
       Project.find({ status: { $in: ['submitted', 'finalist'] } })
@@ -115,4 +114,6 @@ exports.index = async (req, res) => {
       heroImageSrc:        '/images/megademo-wave.jpg',
     });
   }
-};
+}
+
+export { renderHeroDescription };

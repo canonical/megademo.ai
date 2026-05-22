@@ -1,9 +1,9 @@
 /**
  * Visualization controller — serves the interactive project cluster map.
  */
-const { getVizFragment, GRANULARITIES } = require('../services/viz-sync');
+import { getVizFragment, GRANULARITIES } from '../services/viz-sync.js';
 
-exports.show = (req, res) => {
+export function show(req, res) {
   const granularity = req.params.granularity || 'medium';
 
   if (!GRANULARITIES.includes(granularity)) {
@@ -32,4 +32,4 @@ exports.show = (req, res) => {
     granularities: GRANULARITIES,
     syncedAt: fragment.syncedAt,
   });
-};
+}
