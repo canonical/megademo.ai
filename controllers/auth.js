@@ -6,30 +6,35 @@
  *   - prod + AUTH_MODE=oidc:            /auth/oidc       (Canonical IdP via Hydra)
  *   - prod + anything else:             /auth/github     (direct GitHub OAuth)
  */
-const crypto = require('node:crypto');
-const passport = require('passport');
-const User = require('../models/User');
-const { generators } = require('openid-client');
-const { getClient } = require('../config/oidc');
-const { logActivity } = require('../services/activityLog');
+import crypto from 'node:crypto';
+import passport from 'passport';
+import User from '../models/User.js';
+import { getOidcConfig } from '../config/oidc.js';
+import { logActivity } from '../services/activityLog.js';
+import {
+  randomState,
+  randomNonce,
+  randomPKCECodeVerifier,
+  calculatePKCECodeChallenge,
+  buildAuthorizationUrl,
+  authorizationCodeGrant,
+} from 'openid-client';
 
 /**
  * Return the effective auth mode: 'oidc' or 'github' (default).
  * AUTH_MODE=oidc activates Canonical IdP; everything else uses GitHub OAuth.
  * OIDC_ISSUER_URL is ignored unless AUTH_MODE=oidc.
  */
-function resolveAuthMode() {
+export function resolveAuthMode() {
   return process.env.AUTH_MODE === 'oidc' ? 'oidc' : 'github';
 }
-exports.resolveAuthMode = resolveAuthMode;
 
 /** Resolve the appropriate login URL for the current environment. */
-function resolveLoginUrl() {
+export function resolveLoginUrl() {
   if (process.env.NODE_ENV !== 'production') return '/auth/dev-login';
   if (resolveAuthMode() === 'oidc')           return '/auth/oidc';
   return '/auth/github';
 }
-exports.resolveLoginUrl = resolveLoginUrl;
 
 /**
  * Validate a post-login return URL to prevent open redirect.
@@ -44,7 +49,7 @@ function safeReturnTo(url) {
 /**
  * Middleware: require authenticated user
  */
-exports.isAuthenticated = (req, res, next) => {
+export const isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) return next();
   // AJAX/JSON requests get 401 instead of a redirect (redirect → CORS error in fetch)
   const wantsJson = req.headers['content-type']?.includes('application/json')
@@ -58,7 +63,7 @@ exports.isAuthenticated = (req, res, next) => {
 /**
  * Middleware: require admin role
  */
-exports.isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
   if (req.isAuthenticated() && req.user.role === 'admin') return next();
   const wantsJson = req.headers['content-type']?.includes('application/json')
     || req.headers.accept?.includes('application/json');
@@ -90,12 +95,12 @@ function regenerateSession(req, cb) {
 /**
  * GET /auth/github
  */
-exports.githubLogin = passport.authenticate('github', { scope: ['user:email', 'read:org'], state: true });
+export const githubLogin = passport.authenticate('github', { scope: ['user:email', 'read:org'], state: true });
 
 /**
  * GET /auth/github/callback
  */
-exports.githubCallback = (req, res, next) => {
+export const githubCallback = (req, res, next) => {
   passport.authenticate('github', (err, user) => {
     if (err) return next(err);
     if (!user) return res.redirect('/');
@@ -115,7 +120,7 @@ exports.githubCallback = (req, res, next) => {
 /**
  * POST /logout
  */
-exports.logout = (req, res, next) => {
+export const logout = (req, res, next) => {
   const email = req.user?.email;
   req.logout((err) => {
     if (err) return next(err);
@@ -129,14 +134,14 @@ exports.logout = (req, res, next) => {
 /**
  * GET /auth/signed-out
  */
-exports.signedOut = (req, res) => {
+export const signedOut = (req, res) => {
   res.render('auth-signed-out', { title: 'Signed out' });
 };
 
 /**
  * GET /auth/dev-login — dev-only login form (disabled in production)
  */
-exports.devLoginForm = (req, res) => {
+export const devLoginForm = (req, res) => {
   res.render('dev-login', { title: 'Dev Login' });
 };
 
@@ -145,7 +150,7 @@ exports.devLoginForm = (req, res) => {
  * Enabled only when TEST_LOGIN_TOKEN env var is set.
  * Usage: POST /auth/test-login { token: "SECRET", role: "participant"|"admin" }
  */
-exports.testLogin = async (req, res, next) => {
+export const testLogin = async (req, res, next) => {
   const configuredToken = process.env.TEST_LOGIN_TOKEN;
   if (!configuredToken) {
     return res.status(404).render('error', { title: 'Not Found', message: 'Page not found.', user: null });
@@ -197,7 +202,7 @@ exports.testLogin = async (req, res, next) => {
 /**
  * POST /auth/dev-login — process dev login form (disabled in production)
  */
-exports.devLogin = async (req, res, next) => {
+export const devLogin = async (req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
     return res.status(404).render('error', { title: 'Not Found', message: 'Page not found.' });
   }
@@ -248,35 +253,37 @@ exports.devLogin = async (req, res, next) => {
 /**
  * GET /auth/oidc — initiate OIDC Authorization Code flow with PKCE
  */
-exports.oidcLogin = (req, res, next) => {
-  const client = getClient();
-  if (!client) return next(new Error('OIDC not configured — OIDC_ISSUER_URL is not set.'));
+export const oidcLogin = async (req, res, next) => {
+  const config = getOidcConfig();
+  if (!config) return next(new Error('OIDC not configured — OIDC_ISSUER_URL is not set.'));
 
-  const state         = generators.state();
-  const nonce         = generators.nonce();
-  const codeVerifier  = generators.codeVerifier();
-  const codeChallenge = generators.codeChallenge(codeVerifier);
+  const state         = randomState();
+  const nonce         = randomNonce();
+  const codeVerifier  = randomPKCECodeVerifier();
+  const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
 
   // Persist PKCE params in session for the callback
   req.session.oidcParams = { state, nonce, codeVerifier };
 
-  const url = client.authorizationUrl({
-    scope: 'openid profile email',
+  const redirectUri = `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`;
+  const url = buildAuthorizationUrl(config, new URLSearchParams({
+    redirect_uri:          redirectUri,
+    scope:                 'openid profile email',
     state,
     nonce,
     code_challenge:        codeChallenge,
     code_challenge_method: 'S256',
-  });
+  }));
 
-  res.redirect(url);
+  res.redirect(url.href);
 };
 
 /**
  * GET /auth/oidc/callback — exchange code for tokens, upsert user, establish session
  */
-exports.oidcCallback = async (req, res, next) => {
-  const client = getClient();
-  if (!client) return next(new Error('OIDC not configured.'));
+export const oidcCallback = async (req, res, next) => {
+  const config = getOidcConfig();
+  if (!config) return next(new Error('OIDC not configured.'));
 
   const oidcParams = req.session.oidcParams;
   delete req.session.oidcParams;
@@ -287,12 +294,19 @@ exports.oidcCallback = async (req, res, next) => {
   const { state, nonce, codeVerifier } = oidcParams;
 
   try {
-    const params   = client.callbackParams(req);
-    const tokenSet = await client.callback(
-      `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`,
-      params,
-      { state, nonce, code_verifier: codeVerifier },
+    const redirectUri = `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`;
+
+    // Build the current URL from the request (needed by authorizationCodeGrant)
+    const currentUrl = new URL(
+      req.url,
+      `${req.protocol}://${req.get('host')}`
     );
+
+    const tokenSet = await authorizationCodeGrant(config, currentUrl, {
+      pkceCodeVerifier: codeVerifier,
+      expectedState:    state,
+      expectedNonce:    nonce,
+    });
 
     const claims = tokenSet.claims();
     const email  = claims.email;
