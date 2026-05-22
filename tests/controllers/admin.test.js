@@ -2,8 +2,11 @@
  * Tests for admin controller business logic.
  * Focuses on the CSV cell sanitisation function and Settings helpers.
  */
+import { jest } from '@jest/globals';
+
 jest.unstable_mockModule('../../services/mattermost.js', () => ({
   notifyFinalistPromoted: jest.fn(),
+  postHourlySummary: jest.fn(),
 }));
 
 import mongoose from 'mongoose';
@@ -346,15 +349,20 @@ describe('sanitizeCsvCell (exported)', () => {
 });
 
 describe('CSV field filtering logic', () => {
-  const validKeys = CSV_FIELD_REGISTRY.map((f) => f.key);
+  let validKeys;
+  let filterFields;
 
-  const filterFields = (fieldsParam) => {
-    if (!fieldsParam) return CSV_FIELD_REGISTRY;
-    const requestedKeys = fieldsParam.split(',').filter((k) => validKeys.includes(k));
-    return requestedKeys.length
-      ? CSV_FIELD_REGISTRY.filter((f) => requestedKeys.includes(f.key))
-      : CSV_FIELD_REGISTRY;
-  };
+  beforeAll(() => {
+    validKeys = CSV_FIELD_REGISTRY.map((f) => f.key);
+    
+    filterFields = (fieldsParam) => {
+      if (!fieldsParam) return CSV_FIELD_REGISTRY;
+      const requestedKeys = fieldsParam.split(',').filter((k) => validKeys.includes(k));
+      return requestedKeys.length
+        ? CSV_FIELD_REGISTRY.filter((f) => requestedKeys.includes(f.key))
+        : CSV_FIELD_REGISTRY;
+    };
+  });
 
   it('returns all fields when no param is provided', () => {
     expect(filterFields(undefined)).toEqual(CSV_FIELD_REGISTRY);

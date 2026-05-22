@@ -2,6 +2,8 @@
  * Unit tests for controllers/project.js
  * Uses in-memory MongoDB; mocks Express req/res and external services.
  */
+import { jest } from '@jest/globals';
+
 jest.unstable_mockModule('../../services/mattermost.js', () => ({
   notifyProjectSubmitted: jest.fn(),
   recordVotingMilestone: jest.fn(),

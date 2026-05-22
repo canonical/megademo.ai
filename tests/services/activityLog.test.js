@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import mongoose from 'mongoose';
 import * as db from '../setup/db.js';
 import ActivityLog from '../../models/ActivityLog.js';
