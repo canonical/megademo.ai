@@ -266,7 +266,6 @@ export const oidcLogin = async (req, res, next) => {
     // Persist PKCE params in session for the callback
     req.session.oidcParams = { state, nonce, codeVerifier };
 
-    const redirectUri = `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`;
     const url = buildAuthorizationUrl(config, new URLSearchParams({
       redirect_uri:          redirectUri,
       scope:                 'openid profile email',
@@ -298,7 +297,6 @@ export const oidcCallback = async (req, res, next) => {
   const { state, nonce, codeVerifier } = oidcParams;
 
   try {
-    const redirectUri = `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`;
 
     // Build the current URL from the request (needed by authorizationCodeGrant)
     const currentUrl = new URL(
