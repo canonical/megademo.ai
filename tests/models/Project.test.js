@@ -1,6 +1,6 @@
-const db = require('../setup/db');
-const { Project } = require('../../models/Project');
-const User = require('../../models/User');
+import * as db from '../setup/db.js';
+import { Project } from '../../models/Project.js';
+import User from '../../models/User.js';
 
 let ownerId;
 

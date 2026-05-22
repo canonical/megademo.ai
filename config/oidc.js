@@ -1,7 +1,7 @@
 /**
  * OIDC client — Canonical Identity Platform (Ory Hydra)
  *
- * Activated when OIDC_ISSUER_URL env var is set. Uses openid-client v5 with
+ * Activated when OIDC_ISSUER_URL env var is set. Uses openid-client v6 with
  * PKCE (S256) for the Authorization Code flow.
  *
  * Required env vars:
@@ -9,12 +9,12 @@
  *   OIDC_CLIENT_ID      — Client ID issued by Hydra for this app
  *   OIDC_CLIENT_SECRET  — Client secret issued by Hydra for this app
  */
-const { Issuer } = require('openid-client');
+import { discovery } from 'openid-client';
 
-let oidcClient = null;
+let oidcConfig = null;
 
 /**
- * Discover the OIDC issuer and initialise the client.
+ * Discover the OIDC issuer and initialise the client configuration.
  * Called once at app startup if OIDC_ISSUER_URL is set.
  */
 async function initOidcClient() {
@@ -36,27 +36,19 @@ async function initOidcClient() {
     throw new Error('OIDC_ISSUER_URL is set but BASE_URL is missing (required for redirect_uri)');
   }
 
-  let issuer;
   try {
-    issuer = await Issuer.discover(issuerUrl);
+    oidcConfig = await discovery(new URL(issuerUrl), clientId, clientSecret);
   } catch (err) {
     throw new Error(`OIDC discovery failed for ${issuerUrl}: ${err.message}`, { cause: err });
   }
 
-  oidcClient = new issuer.Client({
-    client_id:      clientId,
-    client_secret:  clientSecret,
-    redirect_uris:  [`${baseUrl.replace(/\/+$/, '')}/auth/oidc/callback`],
-    response_types: ['code'],
-  });
-
-  console.log(`OIDC client initialised (issuer: ${issuer.issuer})`);
-  return oidcClient;
+  console.log(`OIDC client initialised (issuer: ${issuerUrl})`);
+  return oidcConfig;
 }
 
-/** Returns the initialised OIDC client, or null if OIDC is not configured. */
-function getClient() {
-  return oidcClient;
+/** Returns the initialised OIDC configuration, or null if OIDC is not configured. */
+function getOidcConfig() {
+  return oidcConfig;
 }
 
-module.exports = { initOidcClient, getClient };
+export { initOidcClient, getOidcConfig };

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const { marked } = require('marked');
-const sanitizeHtml = require('sanitize-html');
+import mongoose from 'mongoose';
+import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
 
 const SANITIZE_OPTIONS = {
   allowedTags: sanitizeHtml.defaults.allowedTags.filter((tag) => tag !== 'img'),
@@ -114,7 +114,7 @@ projectSchema.pre('save', async function generateSlug() {
 
 // Virtual: sanitized HTML from markdown description
 projectSchema.virtual('descriptionHtml').get(function () {
-  return sanitizeHtml(marked(this.description || ''), SANITIZE_OPTIONS);
+  return sanitizeHtml(marked.parse(this.description || ''), SANITIZE_OPTIONS);
 });
 
 // Virtual: liveliness score 0-1 based on most recent GitHub commit
@@ -142,4 +142,4 @@ function computeLiveliness(project) {
   return Math.max(0, 1 - daysSince / 7);
 }
 
-module.exports = { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness };
+export { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness };

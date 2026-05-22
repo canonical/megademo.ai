@@ -3,8 +3,8 @@
  * Each test file that needs DB access should call connect() in beforeAll
  * and disconnect() in afterAll.
  */
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongoose = require('mongoose');
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 
 let mongod;
 
@@ -25,4 +25,4 @@ async function clearAll() {
   await Promise.all(Object.values(collections).map((c) => c.deleteMany({})));
 }
 
-module.exports = { connect, disconnect, clearAll };
+export { connect, disconnect, clearAll };

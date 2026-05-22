@@ -9,7 +9,7 @@ Source: [canonical/megademo.ai](https://github.com/canonical/megademo.ai) · Lic
 
 | Layer | Technology |
 |---|---|
-| Runtime | Node.js ≥ 20 |
+| Runtime | Node.js ≥ 20 (ESM with `"type": "module"`) |
 | Framework | Express 5 |
 | Database | MongoDB via Mongoose (Atlas M0 in production; maxPoolSize 15) |
 | Templates | Pug + Bootstrap 5 + custom SCSS |
@@ -19,9 +19,11 @@ Source: [canonical/megademo.ai](https://github.com/canonical/megademo.ai) · Lic
 | File uploads | multer (project logos / asciinema casts) — stored on a Render persistent disk (`/data/uploads`, 1 GB), served at `/uploads` |
 | Notifications | Mattermost webhook + daily summary cron (node-cron) |
 | Deployment | Render.com Starter (render.yaml); persistent disk for uploads (`/data/uploads`, 1 GB) |
-| Tests | Jest + Supertest + mongodb-memory-server |
+| Tests | Jest + Supertest + mongodb-memory-server (via `--experimental-vm-modules`) |
 | CI/CD | GitHub Actions (npm audit + lint-check + Jest); husky pre-commit hook mirrors CI locally |
 | Load testing | Artillery (`scripts/load-test.yml`) |
+
+**Module system:** The entire codebase uses ES Modules (`"type": "module"` in package.json). All `.js` files are native ESM; Jest runs with `--experimental-vm-modules`. The jest config is `jest.config.cjs` (CommonJS extension required because Jest loads it before ESM is active).
 
 ---
 
@@ -31,7 +33,7 @@ Source: [canonical/megademo.ai](https://github.com/canonical/megademo.ai) · Lic
 app.js              Express entry point — routes, middleware, DB connection, async startup
 config/
   passport.js       GitHub OAuth strategy; org membership check
-  oidc.js           OIDC client init (openid-client v5, PKCE); activated by OIDC_ISSUER_URL
+  oidc.js           OIDC client init (openid-client v6, PKCE); activated by OIDC_ISSUER_URL
   defaults.yml      Seed data: teams, AI tools, tech-stack tags
   flash.js          Lightweight flash message helper
 controllers/

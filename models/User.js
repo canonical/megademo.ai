@@ -1,5 +1,5 @@
-const crypto = require('node:crypto');
-const mongoose = require('mongoose');
+import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
@@ -26,4 +26,4 @@ userSchema.statics.generateToken = function generateToken() {
 };
 
 const User = mongoose.model('User', userSchema);
-module.exports = User;
+export default User;

@@ -1,10 +1,10 @@
 /**
  * Passport configuration — GitHub OAuth, restricted to github.com/canonical org members
  */
-const passport = require('passport');
-const { Strategy: GitHubStrategy } = require('passport-github2');
-const axios = require('axios');
-const User = require('../models/User');
+import passport from 'passport';
+import { Strategy as GitHubStrategy } from 'passport-github2';
+import axios from 'axios';
+import User from '../models/User.js';
 
 const CANONICAL_ORG = 'canonical';
 const CANONICAL_EMAIL_DOMAIN = '@canonical.com';

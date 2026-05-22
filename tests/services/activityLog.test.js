@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
-const db = require('../setup/db');
-const ActivityLog = require('../../models/ActivityLog');
-const { logActivity } = require('../../services/activityLog');
+import { jest } from '@jest/globals';
+import mongoose from 'mongoose';
+import * as db from '../setup/db.js';
+import ActivityLog from '../../models/ActivityLog.js';
+import { logActivity } from '../../services/activityLog.js';
 
 beforeAll(() => db.connect());
 afterAll(() => db.disconnect());

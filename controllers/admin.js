@@ -1,28 +1,36 @@
 /**
  * Admin controller
  */
-const path = require('node:path');
-const fs = require('node:fs');
-const multer = require('multer');
-const lusca = require('lusca');
-const { verifyImageMagicBytes } = require('../services/imageTypeCheck');
-const { Project, CATEGORIES, CANONICAL_TEAMS, AI_TOOLS, TECH_STACK_DEFAULTS, computeLiveliness } = require('../models/Project');
+import path from 'node:path';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import multer from 'multer';
+import lusca from 'lusca';
+import mongoose from 'mongoose';
+import { verifyImageMagicBytes } from '../services/imageTypeCheck.js';
+import { Project, CATEGORIES, CANONICAL_TEAMS, AI_TOOLS, TECH_STACK_DEFAULTS, computeLiveliness } from '../models/Project.js';
+import Vote from '../models/Vote.js';
+import User from '../models/User.js';
+import Settings from '../models/Settings.js';
+import ActivityLog from '../models/ActivityLog.js';
+import { notifyFinalistPromoted } from '../services/mattermost.js';
+import { logActivity } from '../services/activityLog.js';
+import { loadDefaults } from '../scripts/seed-defaults.js';
+import { runSummary } from '../scripts/daily-summary.js';
+import { syncVizContent } from '../services/viz-sync.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../public/uploads');
 const UPLOADS_URL_PREFIX = '/uploads/';
 const ALLOWED_STATUSES = ['draft', 'submitted', 'finalist'];
-exports.ALLOWED_STATUSES = ALLOWED_STATUSES;
+export { ALLOWED_STATUSES };
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
-const Vote = require('../models/Vote');
-const User = require('../models/User');
-const Settings = require('../models/Settings');
-const ActivityLog = require('../models/ActivityLog');
-const { notifyFinalistPromoted } = require('../services/mattermost');
-const { logActivity } = require('../services/activityLog');
 
 /**
  * CSV field registry — defines every exportable column.
@@ -56,7 +64,7 @@ const CSV_FIELD_REGISTRY = [
   { key: 'createdAt', header: 'Created At', group: 'Stats & Dates', extract: (p) => p.createdAt?.toISOString() || '' },
   { key: 'updatedAt', header: 'Updated At', group: 'Stats & Dates', extract: (p) => p.updatedAt?.toISOString() || '' },
 ];
-exports.CSV_FIELD_REGISTRY = CSV_FIELD_REGISTRY;
+export { CSV_FIELD_REGISTRY };
 
 /** Sanitize a single CSV cell: quote-wrap, escape quotes/newlines, prevent formula injection. */
 function sanitizeCsvCell(c) {
@@ -64,7 +72,7 @@ function sanitizeCsvCell(c) {
   const safe = /^[=+\-@\t]/.test(s) ? `'${s}` : s;
   return `"${safe}"`;
 }
-exports.sanitizeCsvCell = sanitizeCsvCell;
+export { sanitizeCsvCell };
 
 function safeUnlinkLogo(logoRelPath) {
   if (!logoRelPath || !logoRelPath.startsWith(UPLOADS_URL_PREFIX)) return;
@@ -133,7 +141,7 @@ async function getTechStackList() {
 /**
  * GET /admin
  */
-exports.dashboard = async (req, res, next) => {
+export const dashboard = async (req, res, next) => {
   try {
     const [totalProjects, totalVotes, totalUsers, finalists, categoryStats, recentProjects] = await Promise.all([
       Project.countDocuments(),
@@ -175,7 +183,7 @@ exports.dashboard = async (req, res, next) => {
 /**
  * GET /admin/projects
  */
-exports.projects = async (req, res, next) => {
+export const projects = async (req, res, next) => {
   try {
     const status   = ALLOWED_STATUSES.includes(req.query.status) ? req.query.status : undefined;
     const category = CATEGORIES.includes(req.query.category) ? req.query.category : undefined;
@@ -205,7 +213,7 @@ exports.projects = async (req, res, next) => {
  * GET /admin/projects/search?q=<term>
  * Returns up to 50 projects matching title or description (admin — all statuses).
  */
-exports.searchProjects = async (req, res) => {
+export const searchProjects = async (req, res) => {
   const q = (req.query.q || '').trim();
   if (!q) return res.json({ projects: [] });
 
@@ -231,7 +239,7 @@ exports.searchProjects = async (req, res) => {
 /**
  * POST /admin/projects/:id/status
  */
-exports.setStatus = async (req, res, next) => {
+export const setStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
     if (!ALLOWED_STATUSES.includes(status)) return res.status(400).json({ error: 'Invalid status.' });
@@ -253,7 +261,7 @@ exports.setStatus = async (req, res, next) => {
 /**
  * POST /admin/projects/:id/delete
  */
-exports.deleteProject = async (req, res, next) => {
+export const deleteProject = async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -279,7 +287,7 @@ exports.deleteProject = async (req, res, next) => {
  * Non-numeric daysAgo returns 400. daysAgo < 0 clears stats entirely.
  * Otherwise sets a fake lastCommit that many days ago.
  */
-exports.mockGithubStats = async (req, res, next) => {
+export const mockGithubStats = async (req, res, next) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -309,7 +317,7 @@ exports.mockGithubStats = async (req, res, next) => {
 /**
  * GET /admin/users
  */
-exports.users = async (req, res, next) => {
+export const users = async (req, res, next) => {
   try {
     const users = await User.find().sort({ createdAt: -1 }).lean();
     res.render('admin/users', { title: 'Manage Users', users });
@@ -321,7 +329,7 @@ exports.users = async (req, res, next) => {
 /**
  * POST /admin/users/:id/role
  */
-exports.setRole = async (req, res, next) => {
+export const setRole = async (req, res, next) => {
   try {
     const { role } = req.body;
     const allowed = ['participant', 'admin'];
@@ -342,7 +350,7 @@ exports.setRole = async (req, res, next) => {
  * Optional query: ?fields=title,category,... (comma-separated field keys).
  * When omitted, all fields are exported (backward compatible).
  */
-exports.exportCsv = async (req, res, next) => {
+export const exportCsv = async (req, res, next) => {
   try {
     const projects = await Project.find()
       .populate('owner', 'email profile.name')
@@ -375,7 +383,7 @@ exports.exportCsv = async (req, res, next) => {
 /**
  * POST /admin/settings
  */
-exports.saveSettings = async (req, res, next) => {
+export const saveSettings = async (req, res, next) => {
   try {
     const { section, hackStart, subDeadline, megaDatetime, mattermostWebhook, announcementBanner } = req.body;
 
@@ -388,7 +396,7 @@ exports.saveSettings = async (req, res, next) => {
       }
       await Settings.set('announcementBanner', text || null);
       // Bust the in-process banner cache so the change is visible immediately
-      try { require('../app').bustBannerCache(); } catch { /* non-fatal */ }
+      try { (await import('../app.js')).bustBannerCache(); } catch { /* non-fatal */ }
       req.flash('success', { msg: text ? 'Banner saved.' : 'Banner cleared.' });
       return res.redirect('/admin');
     }
@@ -461,7 +469,7 @@ exports.saveSettings = async (req, res, next) => {
 /**
  * GET /admin/teams
  */
-exports.teamsPage = async (req, res, next) => {
+export const teamsPage = async (req, res, next) => {
   try {
     const teams = await getTeamList();
     // Get project counts per team for display
@@ -479,7 +487,7 @@ exports.teamsPage = async (req, res, next) => {
 /**
  * POST /admin/teams/add
  */
-exports.addTeam = async (req, res, next) => {
+export const addTeam = async (req, res, next) => {
   try {
     const name = (req.body.name || '').trim();
     if (!name) {
@@ -503,7 +511,7 @@ exports.addTeam = async (req, res, next) => {
 /**
  * POST /admin/teams/:name/rename
  */
-exports.renameTeam = async (req, res, next) => {
+export const renameTeam = async (req, res, next) => {
   try {
     const oldName = safeDecodeURIComponent(req.params.name);
     if (oldName === null) {
@@ -540,7 +548,7 @@ exports.renameTeam = async (req, res, next) => {
 /**
  * POST /admin/teams/:name/delete
  */
-exports.deleteTeam = async (req, res, next) => {
+export const deleteTeam = async (req, res, next) => {
   try {
     const name = safeDecodeURIComponent(req.params.name);
     if (name === null) {
@@ -567,7 +575,7 @@ exports.deleteTeam = async (req, res, next) => {
  * POST /admin/teams  (legacy bulk-save, kept for compatibility)
  * Full array replacement — last write wins; do not run concurrently with per-item ops.
  */
-exports.saveTeams = async (req, res, next) => {
+export const saveTeams = async (req, res, next) => {
   try {
     const raw = req.body.teams || '';
     const seen = new Set();
@@ -587,7 +595,7 @@ exports.saveTeams = async (req, res, next) => {
 /**
  * GET /admin/tags
  */
-exports.tagsPage = async (req, res, next) => {
+export const tagsPage = async (req, res, next) => {
   try {
     const [aiTools, techStack] = await Promise.all([getAiToolsList(), getTechStackList()]);
 
@@ -615,7 +623,7 @@ exports.tagsPage = async (req, res, next) => {
 /**
  * POST /admin/tags/ai-tools — add one AI tool
  */
-exports.addAiTool = async (req, res, next) => {
+export const addAiTool = async (req, res, next) => {
   try {
     const item = (req.body.item || '').trim();
     if (!item) { req.flash('errors', { msg: 'Tool name required.' }); return res.redirect('/admin/tags'); }
@@ -634,7 +642,7 @@ exports.addAiTool = async (req, res, next) => {
 /**
  * POST /admin/tags/ai-tools/rename
  */
-exports.renameAiTool = async (req, res, next) => {
+export const renameAiTool = async (req, res, next) => {
   try {
     const { item: rawItem, newName } = req.body;
     const item = String(rawItem || '');
@@ -656,7 +664,7 @@ exports.renameAiTool = async (req, res, next) => {
 /**
  * POST /admin/tags/ai-tools/delete — remove one AI tool
  */
-exports.deleteAiTool = async (req, res, next) => {
+export const deleteAiTool = async (req, res, next) => {
   try {
     const item = String(req.body.item || '');
     const usageCount = await Project.countDocuments({ aiTools: item });
@@ -674,7 +682,7 @@ exports.deleteAiTool = async (req, res, next) => {
 /**
  * POST /admin/tags/tech-stack — add one tech stack tag
  */
-exports.addTechStack = async (req, res, next) => {
+export const addTechStack = async (req, res, next) => {
   try {
     const item = (req.body.item || '').trim();
     if (!item) { req.flash('errors', { msg: 'Tag name required.' }); return res.redirect('/admin/tags'); }
@@ -693,7 +701,7 @@ exports.addTechStack = async (req, res, next) => {
 /**
  * POST /admin/tags/tech-stack/rename
  */
-exports.renameTechStack = async (req, res, next) => {
+export const renameTechStack = async (req, res, next) => {
   try {
     const { item: rawItem, newName } = req.body;
     const item = String(rawItem || '');
@@ -715,7 +723,7 @@ exports.renameTechStack = async (req, res, next) => {
 /**
  * POST /admin/tags/tech-stack/delete — remove one tech stack tag
  */
-exports.deleteTechStack = async (req, res, next) => {
+export const deleteTechStack = async (req, res, next) => {
   try {
     const item = String(req.body.item || '');
     const usageCount = await Project.countDocuments({ techStack: item });
@@ -735,7 +743,7 @@ exports.deleteTechStack = async (req, res, next) => {
  * Requires confirmation token "RESET" in request body.
  * Does NOT delete users or settings (deadlines, webhooks).
  */
-exports.resetAll = async (req, res, next) => {
+export const resetAll = async (req, res, next) => {
   try {
     if (req.body.confirm !== 'RESET') {
       req.flash('errors', { msg: 'Reset cancelled — confirmation token did not match.' });
@@ -743,7 +751,6 @@ exports.resetAll = async (req, res, next) => {
     }
 
     const wipeLogs = req.body.wipeLogs === '1';
-    const { loadDefaults } = require('../scripts/seed-defaults');
     const defaults = loadDefaults();
 
     // Remove all uploaded logo/media files (path-traversal-safe, best-effort)
@@ -781,9 +788,8 @@ exports.resetAll = async (req, res, next) => {
  * Delete all MongoDB sessions — forces every user to re-login (picture fetched on next OIDC callback).
  */
 const SESSION_COLLECTION = 'sessions'; // matches collectionName in MongoStore config (app.js)
-exports.clearSessions = async (req, res, next) => {
+export const clearSessions = async (req, res, next) => {
   try {
-    const mongoose = require('mongoose');
     const result   = await mongoose.connection.db.collection(SESSION_COLLECTION).deleteMany({});
     res.json({
       ok: true,
@@ -799,7 +805,7 @@ exports.clearSessions = async (req, res, next) => {
  * GET /admin/activity-log
  * GET /admin/activity-log?format=text  — plain-text download
  */
-exports.activityLog = async (req, res, next) => {
+export const activityLog = async (req, res, next) => {
   try {
     const PAGE_SIZE = 200;
     const entries = await ActivityLog.find()
@@ -835,7 +841,7 @@ const HERO_TEXT_LIMITS = {
 /**
  * GET /admin/homepage
  */
-exports.homepageSettings = async (req, res, next) => {
+export const homepageSettings = async (req, res, next) => {
   try {
     const [heroLine1, heroLine2, heroSubtitle, heroDescription, heroImage] = await Promise.all([
       Settings.get('heroLine1'),
@@ -857,9 +863,8 @@ exports.homepageSettings = async (req, res, next) => {
 /**
  * POST /admin/homepage
  */
-exports.sendMattermostSummary = async (req, res, next) => {
+export const sendMattermostSummary = async (req, res, next) => {
   try {
-    const { runSummary } = require('../scripts/daily-summary');
     await runSummary(process.env.BASE_URL || 'http://localhost:8080');
     logActivity(req.user.email, 'Manually triggered Mattermost summary').catch(() => {});
     req.flash('success', 'Mattermost summary sent.');
@@ -869,7 +874,7 @@ exports.sendMattermostSummary = async (req, res, next) => {
   }
 };
 
-exports.saveHomepageSettings = async (req, res, next) => {
+export const saveHomepageSettings = async (req, res, next) => {
   try {
     // Parse multipart (hero image upload); convert user-facing errors to flash redirects
     await new Promise((resolve, reject) => {
@@ -946,9 +951,8 @@ exports.saveHomepageSettings = async (req, res, next) => {
 /**
  * POST /admin/visualize/sync — manually trigger visualization sync
  */
-exports.syncVisualization = async (req, res, next) => {
+export const syncVisualization = async (req, res, next) => {
   try {
-    const { syncVizContent } = require('../services/viz-sync');
     const results = await syncVizContent();
     logActivity(req.user.email, 'Manually triggered visualization sync').catch(() => {});
     const synced = results.synced.length;

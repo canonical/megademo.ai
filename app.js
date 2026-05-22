@@ -1,30 +1,51 @@
 /**
  * MegaDemo.ai — Express application entry point
  */
-const path   = require('node:path');
-const fs     = require('node:fs');
-const crypto = require('node:crypto');
-const express = require('express');
-const compression = require('compression');
-const session = require('express-session');
-const errorHandler = require('errorhandler');
-const lusca = require('lusca');
-const helmet = require('helmet');
-const { MongoStore } = require('connect-mongo');
-const mongoose = require('mongoose');
-const passport = require('passport');
-const rateLimit = require('express-rate-limit');
-const morgan = require('morgan');
-const { flash } = require('./config/flash');
+import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import express from 'express';
+import compression from 'compression';
+import session from 'express-session';
+import errorHandler from 'errorhandler';
+import lusca from 'lusca';
+import helmet from 'helmet';
+import { MongoStore } from 'connect-mongo';
+import mongoose from 'mongoose';
+import passport from 'passport';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
+import { flash } from './config/flash.js';
+import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
+import cron from 'node-cron';
+import { initOidcClient } from './config/oidc.js';
+import './config/passport.js';   // side-effect only
+import { resolveAuthMode, resolveLoginUrl } from './controllers/auth.js';
+import * as homeController from './controllers/home.js';
+import * as authController from './controllers/auth.js';
+import * as projectController from './controllers/project.js';
+import * as visualizeController from './controllers/visualize.js';
+import * as adminController from './controllers/admin.js';
+import * as kioskController from './controllers/kiosk.js';
+import { syncVizContent, checkTokenAccess } from './services/viz-sync.js';
+import { runSummary } from './scripts/daily-summary.js';
+import { seedDefaults } from './scripts/seed-defaults.js';
+import { Project } from './models/Project.js';
+import Vote from './models/Vote.js';
+import Settings from './models/Settings.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Ensure uploads directory exists (must be done before static/multer setup)
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'public', 'uploads');
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // Pre-parse get-started guide once at startup (reloaded on each deploy)
-const { marked } = require('marked');
-const sanitizeHtml = require('sanitize-html');
-
 const BANNER_SANITIZE_OPTIONS = {
   allowedTags: ['p', 'strong', 'em', 'a', 'br', 'ul', 'ol', 'li', 'code'],
   allowedAttributes: { a: ['href', 'title', 'rel', 'target'] },
@@ -106,22 +127,15 @@ const voteLimiter = rateLimit({
 /**
  * Controllers
  */
-const homeController    = require('./controllers/home');
-const authController    = require('./controllers/auth');
-const { resolveAuthMode, resolveLoginUrl } = require('./controllers/auth');
-const projectController = require('./controllers/project');
-const visualizeController = require('./controllers/visualize');
 
 /**
  * Passport config
  */
-require('./config/passport');
 
 /**
  * OIDC client init — moved into startServer() below so it completes before
  * the HTTP server begins accepting connections (eliminates the race window).
  */
-const { initOidcClient } = require('./config/oidc');
 
 /**
  * Mattermost summary cron — fires every hour on the hour.
@@ -129,8 +143,6 @@ const { initOidcClient } = require('./config/oidc');
  * Set SUMMARY_CRON=disabled to turn it off entirely.
  */
 if (process.env.SUMMARY_CRON !== 'disabled') {
-  const cron = require('node-cron');
-  const { runSummary } = require('./scripts/daily-summary');
   const cronExpr = process.env.SUMMARY_CRON || '0 * * * *';
   cron.schedule(cronExpr, () => {
     runSummary(process.env.BASE_URL || 'http://localhost:8080').catch((err) => {
@@ -145,7 +157,6 @@ if (process.env.SUMMARY_CRON !== 'disabled') {
  * Override via VIZ_SYNC_CRON env var (standard cron expression).
  * Set VIZ_SYNC_CRON=disabled to turn it off entirely.
  */
-const { syncVizContent, checkTokenAccess } = require('./services/viz-sync');
 // Verify token access, then do initial sync
 checkTokenAccess().then((ok) => {
   if (ok) syncVizContent().catch((err) => {
@@ -153,9 +164,8 @@ checkTokenAccess().then((ok) => {
   });
 });
 if (process.env.VIZ_SYNC_CRON !== 'disabled') {
-  const vizCron = require('node-cron');
   const vizCronExpr = process.env.VIZ_SYNC_CRON || '5 * * * *';
-  vizCron.schedule(vizCronExpr, () => {
+  cron.schedule(vizCronExpr, () => {
     syncVizContent().catch((err) => {
       console.error('Viz sync cron failed:', err.message);
     });
@@ -171,8 +181,6 @@ const app = express();
  */
 async function backfillTotalStars() {
   try {
-    const { Project } = require('./models/Project');
-    const Vote = require('./models/Vote');
     // Find projects with votes but totalStars still 0 (un-migrated)
     const stale = await Project.find({ voteCount: { $gte: 1 }, totalStars: 0 }).select('_id').lean();
     if (!stale.length) return;
@@ -194,7 +202,7 @@ async function backfillTotalStars() {
 mongoose
   .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/megademo', { maxPoolSize: 15 })
   .then(async () => {
-    await require('./scripts/seed-defaults').seedDefaults();
+    await seedDefaults();
     // Backfill totalStars for any project that has votes but totalStars is still 0
     await backfillTotalStars();
   })
@@ -306,8 +314,7 @@ app.use((req, res, next) => {
  */
 const ASSET_VERSION = (() => {
   try {
-    return require('node:child_process')
-      .execSync('git rev-parse --short=8 HEAD', { stdio: ['pipe', 'pipe', 'ignore'] })
+    return execSync('git rev-parse --short=8 HEAD', { stdio: ['pipe', 'pipe', 'ignore'] })
       .toString().trim();
   } catch {
     return Date.now().toString(36);
@@ -334,7 +341,6 @@ app.use(async (req, res, next) => {
   try {
     const now = Date.now();
     if (now >= _regOpenCache.expiresAt) {
-      const Settings = require('./models/Settings');
       const hackathonStart = await Settings.get('hackathonStart');
       const startTs        = hackathonStart ? Date.parse(hackathonStart) : NaN;
       // Registration is open when no valid start is set, or when now >= start
@@ -357,7 +363,6 @@ app.use(async (req, res, next) => {
   try {
     const now = Date.now();
     if (now >= _bannerCache.expiresAt) {
-      const Settings = require('./models/Settings');
       const text = await Settings.get('announcementBanner');
       _bannerCache.html      = text ? sanitizeHtml(marked.parse(String(text)), BANNER_SANITIZE_OPTIONS) : null;
       _bannerCache.expiresAt = now + 10_000;
@@ -404,7 +409,6 @@ app.use((req, res, next) => {
  */
 // Validate :id param on project routes — reject malformed ObjectIds early (400 instead of 500)
 app.param('id', (req, res, next, id) => {
-  const mongoose = require('mongoose');
   if (!mongoose.isValidObjectId(id)) {
     const isJson = req.xhr || (req.headers.accept || '').includes('application/json');
     if (isJson) return res.status(400).json({ error: 'Invalid ID.' });
@@ -462,7 +466,6 @@ app.get('/visualize', visualizeController.show);
 app.get('/visualize/:granularity', visualizeController.show);
 
 // Admin
-const adminController = require('./controllers/admin');
 app.get('/admin', authController.isAdmin, adminController.dashboard);
 app.get('/admin/guide', authController.isAdmin, (req, res) => {
   res.render('admin/guide', { title: 'Admin Guide', content: adminGuideHtml });
@@ -497,7 +500,6 @@ app.post('/admin/reset', authController.isAdmin, adminController.resetAll);
 app.post('/admin/visualize/sync', authController.isAdmin, adminController.syncVisualization);
 
 // Kiosk
-const kioskController = require('./controllers/kiosk');
 app.get('/kiosk', authController.isAuthenticated, kioskController.index);
 app.get('/kiosk/:slug', authController.isAuthenticated, kioskController.project);
 
@@ -529,7 +531,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-if (require.main === module) {
+if (process.argv[1] === __filename) {
   (async () => {
     if (resolveAuthMode() === 'oidc') {
       await initOidcClient();
@@ -544,5 +546,5 @@ if (require.main === module) {
   });
 }
 
-module.exports = app;
-module.exports.bustBannerCache = () => { _bannerCache.expiresAt = 0; };
+export default app;
+export const bustBannerCache = () => { _bannerCache.expiresAt = 0; };

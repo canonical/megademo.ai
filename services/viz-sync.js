@@ -3,7 +3,7 @@
  * canonical/megademo-projects, extracts body content, and caches
  * fragments in memory for serving via the /visualize route.
  */
-const axios = require('axios');
+import axios from 'axios';
 
 const REPO_OWNER = 'canonical';
 const REPO_NAME  = 'megademo-projects';
@@ -184,7 +184,7 @@ function getSyncStatus() {
   };
 }
 
-module.exports = {
+export {
   syncVizContent,
   getVizFragment,
   getSyncStatus,

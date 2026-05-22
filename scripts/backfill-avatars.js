@@ -19,13 +19,12 @@
  * Dry-run (prints what would change, writes nothing):
  *   DRY_RUN=1 node scripts/backfill-avatars.js
  */
-'use strict';
 
-const https   = require('node:https');
-const http    = require('node:http');
-const qs      = require('node:querystring');
-const mongoose = require('mongoose');
-const User    = require('../models/User');
+import https from 'node:https';
+import http from 'node:http';
+import qs from 'node:querystring';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 try { process.loadEnvFile('.env'); } catch { /* prod env vars set directly */ }
 

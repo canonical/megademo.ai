@@ -1,13 +1,13 @@
 /**
  * Kiosk controller — full-screen presentation mode for MegaDemo day
  */
-const { Project, computeLiveliness } = require('../models/Project');
-const { parseVideoId } = require('../services/github');
+import { Project, computeLiveliness } from '../models/Project.js';
+import { parseVideoId } from '../services/github.js';
 
 /**
  * GET /kiosk
  */
-exports.index = async (req, res, next) => {
+export async function index(req, res, next) {
   try {
     const rawProjects = await Project.find({ status: 'finalist' })
       .sort({ avgRating: -1 })
@@ -31,12 +31,12 @@ exports.index = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
+}
 
 /**
  * GET /kiosk/:slug
  */
-exports.project = async (req, res, next) => {
+export async function project(req, res, next) {
   try {
     const project = await Project.findOne({ slug: req.params.slug, status: 'finalist' })
       .populate('owner', 'profile.name profile.picture')
@@ -52,4 +52,4 @@ exports.project = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
+}

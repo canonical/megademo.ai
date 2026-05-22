@@ -1,11 +1,16 @@
 /**
  * Project controller — CRUD, voting, media
  */
-const multer = require('multer');
-const path = require('node:path');
-const fs = require('node:fs');
-const { verifyImageMagicBytes } = require('../services/imageTypeCheck');
-const { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness } = require('../models/Project');
+import multer from 'multer';
+import path from 'node:path';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import { verifyImageMagicBytes } from '../services/imageTypeCheck.js';
+import { Project, CATEGORIES, AI_TOOLS, CANONICAL_TEAMS, TECH_STACK_DEFAULTS, COMPLETION_STAGES, computeLiveliness } from '../models/Project.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../public/uploads');
 
@@ -56,12 +61,12 @@ function parseCastId(input) {
   if (/^[A-Za-z0-9]+$/.test(s)) return s;
   return null;
 }
-const Vote = require('../models/Vote');
-const User = require('../models/User');
-const Settings = require('../models/Settings');
-const { notifyProjectSubmitted, recordVotingMilestone } = require('../services/mattermost');
-const { refreshProjectStats } = require('../services/github');
-const { logActivity } = require('../services/activityLog');
+import Vote from '../models/Vote.js';
+import User from '../models/User.js';
+import Settings from '../models/Settings.js';
+import { notifyProjectSubmitted, recordVotingMilestone } from '../services/mattermost.js';
+import { refreshProjectStats } from '../services/github.js';
+import { logActivity } from '../services/activityLog.js';
 
 async function getTeamList() {
   const custom = await Settings.get('customTeams');
@@ -224,7 +229,7 @@ const CATEGORY_TEMPLATES = {
 /**
  * GET /projects
  */
-exports.list = async (req, res) => {
+export const list = async (req, res) => {
   // Allowlist category and team to prevent NoSQL operator injection via qs
   const ALLOWED_SORTS = ['random', 'newest', 'stars', 'rating', 'votes'];
   const sort     = ALLOWED_SORTS.includes(req.query.sort) ? req.query.sort : 'random';
@@ -291,7 +296,7 @@ exports.list = async (req, res) => {
  * GET /api/projects/search?q=<term>
  * Returns up to 50 submitted/finalist projects matching title or description.
  */
-exports.searchProjects = async (req, res) => {
+export const searchProjects = async (req, res) => {
   const q = (req.query.q || '').trim();
   if (!q) return res.json({ projects: [] });
 
@@ -329,7 +334,7 @@ exports.searchProjects = async (req, res) => {
 /**
  * GET /projects/new
  */
-exports.newForm = async (req, res) => {
+export const newForm = async (req, res) => {
   const hackathonStart = await Settings.get('hackathonStart');
   if (hackathonStart && Date.now() < new Date(hackathonStart).getTime()) {
     req.flash('errors', { msg: 'Project registration is not open yet — it opens when the hackathon starts.' });
@@ -352,7 +357,7 @@ exports.newForm = async (req, res) => {
 /**
  * POST /projects
  */
-exports.create = async (req, res) => {
+export const create = async (req, res) => {
   const hackathonStart = await Settings.get('hackathonStart');
   if (hackathonStart && Date.now() < new Date(hackathonStart).getTime()) {
     req.flash('errors', { msg: 'Project registration is not open yet — it opens when the hackathon starts.' });
@@ -475,7 +480,7 @@ exports.create = async (req, res) => {
 /**
  * GET /projects/:slug
  */
-exports.detail = async (req, res) => {
+export const detail = async (req, res) => {
   const project = await Project.findOne({ slug: req.params.slug })
     .populate('owner', 'profile.name profile.picture email')
     .populate('team', 'profile.name profile.picture email');
@@ -525,7 +530,7 @@ exports.detail = async (req, res) => {
 /**
  * GET /projects/:id/edit
  */
-exports.editForm = async (req, res) => {
+export const editForm = async (req, res) => {
   const [project, teamList, aiToolsList, techStackList] = await Promise.all([
     Project.findById(req.params.id).populate('team', 'profile.name profile.picture email'),
     getTeamList(),
@@ -548,7 +553,7 @@ exports.editForm = async (req, res) => {
 /**
  * POST /projects/:id
  */
-exports.update = async (req, res) => {
+export const update = async (req, res) => {
   const project = await Project.findById(req.params.id)
     .populate('team', 'profile.name profile.picture email');
   if (!project) return res.status(404).render('error', { title: 'Not Found', message: 'Project not found.', user: req.user || null });
@@ -707,7 +712,7 @@ exports.update = async (req, res) => {
 /**
  * DELETE /projects/:id
  */
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
   const project = await Project.findById(req.params.id);
   if (!project) return res.status(404).json({ error: 'Not found' });
   if (project.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
@@ -731,7 +736,7 @@ exports.remove = async (req, res) => {
 /**
  * POST /projects/:id/vote
  */
-exports.vote = async (req, res) => {
+export const vote = async (req, res) => {
   try {
     const stars = parseInt(req.body.stars, 10);
     if (!stars || stars < 1 || stars > 5) {
@@ -795,7 +800,7 @@ exports.vote = async (req, res) => {
 /**
  * POST /projects/:id/media
  */
-exports.addMedia = async (req, res, _next) => {
+export const addMedia = async (req, res, _next) => {
   // Auth check BEFORE multer processes any uploaded file
   const project = await Project.findById(req.params.id);
   if (!project) return res.status(404).render('error', { title: 'Not Found', message: 'Project not found.', user: req.user || null });
@@ -861,7 +866,7 @@ exports.addMedia = async (req, res, _next) => {
 /**
  * POST /projects/:id/team
  */
-exports.updateTeam = async (req, res) => {
+export const updateTeam = async (req, res) => {
   const project = await Project.findById(req.params.id);
   if (!project) return res.status(404).json({ error: 'Not found' });
   if (project.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
@@ -894,7 +899,7 @@ exports.updateTeam = async (req, res) => {
  * GET /api/users/search?q=<term>
  * Returns up to 10 canonical.com users matching name or email substring (for autocomplete).
  */
-exports.searchUsers = async (req, res) => {
+export const searchUsers = async (req, res) => {
   const q = (req.query.q || '').trim();
   if (q.length < 2 || q.length > 50) return res.json([]);
   const re = new RegExp(escapeRegex(q), 'i');
@@ -907,7 +912,7 @@ exports.searchUsers = async (req, res) => {
 /**
  * GET /projects/mine
  */
-exports.mine = async (req, res) => {
+export const mine = async (req, res) => {
   const projects = await Project.find({ team: req.user._id })
     .sort({ updatedAt: -1 })
     .populate('owner', 'profile.name')
@@ -919,7 +924,7 @@ exports.mine = async (req, res) => {
 /**
  * POST /projects/:id/join
  */
-exports.joinProject = async (req, res) => {
+export const joinProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -948,7 +953,7 @@ exports.joinProject = async (req, res) => {
 /**
  * POST /projects/:id/leave
  */
-exports.leaveProject = async (req, res) => {
+export const leaveProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found.' });

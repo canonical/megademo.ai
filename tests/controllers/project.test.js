@@ -2,15 +2,24 @@
  * Unit tests for controllers/project.js
  * Uses in-memory MongoDB; mocks Express req/res and external services.
  */
-jest.mock('../../services/mattermost', () => ({ notifyProjectSubmitted: jest.fn(), recordVotingMilestone: jest.fn() }));
-jest.mock('../../services/github',     () => ({ refreshProjectStats: jest.fn() }));
+import { jest } from '@jest/globals';
 
-const mongoose = require('mongoose');
-const db = require('../setup/db');
-const { Project } = require('../../models/Project');
-const Vote = require('../../models/Vote');
-const User = require('../../models/User');
-const ctrl = require('../../controllers/project');
+jest.unstable_mockModule('../../services/mattermost.js', () => ({
+  notifyProjectSubmitted: jest.fn(),
+  recordVotingMilestone: jest.fn(),
+}));
+jest.unstable_mockModule('../../services/github.js', () => ({
+  refreshProjectStats: jest.fn(),
+}));
+
+import mongoose from 'mongoose';
+import * as db from '../setup/db.js';
+import { Project } from '../../models/Project.js';
+import Vote from '../../models/Vote.js';
+import User from '../../models/User.js';
+
+let ctrl;
+let notifyProjectSubmitted, recordVotingMilestone, refreshProjectStats;
 
 // ─── helpers ──────────────────────────────────────────────────────────────
 
@@ -41,7 +50,15 @@ function makeRes() {
 
 let owner, stranger, project;
 
-beforeAll(() => db.connect());
+beforeAll(async () => {
+  ctrl = await import('../../controllers/project.js');
+  const mattermost = await import('../../services/mattermost.js');
+  const github = await import('../../services/github.js');
+  notifyProjectSubmitted = mattermost.notifyProjectSubmitted;
+  recordVotingMilestone = mattermost.recordVotingMilestone;
+  refreshProjectStats = github.refreshProjectStats;
+  await db.connect();
+});
 afterAll(() => db.disconnect());
 
 beforeEach(async () => {

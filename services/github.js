@@ -1,8 +1,8 @@
 /**
  * GitHub stats fetcher — retrieves repo stats and caches them 1h in MongoDB
  */
-const axios = require('axios');
-const { Project } = require('../models/Project');
+import axios from 'axios';
+import { Project } from '../models/Project.js';
 
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -91,4 +91,4 @@ async function refreshProjectStats(projectId) {
   return project;
 }
 
-module.exports = { refreshProjectStats, parseVideoId };
+export { refreshProjectStats, parseVideoId };

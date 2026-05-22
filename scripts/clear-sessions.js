@@ -11,9 +11,8 @@
  * Usage (run once from the repo root, with prod env vars set):
  *   node scripts/clear-sessions.js
  */
-'use strict';
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 try { process.loadEnvFile('.env'); } catch { /* prod env vars set directly */ }
 

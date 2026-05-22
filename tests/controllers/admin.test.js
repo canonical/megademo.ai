@@ -2,12 +2,17 @@
  * Tests for admin controller business logic.
  * Focuses on the CSV cell sanitisation function and Settings helpers.
  */
-jest.mock('../../services/mattermost', () => ({ notifyFinalistPromoted: jest.fn() }));
+import { jest } from '@jest/globals';
 
-const mongoose = require('mongoose');
-const db = require('../setup/db');
-const { Project } = require('../../models/Project');
-const User = require('../../models/User');
+jest.unstable_mockModule('../../services/mattermost.js', () => ({
+  notifyFinalistPromoted: jest.fn(),
+  postHourlySummary: jest.fn(),
+}));
+
+import mongoose from 'mongoose';
+import * as db from '../setup/db.js';
+import { Project } from '../../models/Project.js';
+import User from '../../models/User.js';
 
 // Re-implement the CSV cell sanitizer identical to controllers/admin.js line 153
 // so we can verify the spec without spinning up the full HTTP stack.
@@ -75,8 +80,14 @@ describe('CSV cell sanitizer', () => {
 // ─── Project query filter whitelist ───────────────────────────────────────
 
 describe('admin project filter whitelist', () => {
-  const { ALLOWED_STATUSES } = require('../../controllers/admin');
-  const { CATEGORIES } = require('../../models/Project');
+  let ALLOWED_STATUSES, CATEGORIES;
+
+  beforeAll(async () => {
+    const adminModule = await import('../../controllers/admin.js');
+    ALLOWED_STATUSES = adminModule.ALLOWED_STATUSES;
+    const projectModule = await import('../../models/Project.js');
+    CATEGORIES = projectModule.CATEGORIES;
+  });
 
   it('accepts valid statuses', () => {
     expect(ALLOWED_STATUSES.includes('draft')).toBe(true);
@@ -133,9 +144,14 @@ describe('avgRating CSV formatting', () => {
 
 // ─── CSV field registry and extraction ────────────────────────────────────
 
-const { CSV_FIELD_REGISTRY, sanitizeCsvCell: actualSanitize } = require('../../controllers/admin');
+let CSV_FIELD_REGISTRY, actualSanitize;
 
 describe('CSV_FIELD_REGISTRY', () => {
+  beforeAll(async () => {
+    const adminModule = await import('../../controllers/admin.js');
+    CSV_FIELD_REGISTRY = adminModule.CSV_FIELD_REGISTRY;
+    actualSanitize = adminModule.sanitizeCsvCell;
+  });
   it('exports a non-empty array', () => {
     expect(Array.isArray(CSV_FIELD_REGISTRY)).toBe(true);
     expect(CSV_FIELD_REGISTRY.length).toBeGreaterThan(0);
@@ -333,15 +349,20 @@ describe('sanitizeCsvCell (exported)', () => {
 });
 
 describe('CSV field filtering logic', () => {
-  const validKeys = CSV_FIELD_REGISTRY.map((f) => f.key);
+  let validKeys;
+  let filterFields;
 
-  const filterFields = (fieldsParam) => {
-    if (!fieldsParam) return CSV_FIELD_REGISTRY;
-    const requestedKeys = fieldsParam.split(',').filter((k) => validKeys.includes(k));
-    return requestedKeys.length
-      ? CSV_FIELD_REGISTRY.filter((f) => requestedKeys.includes(f.key))
-      : CSV_FIELD_REGISTRY;
-  };
+  beforeAll(() => {
+    validKeys = CSV_FIELD_REGISTRY.map((f) => f.key);
+    
+    filterFields = (fieldsParam) => {
+      if (!fieldsParam) return CSV_FIELD_REGISTRY;
+      const requestedKeys = fieldsParam.split(',').filter((k) => validKeys.includes(k));
+      return requestedKeys.length
+        ? CSV_FIELD_REGISTRY.filter((f) => requestedKeys.includes(f.key))
+        : CSV_FIELD_REGISTRY;
+    };
+  });
 
   it('returns all fields when no param is provided', () => {
     expect(filterFields(undefined)).toEqual(CSV_FIELD_REGISTRY);
@@ -373,11 +394,16 @@ describe('CSV field filtering logic', () => {
 
 // ─── seed-defaults idempotency ────────────────────────────────────────────
 
-const Settings = require('../../models/Settings');
-const { seedDefaults, loadDefaults } = require('../../scripts/seed-defaults');
+let Settings, seedDefaults, loadDefaults;
 
 describe('seedDefaults', () => {
-  beforeAll(() => db.connect());
+  beforeAll(async () => {
+    Settings = (await import('../../models/Settings.js')).default;
+    const seedModule = await import('../../scripts/seed-defaults.js');
+    seedDefaults = seedModule.seedDefaults;
+    loadDefaults = seedModule.loadDefaults;
+    await db.connect();
+  });
   afterAll(() => db.disconnect());
   beforeEach(() => db.clearAll());
   it('populates empty settings from YAML on first call', async () => {
@@ -404,8 +430,12 @@ describe('seedDefaults', () => {
 
 // ─── admin searchProjects ─────────────────────────────────────────────────
 
+let adminCtrl;
+
 describe('admin searchProjects()', () => {
-  const adminCtrl = require('../../controllers/admin');
+  beforeAll(async () => {
+    adminCtrl = await import('../../controllers/admin.js');
+  });
 
   function makeReq(overrides = {}) {
     return { user: { _id: new mongoose.Types.ObjectId(), role: 'admin' }, params: {}, body: {}, query: {}, headers: {}, flash: jest.fn(), ...overrides };

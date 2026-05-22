@@ -1,7 +1,7 @@
 /**
  * Flash message middleware — attaches req.flash() and res.locals.messages
  */
-exports.flash = () => (req, res, next) => {
+export const flash = () => (req, res, next) => {
   if (!req.session) return next();
 
   if (!req.session.flash) req.session.flash = {};
