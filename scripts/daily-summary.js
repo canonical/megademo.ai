@@ -3,7 +3,6 @@
  * Called by the node-cron scheduler in app.js, or run standalone:
  *   node scripts/daily-summary.js
  */
-import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project.js';
@@ -11,7 +10,6 @@ import Vote from '../models/Vote.js';
 import { postHourlySummary } from '../services/mattermost.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 async function runSummary(baseUrl) {
   const [
