@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Canonical AI Hackathon — MegaDemo.ai project showcase",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "scss": "sass --no-source-map --silence-deprecation=import --quiet-deps --load-path=./ --update ./public/css:./public/css",
     "start": "npm run scss && node app.js",
