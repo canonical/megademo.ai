@@ -1,7 +1,7 @@
 /**
  * Activity log service — fire-and-forget helper for recording user actions.
  */
-const ActivityLog = require('../models/ActivityLog');
+import ActivityLog from '../models/ActivityLog.js';
 
 /**
  * Strip control characters (newlines, tabs, etc.) from a string so that
@@ -30,4 +30,4 @@ async function logActivity(userEmail, action) {
   }
 }
 
-module.exports = { logActivity };
+export { logActivity };

@@ -1,8 +1,8 @@
 /**
  * Mattermost webhook integration
  */
-const axios = require('axios');
-const Settings = require('../models/Settings');
+import axios from 'axios';
+import Settings from '../models/Settings.js';
 
 /** Escape markdown special chars in user-supplied content for Mattermost webhooks */
 function esc(str) {
@@ -138,7 +138,7 @@ async function postHourlySummary({ finalists, teams, votes, topProjects, perfect
   ].join('\n'));
 }
 
-module.exports = {
+export {
   notifyProjectSubmitted,
   notifyFinalistPromoted,
   recordVotingMilestone,

@@ -2,7 +2,7 @@
  * Magic-bytes image type verification.
  * Shared by controllers/project.js and controllers/admin.js.
  */
-const fs = require('node:fs');
+import fs from 'node:fs';
 
 /**
  * Verify an uploaded file's actual content type using magic bytes.
@@ -31,4 +31,4 @@ async function verifyImageMagicBytes(file, allowedMimes, errorMsg) {
   }
 }
 
-module.exports = { verifyImageMagicBytes };
+export { verifyImageMagicBytes };
