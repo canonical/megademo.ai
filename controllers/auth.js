@@ -254,28 +254,32 @@ export const devLogin = async (req, res, next) => {
  * GET /auth/oidc — initiate OIDC Authorization Code flow with PKCE
  */
 export const oidcLogin = async (req, res, next) => {
-  const config = getOidcConfig();
-  if (!config) return next(new Error('OIDC not configured — OIDC_ISSUER_URL is not set.'));
+  try {
+    const config = getOidcConfig();
+    if (!config) return next(new Error('OIDC not configured — OIDC_ISSUER_URL is not set.'));
 
-  const state         = randomState();
-  const nonce         = randomNonce();
-  const codeVerifier  = randomPKCECodeVerifier();
-  const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
+    const state         = randomState();
+    const nonce         = randomNonce();
+    const codeVerifier  = randomPKCECodeVerifier();
+    const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
 
-  // Persist PKCE params in session for the callback
-  req.session.oidcParams = { state, nonce, codeVerifier };
+    // Persist PKCE params in session for the callback
+    req.session.oidcParams = { state, nonce, codeVerifier };
 
-  const redirectUri = `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`;
-  const url = buildAuthorizationUrl(config, new URLSearchParams({
-    redirect_uri:          redirectUri,
-    scope:                 'openid profile email',
-    state,
-    nonce,
-    code_challenge:        codeChallenge,
-    code_challenge_method: 'S256',
-  }));
+    const redirectUri = `${(process.env.BASE_URL || '').replace(/\/+$/, '')}/auth/oidc/callback`;
+    const url = buildAuthorizationUrl(config, new URLSearchParams({
+      redirect_uri:          redirectUri,
+      scope:                 'openid profile email',
+      state,
+      nonce,
+      code_challenge:        codeChallenge,
+      code_challenge_method: 'S256',
+    }));
 
-  res.redirect(url.href);
+    res.redirect(url.href);
+  } catch (err) {
+    next(err);
+  }
 };
 
 /**
