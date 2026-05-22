@@ -3,10 +3,15 @@
  * Called by the node-cron scheduler in app.js, or run standalone:
  *   node scripts/daily-summary.js
  */
-const mongoose = require('mongoose');
-const { Project } = require('../models/Project');
-const Vote = require('../models/Vote');
-const { postHourlySummary } = require('../services/mattermost');
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import mongoose from 'mongoose';
+import { Project } from '../models/Project.js';
+import Vote from '../models/Vote.js';
+import { postHourlySummary } from '../services/mattermost.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function runSummary(baseUrl) {
   const [
@@ -53,7 +58,7 @@ async function runSummary(baseUrl) {
 }
 
 // Allow standalone execution
-if (require.main === module) {
+if (process.argv[1] === __filename) {
   try { process.loadEnvFile('.env'); } catch { /* .env optional */ }
 
   mongoose
@@ -63,4 +68,4 @@ if (require.main === module) {
     .catch((err) => { console.error('Daily summary failed:', err.message); process.exit(1); });
 }
 
-module.exports = { runSummary };
+export { runSummary };

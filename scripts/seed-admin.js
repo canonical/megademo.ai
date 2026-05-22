@@ -2,8 +2,8 @@
  * Seed script — promote a user to admin
  * Usage: ADMIN_EMAIL=your@canonical.com node scripts/seed-admin.js
  */
-const mongoose = require('mongoose');
-const User = require('../models/User');
+import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 // Load .env first so ADMIN_EMAIL and MONGODB_URI can come from it
 try {

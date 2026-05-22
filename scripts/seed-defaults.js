@@ -8,10 +8,16 @@
  * Can also be run standalone:
  *   node scripts/seed-defaults.js
  */
-const path = require('path');
-const fs = require('fs');
-const yaml = require('js-yaml');
-const Settings = require('../models/Settings');
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+import yaml from 'js-yaml';
+import mongoose from 'mongoose';
+import Settings from '../models/Settings.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const DEFAULTS_PATH = path.join(__dirname, '../config/defaults.yml');
 
@@ -40,11 +46,10 @@ async function seedDefaults() {
   ]);
 }
 
-module.exports = { seedDefaults, loadDefaults };
+export { seedDefaults, loadDefaults };
 
 // Allow standalone execution
-if (require.main === module) {
-  const mongoose = require('mongoose');
+if (process.argv[1] === __filename) {
   try { process.loadEnvFile('.env'); } catch { /* .env optional; requires Node 20.12+ */ }
 
   mongoose

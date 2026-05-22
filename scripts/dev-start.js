@@ -2,8 +2,8 @@
 /**
  * Dev start: launches an in-memory MongoDB, sets MONGODB_URI, then starts app.js
  */
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const { spawn } = require('child_process');
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { spawn } from 'node:child_process';
 
 // Load .env before setting any fallbacks so user values take precedence.
 try {
