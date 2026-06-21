@@ -34,7 +34,7 @@
     "marked": "^18.0.4",
     "mongoose": "^9.4.1",
     "morgan": "^1.10.1",
-    "multer": "^2.1.1",
+    "multer": "^2.2.0",
     "node-cron": "^4.2.1",
     "openid-client": "^6.8.4",
     "passport": "^0.7.0",
@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "artillery": "^2.0.30",
+    "artillery": "^2.0.33",
     "eslint": "^10.2.0",
     "globals": "^17.0.0",
     "husky": "^9.1.7",
