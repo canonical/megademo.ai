@@ -12,7 +12,7 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import mongoose from 'mongoose';
 import Settings from '../models/Settings.js';
 
@@ -23,7 +23,7 @@ const DEFAULTS_PATH = path.join(__dirname, '../config/defaults.yml');
 
 function loadDefaults() {
   const raw = fs.readFileSync(DEFAULTS_PATH, 'utf8');
-  return yaml.load(raw);
+  return load(raw);
 }
 
 /**
