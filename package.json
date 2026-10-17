@@ -20,7 +20,7 @@
     "axios": "^1.15.2",
     "bootstrap": "^5.3.8",
     "chart.js": "^4.5.1",
-    "compression": "^1.8.1",
+    "compression": "^1.8.2",
     "connect-mongo": "^6.0.0",
     "errorhandler": "^1.5.2",
     "express": "^5.2.1",
