@@ -60,7 +60,7 @@
   "overrides": {
     "uuid": "^14.0.0",
     "fast-xml-parser": "^5.7.2",
-    "body-parser": "^2.3.0",
+    "body-parser": "^2.4.0",
     "immutable": "^5.1.9",
     "postcss": "^8.5.23",
     "nanoid": "^6.0.0"
