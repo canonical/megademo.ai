@@ -16,7 +16,7 @@ import helmet from 'helmet';
 import { MongoStore } from 'connect-mongo';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import morgan from 'morgan';
 import { flash } from './config/flash.js';
 import { marked } from 'marked';
@@ -120,7 +120,7 @@ const voteLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+  keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req.ip),
   message: { error: 'Too many votes — please slow down.' },
 });
 
