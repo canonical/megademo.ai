@@ -1,5 +1,22 @@
 # MegaDemo.ai
 
+> [!WARNING]
+> **This project is archived (October 2026).** The Canonical AI Hackathon has
+> concluded and the live service has been switched off.
+>
+> **[megademo.ai](https://megademo.ai)** now serves only a frozen, read-only
+> snapshot of the homepage — kept on the `gh-pages` branch of this repository.
+> Nothing on that page is live: sign-in, project registration, voting and
+> browsing are no longer possible.
+>
+> The final state of the platform was preserved in an **offline archive**
+> (MongoDB dump, all uploaded files, and the data of the
+> [canonical/megademo-projects](https://github.com/canonical/megademo-projects)
+> companion repo) together with step-by-step unarchive instructions.
+> Restoring the project is fully documented and supported by that archive;
+> unarchive this repository and follow the instructions to bring MegaDemo.ai
+> back.
+
 [![CI](https://github.com/canonical/megademo.ai/actions/workflows/ci.yml/badge.svg)](https://github.com/canonical/megademo.ai/actions/workflows/ci.yml)
 
 Internal Canonical AI Hackathon showcase platform — register projects, vote, and compete for a spot at the MegaDemo.
